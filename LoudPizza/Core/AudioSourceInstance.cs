@@ -3,7 +3,7 @@
 namespace LoudPizza
 {
     // Base class for audio instances
-    public abstract unsafe class AudioSourceInstance : IDisposable
+    public abstract unsafe class AudioSourceInstance : IAudioStream, IDisposable
     {
         [Flags]
         public enum FLAGS

@@ -2,12 +2,12 @@
 
 namespace LoudPizza
 {
-    public unsafe class WavInstance : AudioSourceInstance
+    public unsafe class AudioBufferInstance : AudioSourceInstance
     {
-        protected Wav mParent;
+        protected AudioBuffer mParent;
         protected uint mOffset;
 
-        public WavInstance(Wav aParent)
+        public AudioBufferInstance(AudioBuffer aParent)
         {
             mParent = aParent;
             mOffset = 0;

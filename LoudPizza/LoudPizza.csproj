@@ -10,4 +10,10 @@
     <DefineConstants>SSE_INTRINSICS</DefineConstants>
   </PropertyGroup>
 
+  <ItemGroup>
+    <Compile Include="..\NLayer\NLayer\**\*.cs"
+             Exclude="..\NLayer\NLayer\obj\**\*.cs"
+             LinkBase="NLayer" />
+  </ItemGroup>
+
 </Project>

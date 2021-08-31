@@ -1,7 +1,7 @@
 ﻿
 namespace LoudPizza
 {
-    public unsafe class Wav : AudioSource
+    public unsafe class AudioBuffer : AudioSource
     {
         //result loadwav(MemoryFile* aReader);
         //result loadogg(MemoryFile* aReader);
@@ -12,7 +12,7 @@ namespace LoudPizza
         public float[] mData;
         public uint mSampleCount;
 
-        public Wav()
+        public AudioBuffer()
         {
         }
 
@@ -74,9 +74,9 @@ namespace LoudPizza
             return SOLOUD_ERRORS.SO_NO_ERROR;
         }
 
-        public override WavInstance createInstance()
+        public override AudioBufferInstance createInstance()
         {
-            return new WavInstance(this);
+            return new AudioBufferInstance(this);
         }
 
         public Time getLength()
