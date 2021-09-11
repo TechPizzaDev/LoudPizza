@@ -11,9 +11,7 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <Compile Include="..\NLayer\NLayer\**\*.cs"
-             Exclude="..\NLayer\NLayer\obj\**\*.cs"
-             LinkBase="NLayer" />
+    <ProjectReference Include="..\NLayer\NLayer\NLayer.csproj" />
   </ItemGroup>
 
 </Project>

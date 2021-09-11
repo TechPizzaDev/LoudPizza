@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Runtime.CompilerServices;
 using NLayer;
 
 namespace LoudPizza
@@ -7,7 +8,6 @@ namespace LoudPizza
     {
         protected Mp3Stream mParent;
         private MpegFile _mpegFile;
-        protected uint mOffset;
         private bool _endOfStream;
 
         public Mp3StreamInstance(Mp3Stream parent, MpegFile mpegFile)
@@ -16,6 +16,7 @@ namespace LoudPizza
             _mpegFile = mpegFile ?? throw new ArgumentNullException(nameof(mpegFile));
         }
 
+        [SkipLocalsInit]
         public override uint getAudio(float* aBuffer, uint aSamplesToRead, uint aBufferSize)
         {
             float* localBuffer = stackalloc float[1024];
@@ -43,19 +44,46 @@ namespace LoudPizza
                 }
             }
 
-            mOffset += elements;
             return elements;
         }
 
-        public override unsafe SOLOUD_ERRORS seek(Time aSeconds, float* mScratch, uint mScratchSize)
+        public override SOLOUD_ERRORS seek(ulong aSamplePosition, float* mScratch, uint mScratchSize)
         {
-            return base.seek(aSeconds, mScratch, mScratchSize);
+            long offset = (long)(aSamplePosition - mStreamPosition);
+            if (offset <= 0)
+            {
+                if (rewind() != SOLOUD_ERRORS.SO_NO_ERROR)
+                {
+                    // can't do generic seek backwards unless we can rewind.
+                    return SOLOUD_ERRORS.NOT_IMPLEMENTED;
+                }
+                offset = (long)aSamplePosition;
+            }
+            ulong samples_to_discard = (ulong)offset;
+
+            while (samples_to_discard != 0)
+            {
+                uint samples = mScratchSize / mChannels;
+                if (samples > samples_to_discard)
+                    samples = (uint)samples_to_discard;
+
+                uint read = getAudio(mScratch, samples, samples);
+                if (read == 0)
+                    break;
+                samples_to_discard -= read;
+            }
+
+            mStreamPosition += (ulong)offset;
+
+            return SOLOUD_ERRORS.SO_NO_ERROR;
         }
 
-        public override SOLOUD_ERRORS rewind()
+        private SOLOUD_ERRORS rewind()
         {
             if (!_mpegFile.CanSeek)
                 return SOLOUD_ERRORS.NOT_IMPLEMENTED;
+
+            mStreamPosition = 0;
 
             _endOfStream = false;
             _mpegFile.Position = 0;

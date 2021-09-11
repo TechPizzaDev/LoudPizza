@@ -72,7 +72,7 @@ namespace LoudPizza
         public int mColliderData;
 
         // When looping, start playing from this time
-        public Time mLoopPoint;
+        public ulong mLoopPoint;
 
         // CTor
         public AudioSource()
@@ -216,13 +216,13 @@ namespace LoudPizza
         }
 
         // Set time to jump to when looping
-        public void setLoopPoint(Time aLoopPoint)
+        public void setLoopPoint(ulong aLoopPoint)
         {
             mLoopPoint = aLoopPoint;
         }
 
         // Get current loop point value
-        public Time getLoopPoint()
+        public ulong getLoopPoint()
         {
             return mLoopPoint;
         }

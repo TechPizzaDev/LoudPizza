@@ -319,47 +319,9 @@ namespace LoudPizza
             return mStream.getAudio(aBuffer, aSamplesToRead, aBufferSize);
         }
 
-        public override unsafe SOLOUD_ERRORS seek(Time aSeconds, float* mScratch, uint mScratchSize)
+        public override unsafe SOLOUD_ERRORS seek(ulong aSamplePosition, float* mScratch, uint mScratchSize)
         {
-            return mStream.seek(aSeconds, mScratch, mScratchSize);
-        }
-
-        public override SOLOUD_ERRORS rewind()
-        {
-            //switch (mParent.mFiletype)
-            //{
-            //    case WAVSTREAM_OGG:
-            //        if (mCodec.mOgg)
-            //        {
-            //            stb_vorbis_seek_start(mCodec.mOgg);
-            //        }
-            //        break;
-            //
-            //    case WAVSTREAM_FLAC:
-            //        if (mCodec.mFlac)
-            //        {
-            //            drflac_seek_to_pcm_frame(mCodec.mFlac, 0);
-            //        }
-            //        break;
-            //
-            //    case WAVSTREAM_MP3:
-            //        if (mCodec.mMp3)
-            //        {
-            //            drmp3_seek_to_pcm_frame(mCodec.mMp3, 0);
-            //        }
-            //        break;
-            //
-            //    case WAVSTREAM_WAV:
-            //        if (mCodec.mWav)
-            //        {
-            //            drwav_seek_to_pcm_frame(mCodec.mWav, 0);
-            //        }
-            //        break;
-            //}
-            //mOffset = 0;
-            //mStreamPosition = 0.0f;
-            //return 0;
-            return mStream.rewind();
+            return mStream.seek(aSamplePosition, mScratch, mScratchSize);
         }
 
         public override bool hasEnded()

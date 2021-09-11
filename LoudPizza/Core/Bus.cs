@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Runtime.CompilerServices;
 
 namespace LoudPizza
 {
@@ -171,12 +172,14 @@ namespace LoudPizza
         }
 
         // Calculate and get 256 floats of FFT data for visualization. Visualization has to be enabled before use.
-        public void calcFFT(ref Buffer256 data)
+        [SkipLocalsInit]
+        public void calcFFT(out Buffer256 data)
         {
+            float* temp = stackalloc float[1024];
+
             if (mInstance != null && mSoloud != null)
             {
                 mSoloud.lockAudioMutex_internal();
-                float* temp = stackalloc float[1024];
                 int i;
                 for (i = 0; i < 256; i++)
                 {
@@ -199,15 +202,17 @@ namespace LoudPizza
         }
 
         // Get 256 floats of wave data for visualization. Visualization has to be enabled before use.
-        public void getWave(ref Buffer256 data)
+        public void getWave(out Buffer256 data)
         {
             if (mInstance != null && mSoloud != null)
             {
-                int i;
                 mSoloud.lockAudioMutex_internal();
-                for (i = 0; i < 256; i++)
-                    data[i] = mInstance.mVisualizationWaveData[i];
+                data = mInstance.mVisualizationWaveData;
                 mSoloud.unlockAudioMutex_internal();
+            }
+            else
+            {
+                data = default;
             }
         }
 
@@ -224,6 +229,19 @@ namespace LoudPizza
                 mSoloud.unlockAudioMutex_internal();
             }
             return vol;
+        }
+
+        // Get approximate volumes for all output channels for visualization. Visualization has to be enabled before use.
+        public ChannelBuffer getApproximateVolumes()
+        {
+            ChannelBuffer buffer = default;
+            if (mInstance != null && mSoloud != null)
+            {
+                mSoloud.lockAudioMutex_internal();
+                buffer = mInstance.mVisualizationChannelVolume;
+                mSoloud.unlockAudioMutex_internal();
+            }
+            return buffer;
         }
 
         // Get number of immediate child voices to this bus

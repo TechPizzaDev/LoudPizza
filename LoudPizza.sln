@@ -5,6 +5,8 @@ VisualStudioVersion = 16.0.31402.337
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "LoudPizza", "LoudPizza\LoudPizza.csproj", "{9A77CC06-8F59-4C6F-A4D0-DB996ED6D702}"
 EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "NLayer", "NLayer\NLayer\NLayer.csproj", "{32072E1B-257A-425E-886A-E91EC1DB4F57}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -15,6 +17,10 @@ Global
 		{9A77CC06-8F59-4C6F-A4D0-DB996ED6D702}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{9A77CC06-8F59-4C6F-A4D0-DB996ED6D702}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{9A77CC06-8F59-4C6F-A4D0-DB996ED6D702}.Release|Any CPU.Build.0 = Release|Any CPU
+		{32072E1B-257A-425E-886A-E91EC1DB4F57}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{32072E1B-257A-425E-886A-E91EC1DB4F57}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{32072E1B-257A-425E-886A-E91EC1DB4F57}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{32072E1B-257A-425E-886A-E91EC1DB4F57}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

@@ -11,8 +11,6 @@ namespace LoudPizza
         bool hasEnded();
 
         // Seek to certain place in the stream. Base implementation is generic "tape" seek (and slow).
-        SOLOUD_ERRORS seek(Time aSeconds, float* mScratch, uint mScratchSize);
-
-        SOLOUD_ERRORS rewind();
+        SOLOUD_ERRORS seek(ulong aSamplePosition, float* mScratch, uint mScratchSize);
     }
 }

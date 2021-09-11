@@ -306,7 +306,7 @@ namespace LoudPizza
         }
 
         // Set voice loop point value
-        public void setLoopPoint(Handle aVoiceHandle, Time aLoopPoint)
+        public void setLoopPoint(Handle aVoiceHandle, ulong aLoopPoint)
         {
             void body(Handle h)
             {

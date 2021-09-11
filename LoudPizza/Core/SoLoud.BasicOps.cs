@@ -117,7 +117,7 @@ namespace LoudPizza
         }
 
         // Seek the audio stream to certain point in time. Some streams can't seek backwards. Relative play speed affects time.
-        public SOLOUD_ERRORS seek(Handle aVoiceHandle, Time aSeconds)
+        public SOLOUD_ERRORS seek(Handle aVoiceHandle, ulong aSamplePosition)
         {
             SOLOUD_ERRORS res = SOLOUD_ERRORS.SO_NO_ERROR;
 
@@ -126,7 +126,7 @@ namespace LoudPizza
                 AudioSourceInstance? ch = getVoiceRefFromHandle_internal(h);
                 if (ch != null)
                 {
-                    SOLOUD_ERRORS singleres = ch.seek(aSeconds, mScratch.mData, mScratchSize);
+                    SOLOUD_ERRORS singleres = ch.seek(aSamplePosition, mScratch.mData, mScratchSize);
                     if (singleres != SOLOUD_ERRORS.SO_NO_ERROR)
                         res = singleres;
                 }

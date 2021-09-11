@@ -256,8 +256,8 @@ namespace LoudPizza
             return v;
         }
 
-        // Get current sample position, in seconds.
-        public Time getStreamPosition(Handle aVoiceHandle)
+        // Get current stream position in samples.
+        public ulong getStreamSamplePosition(Handle aVoiceHandle)
         {
             lockAudioMutex_internal();
             AudioSourceInstance? ch = getVoiceRefFromHandle_internal(aVoiceHandle);
@@ -266,9 +266,25 @@ namespace LoudPizza
                 unlockAudioMutex_internal();
                 return 0;
             }
-            double v = ch.mStreamPosition;
+            ulong v = ch.mStreamPosition;
             unlockAudioMutex_internal();
             return v;
+        }
+
+        // Get current stream position in seconds.
+        public Time getStreamTimePosition(Handle aVoiceHandle)
+        {
+            lockAudioMutex_internal();
+            AudioSourceInstance? ch = getVoiceRefFromHandle_internal(aVoiceHandle);
+            if (ch == null)
+            {
+                unlockAudioMutex_internal();
+                return 0;
+            }
+            ulong pos = ch.mStreamPosition;
+            float rate = ch.mSamplerate;
+            unlockAudioMutex_internal();
+            return pos / (double)rate;
         }
 
         // Get current relative play speed.

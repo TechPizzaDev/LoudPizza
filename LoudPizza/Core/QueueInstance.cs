@@ -39,9 +39,14 @@ namespace LoudPizza
             return copyofs;
         }
 
+        public override unsafe SOLOUD_ERRORS seek(ulong aSamplePosition, float* mScratch, uint mScratchSize)
+        {
+            return SOLOUD_ERRORS.NOT_IMPLEMENTED;
+        }
+
         public override bool hasEnded()
         {
             return mLoopCount != 0 && mParent.mCount == 0;
         }
-    };
+    }
 }

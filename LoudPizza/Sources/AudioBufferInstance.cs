@@ -36,41 +36,26 @@ namespace LoudPizza
             return copylen;
         }
 
-        public override SOLOUD_ERRORS rewind()
-        {
-            mOffset = 0;
-            mStreamPosition = 0.0f;
-            return SOLOUD_ERRORS.SO_NO_ERROR;
-        }
-
         // Seek to certain place in the stream. Base implementation is generic "tape" seek (and slow).
-        public override SOLOUD_ERRORS seek(Time aSeconds, float* mScratch, uint mScratchSize)
+        public override SOLOUD_ERRORS seek(ulong aSamplePosition, float* mScratch, uint mScratchSize)
         {
-            if (mParent.mData == null)
-                return SOLOUD_ERRORS.SO_NO_ERROR;
-            if (aSeconds < 0)
-                return SOLOUD_ERRORS.INVALID_PARAMETER;
-
-            Time offset = aSeconds - mStreamPosition;
+            long offset = (long)(aSamplePosition - mStreamPosition);
             if (offset <= 0)
             {
-                if (rewind() != SOLOUD_ERRORS.SO_NO_ERROR)
-                {
-                    // can't do generic seek backwards unless we can rewind.
-                    return SOLOUD_ERRORS.NOT_IMPLEMENTED;
-                }
-                offset = aSeconds;
+                mOffset = 0;
+                mStreamPosition = 0;
+                offset = (long)aSamplePosition;
             }
-            uint samples_to_discard = (uint)Math.Floor(mSamplerate * offset);
+            ulong samples_to_discard = (ulong)offset;
 
             uint dataleft = mParent.mSampleCount - mOffset;
             uint copylen = dataleft;
             if (copylen > samples_to_discard)
-                copylen = samples_to_discard;
+                copylen = (uint)samples_to_discard;
 
             mOffset += copylen;
+            mStreamPosition += copylen;
 
-            mStreamPosition = offset;
             return SOLOUD_ERRORS.SO_NO_ERROR;
         }
 

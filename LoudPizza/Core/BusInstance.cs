@@ -84,6 +84,11 @@ namespace LoudPizza
             return aSamplesToRead;
         }
 
+        public override SOLOUD_ERRORS seek(ulong aSamplePosition, float* mScratch, uint mScratchSize)
+        {
+            return SOLOUD_ERRORS.NOT_IMPLEMENTED;
+        }
+
         public override bool hasEnded()
         {
             // Busses never stop for fear of going under 50mph.

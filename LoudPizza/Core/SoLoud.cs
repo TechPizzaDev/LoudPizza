@@ -219,18 +219,17 @@ namespace LoudPizza
         [SkipLocalsInit]
         public void calcFFT(out Buffer256 buffer)
         {
-            lockAudioMutex_internal();
-            Buffer256 visCopy = mVisualizationWaveData;
-            unlockAudioMutex_internal();
-
             float* temp = stackalloc float[1024];
+
+            lockAudioMutex_internal();
             for (int i = 0; i < 256; i++)
             {
-                temp[i * 2] = visCopy[i];
+                temp[i * 2] = mVisualizationWaveData[i];
                 temp[i * 2 + 1] = 0;
                 temp[i + 512] = 0;
                 temp[i + 768] = 0;
             }
+            unlockAudioMutex_internal();
 
             FFT.fft1024(temp);
 
@@ -317,7 +316,7 @@ namespace LoudPizza
                     }
 
                     voice.mStreamTime += buffertime;
-                    voice.mStreamPosition += buffertime * (double)voice.mOverallRelativePlaySpeed;
+                    voice.mStreamPosition += (ulong)(aSamples * (double)voice.mOverallRelativePlaySpeed);
 
                     // TODO: this is actually unstable, because mStreamTime depends on the relative
                     // play speed. 
@@ -525,6 +524,7 @@ namespace LoudPizza
         }
 
         // Update list of active voices
+        [SkipLocalsInit]
         internal void calcActiveVoices_internal()
         {
             // TODO: consider whether we need to re-evaluate the active voices all the time.
@@ -623,6 +623,7 @@ namespace LoudPizza
         }
 
         // Map resample buffers to active voices
+        [SkipLocalsInit]
         internal void mapResampleBuffers_internal()
         {
             Debug.Assert(mMaxActiveVoices < 256);
@@ -646,8 +647,8 @@ namespace LoudPizza
                 AudioSourceInstance? owner = mResampleDataOwner[i];
                 if ((live[i] & 1) == 0 && owner != null) // For all dead channels with owners..
                 {
-                    owner.mResampleData[0].destroy();
-                    owner.mResampleData[1].destroy();
+                    owner.mResampleData0.destroy();
+                    owner.mResampleData1.destroy();
                     mResampleDataOwner[i] = null;
                 }
             }
@@ -670,10 +671,10 @@ namespace LoudPizza
                         }
                         Debug.Assert(found != -1);
                         mResampleDataOwner[found] = foundInstance;
-                        foundInstance.mResampleData[0] = mResampleData[found * 2 + 0];
-                        foundInstance.mResampleData[1] = mResampleData[found * 2 + 1];
-                        foundInstance.mResampleData[0].clear();
-                        foundInstance.mResampleData[1].clear();
+                        foundInstance.mResampleData0 = mResampleData[found * 2 + 0];
+                        foundInstance.mResampleData1 = mResampleData[found * 2 + 1];
+                        foundInstance.mResampleData0.clear();
+                        foundInstance.mResampleData1.clear();
                         latestfree = found + 1;
                     }
                 }
@@ -736,16 +737,16 @@ namespace LoudPizza
                         if (voice.mLeftoverSamples == 0)
                         {
                             // Swap resample buffers (ping-pong)
-                            var t = voice.mResampleData[0];
-                            voice.mResampleData[0] = voice.mResampleData[1];
-                            voice.mResampleData[1] = t;
+                            AlignedFloatBuffer t = voice.mResampleData0;
+                            voice.mResampleData0 = voice.mResampleData1;
+                            voice.mResampleData1 = t;
 
                             // Get a block of source data
 
                             uint readcount = 0;
                             if (!voice.hasEnded() || (voice.mFlags & AudioSourceInstance.FLAGS.LOOPING) != 0)
                             {
-                                readcount = voice.getAudio(voice.mResampleData[0].mData, SAMPLE_GRANULARITY, SAMPLE_GRANULARITY);
+                                readcount = voice.getAudio(voice.mResampleData0.mData, SAMPLE_GRANULARITY, SAMPLE_GRANULARITY);
                                 if (readcount < SAMPLE_GRANULARITY)
                                 {
                                     if ((voice.mFlags & AudioSourceInstance.FLAGS.LOOPING) != 0)
@@ -755,7 +756,7 @@ namespace LoudPizza
                                             voice.seek(voice.mLoopPoint, mScratch.mData, mScratchSize) == SOLOUD_ERRORS.SO_NO_ERROR)
                                         {
                                             voice.mLoopCount++;
-                                            uint inc = voice.getAudio(voice.mResampleData[0].mData + readcount, SAMPLE_GRANULARITY - readcount, SAMPLE_GRANULARITY);
+                                            uint inc = voice.getAudio(voice.mResampleData0.mData + readcount, SAMPLE_GRANULARITY - readcount, SAMPLE_GRANULARITY);
                                             readcount += inc;
                                             if (inc == 0)
                                                 break;
@@ -769,7 +770,7 @@ namespace LoudPizza
                             {
                                 uint k;
                                 for (k = 0; k < voice.mChannels; k++)
-                                    CRuntime.memset(voice.mResampleData[0].mData + readcount + SAMPLE_GRANULARITY * k, 0, sizeof(float) * (SAMPLE_GRANULARITY - readcount));
+                                    CRuntime.memset(voice.mResampleData0.mData + readcount + SAMPLE_GRANULARITY * k, 0, sizeof(float) * (SAMPLE_GRANULARITY - readcount));
                             }
 
                             // If we go past zero, crop to zero (a bit of a kludge)
@@ -792,7 +793,7 @@ namespace LoudPizza
                                 if (instance != null)
                                 {
                                     instance.filter(
-                                        voice.mResampleData[0].mData,
+                                        voice.mResampleData0.mData,
                                         SAMPLE_GRANULARITY,
                                         SAMPLE_GRANULARITY,
                                         voice.mChannels,
@@ -837,8 +838,8 @@ namespace LoudPizza
                                 {
                                     case RESAMPLER.RESAMPLER_POINT:
                                         resample_point(
-                                            voice.mResampleData[0].mData + SAMPLE_GRANULARITY * j,
-                                            voice.mResampleData[1].mData + SAMPLE_GRANULARITY * j,
+                                            voice.mResampleData0.mData + SAMPLE_GRANULARITY * j,
+                                            voice.mResampleData1.mData + SAMPLE_GRANULARITY * j,
                                             aScratch + aBufferSize * j + outofs,
                                             (int)voice.mSrcOffset,
                                             (int)writesamples,
@@ -849,8 +850,8 @@ namespace LoudPizza
 
                                     case RESAMPLER.RESAMPLER_CATMULLROM:
                                         resample_catmullrom(
-                                            voice.mResampleData[0].mData + SAMPLE_GRANULARITY * j,
-                                            voice.mResampleData[1].mData + SAMPLE_GRANULARITY * j,
+                                            voice.mResampleData0.mData + SAMPLE_GRANULARITY * j,
+                                            voice.mResampleData1.mData + SAMPLE_GRANULARITY * j,
                                             aScratch + aBufferSize * j + outofs,
                                             (int)voice.mSrcOffset,
                                             (int)writesamples,
@@ -862,8 +863,8 @@ namespace LoudPizza
                                     default:
                                         //case RESAMPLER.RESAMPLER_LINEAR:
                                         resample_linear(
-                                            voice.mResampleData[0].mData + SAMPLE_GRANULARITY * j,
-                                            voice.mResampleData[1].mData + SAMPLE_GRANULARITY * j,
+                                            voice.mResampleData0.mData + SAMPLE_GRANULARITY * j,
+                                            voice.mResampleData1.mData + SAMPLE_GRANULARITY * j,
                                             aScratch + aBufferSize * j + outofs,
                                             (int)voice.mSrcOffset,
                                             (int)writesamples,
@@ -923,16 +924,16 @@ namespace LoudPizza
                         if (voice.mLeftoverSamples == 0)
                         {
                             // Swap resample buffers (ping-pong)
-                            var t = voice.mResampleData[0];
-                            voice.mResampleData[0] = voice.mResampleData[1];
-                            voice.mResampleData[1] = t;
+                            AlignedFloatBuffer t = voice.mResampleData0;
+                            voice.mResampleData0 = voice.mResampleData1;
+                            voice.mResampleData1 = t;
 
                             // Get a block of source data
 
                             uint readcount = 0;
                             if (!voice.hasEnded() || (voice.mFlags & AudioSourceInstance.FLAGS.LOOPING) != 0)
                             {
-                                readcount = voice.getAudio(voice.mResampleData[0].mData, SAMPLE_GRANULARITY, SAMPLE_GRANULARITY);
+                                readcount = voice.getAudio(voice.mResampleData0.mData, SAMPLE_GRANULARITY, SAMPLE_GRANULARITY);
                                 if (readcount < SAMPLE_GRANULARITY)
                                 {
                                     if ((voice.mFlags & AudioSourceInstance.FLAGS.LOOPING) != 0)
@@ -942,7 +943,7 @@ namespace LoudPizza
                                             voice.seek(voice.mLoopPoint, mScratch.mData, mScratchSize) == SOLOUD_ERRORS.SO_NO_ERROR)
                                         {
                                             voice.mLoopCount++;
-                                            readcount += voice.getAudio(voice.mResampleData[0].mData + readcount, SAMPLE_GRANULARITY - readcount, SAMPLE_GRANULARITY);
+                                            readcount += voice.getAudio(voice.mResampleData0.mData + readcount, SAMPLE_GRANULARITY - readcount, SAMPLE_GRANULARITY);
                                         }
                                     }
                                 }
@@ -979,7 +980,6 @@ namespace LoudPizza
                             if (((writesamples * step_fixed + voice.mSrcOffset) >> FIXPOINT_FRAC_BITS) >= SAMPLE_GRANULARITY)
                                 writesamples--;
                         }
-
 
                         // If this is too much for our output buffer, don't write that many:
                         if (writesamples + outofs > aSamplesToRead)

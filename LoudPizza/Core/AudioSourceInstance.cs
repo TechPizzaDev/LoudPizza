@@ -45,7 +45,6 @@ namespace LoudPizza
             mSamplerate = 44100.0f;
             mSetRelativePlaySpeed = 1.0f;
             mStreamTime = 0.0f;
-            mStreamPosition = 0.0f;
             mAudioSourceID = 0;
             mActiveFader = 0;
             mChannels = 1;
@@ -58,8 +57,8 @@ namespace LoudPizza
             }
             mCurrentChannelVolume = default;
             // behind pointers because we swap between the two buffers
-            mResampleData[0] = default;
-            mResampleData[1] = default;
+            mResampleData0 = default;
+            mResampleData1 = default;
             mSrcOffset = 0;
             mLeftoverSamples = 0;
             mDelaySamples = 0;
@@ -106,8 +105,8 @@ namespace LoudPizza
         // How long this stream has played, in seconds.
         public Time mStreamTime;
 
-        // Position of this stream, in seconds.
-        public Time mStreamPosition;
+        // Position of this stream, in samples.
+        public ulong mStreamPosition;
 
         // Fader for the audio panning
         public Fader mPanFader;
@@ -147,7 +146,7 @@ namespace LoudPizza
             mSamplerate = mBaseSamplerate;
             mChannels = aSource.mChannels;
             mStreamTime = 0.0f;
-            mStreamPosition = 0.0f;
+            mStreamPosition = 0;
             mLoopPoint = aSource.mLoopPoint;
 
             if ((aSource.mFlags & AudioSource.FLAGS.SHOULD_LOOP) != 0)
@@ -177,7 +176,8 @@ namespace LoudPizza
         }
 
         // Pointers to buffers for the resampler
-        public AlignedFloatBuffer[] mResampleData = new AlignedFloatBuffer[2];
+        public AlignedFloatBuffer mResampleData0;
+        public AlignedFloatBuffer mResampleData1;
 
         // Sub-sample playhead; 16.16 fixed point
         public uint mSrcOffset;
@@ -189,7 +189,7 @@ namespace LoudPizza
         public uint mDelaySamples;
 
         // When looping, start playing from this time
-        public Time mLoopPoint;
+        public ulong mLoopPoint;
 
         // Get N samples from the stream to the buffer. Report samples written.
         public abstract uint getAudio(float* aBuffer, uint aSamplesToRead, uint aBufferSize);
@@ -198,40 +198,7 @@ namespace LoudPizza
         public abstract bool hasEnded();
 
         // Seek to certain place in the stream. Base implementation is generic "tape" seek (and slow).
-        public virtual SOLOUD_ERRORS seek(Time aSeconds, float* mScratch, uint mScratchSize)
-        {
-            if (aSeconds < 0)
-                return SOLOUD_ERRORS.INVALID_PARAMETER;
-
-            Time offset = aSeconds - mStreamPosition;
-            if (offset <= 0)
-            {
-                if (rewind() != SOLOUD_ERRORS.SO_NO_ERROR)
-                {
-                    // can't do generic seek backwards unless we can rewind.
-                    return SOLOUD_ERRORS.NOT_IMPLEMENTED;
-                }
-                offset = aSeconds;
-            }
-            uint samples_to_discard = (uint)Math.Floor(mSamplerate * offset);
-
-            while (samples_to_discard != 0)
-            {
-                uint samples = mScratchSize / mChannels;
-                if (samples > samples_to_discard)
-                    samples = samples_to_discard;
-                getAudio(mScratch, samples, samples);
-                samples_to_discard -= samples;
-            }
-            mStreamPosition = offset;
-            return SOLOUD_ERRORS.SO_NO_ERROR;
-        }
-
-        // Rewind stream. Base implementation returns NOT_IMPLEMENTED, meaning it can't rewind.
-        public virtual SOLOUD_ERRORS rewind()
-        {
-            return SOLOUD_ERRORS.NOT_IMPLEMENTED;
-        }
+        public abstract SOLOUD_ERRORS seek(ulong aSamplePosition, float* mScratch, uint mScratchSize);
 
         // Get information. Returns 0 by default.
         public virtual float getInfo(uint aInfoKey)
@@ -251,10 +218,8 @@ namespace LoudPizza
                     }
                 }
 
-                for (int i = 0; i < mResampleData.Length; i++)
-                {
-                    mResampleData[i].destroy();
-                }
+                mResampleData0.destroy();
+                mResampleData1.destroy();
 
                 _isDisposed = true;
             }
