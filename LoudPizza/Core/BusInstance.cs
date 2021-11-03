@@ -18,9 +18,9 @@ namespace LoudPizza
         {
             mParent = aParent;
             mFlags |= FLAGS.PROTECTED | FLAGS.INAUDIBLE_TICK;
-            for (int i = 0; i < SoLoud.MAX_CHANNELS; i++)
+            for (nuint i = 0; i < SoLoud.MAX_CHANNELS; i++)
                 mVisualizationChannelVolume[i] = 0;
-            for (int i = 0; i < 256; i++)
+            for (nuint i = 0; i < 256; i++)
                 mVisualizationWaveData[i] = 0;
             mScratchSize = SoLoud.SAMPLE_GRANULARITY;
             mScratch.init(mScratchSize * SoLoud.MAX_CHANNELS);
@@ -28,7 +28,7 @@ namespace LoudPizza
 
         public override uint getAudio(float* aBuffer, uint aSamplesToRead, uint aBufferSize)
         {
-            uint i;
+            nuint i;
 
             Handle handle = mParent.mChannelHandle;
             if (handle.Value == 0)
@@ -51,9 +51,8 @@ namespace LoudPizza
                 {
                     for (i = 0; i < 256; i++)
                     {
-                        int j;
                         mVisualizationWaveData[i] = 0;
-                        for (j = 0; j < mChannels; j++)
+                        for (nuint j = 0; j < mChannels; j++)
                         {
                             float sample = aBuffer[i + aBufferSize * j];
                             float absvol = MathF.Abs(sample);
@@ -68,9 +67,8 @@ namespace LoudPizza
                     // Very unlikely failsafe branch
                     for (i = 0; i < 256; i++)
                     {
-                        int j;
                         mVisualizationWaveData[i] = 0;
-                        for (j = 0; j < mChannels; j++)
+                        for (nuint j = 0; j < mChannels; j++)
                         {
                             float sample = aBuffer[(i % aSamplesToRead) + aBufferSize * j];
                             float absvol = MathF.Abs(sample);

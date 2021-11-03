@@ -388,18 +388,20 @@ namespace LoudPizza
 
             if ((mFlags & FLAGS.ENABLE_VISUALIZATION) != 0)
             {
-                for (uint i = 0; i < MAX_CHANNELS; i++)
+                for (nuint i = 0; i < MAX_CHANNELS; i++)
                 {
                     mVisualizationChannelVolume[i] = 0;
                 }
+
+                float* scratch = mScratch.mData;
                 if (aSamples > 255)
                 {
-                    for (uint i = 0; i < 256; i++)
+                    for (nuint i = 0; i < 256; i++)
                     {
                         mVisualizationWaveData[i] = 0;
-                        for (uint j = 0; j < mChannels; j++)
+                        for (nuint j = 0; j < mChannels; j++)
                         {
-                            float sample = mScratch.mData[i + j * aStride];
+                            float sample = scratch[i + j * aStride];
                             float absvol = MathF.Abs(sample);
                             if (mVisualizationChannelVolume[j] < absvol)
                                 mVisualizationChannelVolume[j] = absvol;
@@ -410,12 +412,12 @@ namespace LoudPizza
                 else
                 {
                     // Very unlikely failsafe branch
-                    for (uint i = 0; i < 256; i++)
+                    for (nuint i = 0; i < 256; i++)
                     {
                         mVisualizationWaveData[i] = 0;
-                        for (uint j = 0; j < mChannels; j++)
+                        for (nuint j = 0; j < mChannels; j++)
                         {
-                            float sample = mScratch.mData[(i % aSamples) + j * aStride];
+                            float sample = scratch[(i % aSamples) + j * aStride];
                             float absvol = MathF.Abs(sample);
                             if (mVisualizationChannelVolume[j] < absvol)
                                 mVisualizationChannelVolume[j] = absvol;
@@ -685,7 +687,7 @@ namespace LoudPizza
         internal void mixBus_internal(
             float* aBuffer, uint aSamplesToRead, uint aBufferSize, float* aScratch, Handle aBus, float aSamplerate, uint aChannels, RESAMPLER aResampler)
         {
-            uint i, j;
+            nuint i, j;
             // Clear accumulation buffer
             for (i = 0; i < aSamplesToRead; i++)
             {
