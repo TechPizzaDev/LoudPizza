@@ -44,8 +44,7 @@ namespace LoudPizza
         // DCST_LOOP_DIV = control of the DCT,DST's speed & tolerance 
         public const int DCST_LOOP_DIV = 64;
 
-
-        static void bitrv2(int n, float* a)
+        private static void bitrv2(int n, float* a)
         {
             int j0, k0, j1, k1, l, m, i, j, k, nh;
             float xr, xi, yr, yi;
@@ -406,8 +405,7 @@ namespace LoudPizza
             }
         }
 
-
-        static void bitrv2conj(int n, float* a)
+        private static void bitrv2conj(int n, float* a)
         {
             int j0, k0, j1, k1, l, m, i, j, k, nh;
             float xr, xi, yr, yi;
@@ -776,8 +774,7 @@ namespace LoudPizza
             }
         }
 
-
-        static void bitrv216(float* a)
+        private static void bitrv216(float* a)
         {
             float x1r, x1i, x2r, x2i, x3r, x3i, x4r, x4i,
                 x5r, x5i, x7r, x7i, x8r, x8i, x10r, x10i,
@@ -833,8 +830,7 @@ namespace LoudPizza
             a[29] = x7i;
         }
 
-
-        static void bitrv216neg(float* a)
+        private static void bitrv216neg(float* a)
         {
             float x1r, x1i, x2r, x2i, x3r, x3i, x4r, x4i,
                 x5r, x5i, x6r, x6i, x7r, x7i, x8r, x8i,
@@ -903,8 +899,7 @@ namespace LoudPizza
             a[31] = x8i;
         }
 
-
-        static void bitrv208(float* a)
+        private static void bitrv208(float* a)
         {
             float x1r, x1i, x3r, x3i, x4r, x4i, x6r, x6i;
 
@@ -926,8 +921,7 @@ namespace LoudPizza
             a[13] = x3i;
         }
 
-
-        static void bitrv208neg(float* a)
+        private static void bitrv208neg(float* a)
         {
             float x1r, x1i, x2r, x2i, x3r, x3i, x4r, x4i,
                 x5r, x5i, x6r, x6i, x7r, x7i;
@@ -962,7 +956,7 @@ namespace LoudPizza
             a[15] = x4i;
         }
 
-        static void cftb1st(int n, float* a)
+        private static void cftb1st(int n, float* a)
         {
             int i, i0, j, j0, j1, j2, j3, m, mh;
             float ew, w1r, w1i, wk1r, wk1i, wk3r, wk3i,
@@ -1193,7 +1187,7 @@ namespace LoudPizza
             a[j3 + 3] = wk3i * x0i - wk3r * x0r;
         }
 
-        static void cftmdl1(int n, float* a)
+        private static void cftmdl1(int n, float* a)
         {
             int i, i0, j, j0, j1, j2, j3, m, mh;
             float ew, w1r, w1i, wk1r, wk1i, wk3r, wk3i,
@@ -1424,8 +1418,7 @@ namespace LoudPizza
             a[j3 + 3] = wk3i * x0i - wk3r * x0r;
         }
 
-
-        static void cftmdl2(int n, float* a)
+        private static void cftmdl2(int n, float* a)
         {
             int i, i0, j, j0, j1, j2, j3, m, mh;
             float ew, w1r, w1i, wn4r, wk1r, wk1i, wk3r, wk3i,
@@ -1715,7 +1708,7 @@ namespace LoudPizza
             a[j3 + 3] = y0i - y2i;
         }
 
-        static void cftf161(float* a)
+        private static void cftf161(float* a)
         {
             float wn4r, wk1r, wk1i,
                 x0r, x0i, x1r, x1i, x2r, x2i, x3r, x3i,
@@ -1873,8 +1866,7 @@ namespace LoudPizza
             a[7] = x1i - x3r;
         }
 
-
-        static void cftf162(float* a)
+        private static void cftf162(float* a)
         {
             float wn4r, wk1r, wk1i, wk2r, wk2i, wk3r, wk3i,
                 x0r, x0i, x1r, x1i, x2r, x2i,
@@ -2056,8 +2048,7 @@ namespace LoudPizza
             a[31] = x1i - x2r;
         }
 
-
-        static void cftf081(float* a)
+        private static void cftf081(float* a)
         {
             float wn4r, x0r, x0i, x1r, x1i, x2r, x2i, x3r, x3i,
                 y0r, y0i, y1r, y1i, y2r, y2i, y3r, y3i,
@@ -2118,8 +2109,7 @@ namespace LoudPizza
             a[7] = y2i - y6r;
         }
 
-
-        static void cftf082(float* a)
+        private static void cftf082(float* a)
         {
             float wn4r, wk1r, wk1i, x0r, x0i, x1r, x1i,
                 y0r, y0i, y1r, y1i, y2r, y2i, y3r, y3i,
@@ -2190,7 +2180,7 @@ namespace LoudPizza
             a[15] = x0i - x1r;
         }
 
-        static void cftf040(float* a)
+        private static void cftf040(float* a)
         {
             float x0r, x0i, x1r, x1i, x2r, x2i, x3r, x3i;
 
@@ -2212,7 +2202,7 @@ namespace LoudPizza
             a[7] = x1i - x3r;
         }
 
-        static void cftb040(float* a)
+        private static void cftb040(float* a)
         {
             float x0r, x0i, x1r, x1i, x2r, x2i, x3r, x3i;
 
@@ -2234,7 +2224,7 @@ namespace LoudPizza
             a[7] = x1i + x3r;
         }
 
-        static void cftx020(float* a)
+        private static void cftx020(float* a)
         {
             float x0r, x0i;
 
@@ -2246,7 +2236,7 @@ namespace LoudPizza
             a[3] = x0i;
         }
 
-        static void cftfx41(int n, float* a)
+        private static void cftfx41(int n, float* a)
         {
             if (n == 128)
             {
@@ -2264,7 +2254,7 @@ namespace LoudPizza
             }
         }
 
-        static int cfttree(int n, int j, int k, float* a)
+        private static int cfttree(int n, int j, int k, float* a)
         {
             int i, isplt, m;
 
@@ -2308,7 +2298,7 @@ namespace LoudPizza
             return isplt;
         }
 
-        static void cftleaf(int n, int isplt, float* a)
+        private static void cftleaf(int n, int isplt, float* a)
         {
             if (n == 512)
             {
@@ -2374,7 +2364,7 @@ namespace LoudPizza
             }
         }
 
-        static void cftrec4(int n, float* a)
+        private static void cftrec4(int n, float* a)
         {
             int isplt, j, k, m;
 
@@ -2394,7 +2384,7 @@ namespace LoudPizza
             }
         }
 
-        static void cftfsub(int n, float* a)
+        private static void cftfsub(int n, float* a)
         {
             if (n > 8)
             {
@@ -2436,8 +2426,7 @@ namespace LoudPizza
             }
         }
 
-
-        static void cftbsub(int n, float* a)
+        private static void cftbsub(int n, float* a)
         {
             if (n > 8)
             {

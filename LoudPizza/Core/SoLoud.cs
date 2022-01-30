@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Diagnostics;
 using System.Runtime.CompilerServices;
 #if SSE_INTRINSICS
@@ -26,11 +26,11 @@ namespace LoudPizza
 
     public unsafe partial class SoLoud
     {
-        const int FIXPOINT_FRAC_BITS = 20;
-        const int FIXPOINT_FRAC_MUL = (1 << FIXPOINT_FRAC_BITS);
-        const int FIXPOINT_FRAC_MASK = ((1 << FIXPOINT_FRAC_BITS) - 1);
+        private const int FIXPOINT_FRAC_BITS = 20;
+        private const int FIXPOINT_FRAC_MUL = (1 << FIXPOINT_FRAC_BITS);
+        private const int FIXPOINT_FRAC_MASK = ((1 << FIXPOINT_FRAC_BITS) - 1);
 
-        const float SQRT2RECP = 0.7071067811865475f;
+        private const float SQRT2RECP = 0.7071067811865475f;
 
         // Maximum number of filters per stream
         public const int FILTERS_PER_STREAM = 8;
@@ -48,13 +48,13 @@ namespace LoudPizza
         public const RESAMPLER SOLOUD_DEFAULT_RESAMPLER = RESAMPLER.RESAMPLER_LINEAR;
 
         // Back-end data; content is up to the back-end implementation.
-        void* mBackendData;
+        private void* mBackendData;
 
         // Pointer for the audio thread mutex.
-        object? mAudioThreadMutex;
+        private object? mAudioThreadMutex;
 
         // Flag for when we're inside the mutex, used for debugging.
-        bool mInsideAudioThreadMutex;
+        private bool mInsideAudioThreadMutex;
 
         // Called by SoLoud to shut down the back-end. If NULL, not called. Should be set by back-end.
         public soloudCallFunction? mBackendCleanupFunc;
@@ -1239,85 +1239,85 @@ namespace LoudPizza
         }
 
         // Max. number of active voices. Busses and tickable inaudibles also count against this.
-        uint mMaxActiveVoices;
+        private uint mMaxActiveVoices;
 
         // Highest voice in use so far
         public uint mHighestVoice;
 
         // Scratch buffer, used for resampling.
-        AlignedFloatBuffer mScratch;
+        private AlignedFloatBuffer mScratch;
 
         // Current size of the scratch, in samples.
-        uint mScratchSize;
+        private uint mScratchSize;
 
         // Output scratch buffer, used in mix_().
-        AlignedFloatBuffer mOutputScratch;
+        private AlignedFloatBuffer mOutputScratch;
 
         // Pointers to resampler buffers, two per active voice.
-        AlignedFloatBuffer[] mResampleData;
+        private AlignedFloatBuffer[] mResampleData;
 
         // Actual allocated memory for resampler buffers
         //AlignedFloatBuffer mResampleDataBuffer;
 
         // Owners of the resample data
-        AudioSourceInstance?[] mResampleDataOwner;
+        private AudioSourceInstance?[] mResampleDataOwner;
 
         // Audio voices.
         public AudioSourceInstance?[] mVoice = new AudioSourceInstance[VOICE_COUNT];
 
         // Resampler for the main bus
-        RESAMPLER mResampler;
+        private RESAMPLER mResampler;
 
         // Output sample rate (not float)
-        uint mSamplerate;
+        private uint mSamplerate;
 
         // Output channel count
-        uint mChannels;
+        private uint mChannels;
 
         // Current backend ID
-        BACKENDS mBackendID;
+        private BACKENDS mBackendID;
 
         // Current backend string
         public string? mBackendString;
 
         // Maximum size of output buffer; used to calculate needed scratch.
-        uint mBufferSize;
+        private uint mBufferSize;
 
         // Flags; see Soloud::FLAGS
         public FLAGS mFlags;
 
         // Global volume. Applied before clipping.
-        float mGlobalVolume;
+        private float mGlobalVolume;
 
         // Post-clip scaler. Applied after clipping.
-        float mPostClipScaler;
+        private float mPostClipScaler;
 
         // Current play index. Used to create audio handles.
-        uint mPlayIndex;
+        private uint mPlayIndex;
 
         // Current sound source index. Used to create sound source IDs.
         public uint mAudioSourceID;
 
         // Fader for the global volume.
-        Fader mGlobalVolumeFader;
+        private Fader mGlobalVolumeFader;
 
         // Global stream time, for the global volume fader.
-        Time mStreamTime;
+        private Time mStreamTime;
 
         // Last time seen by the playClocked call
-        Time mLastClockedTime;
+        private Time mLastClockedTime;
 
         // Global filter
-        Filter?[] mFilter = new Filter[FILTERS_PER_STREAM];
+        private Filter?[] mFilter = new Filter[FILTERS_PER_STREAM];
 
         // Global filter instance
-        FilterInstance?[] mFilterInstance = new FilterInstance[FILTERS_PER_STREAM];
+        private FilterInstance?[] mFilterInstance = new FilterInstance[FILTERS_PER_STREAM];
 
         // Approximate volume for channels.
-        ChannelBuffer mVisualizationChannelVolume;
+        private ChannelBuffer mVisualizationChannelVolume;
 
         // Mono-mixed wave data for visualization and for visualization FFT input
-        Buffer256 mVisualizationWaveData;
+        private Buffer256 mVisualizationWaveData;
 
         // FFT output data
         //Buffer256 mFFTData;
@@ -1326,40 +1326,40 @@ namespace LoudPizza
         //Buffer256 mWaveData;
 
         // 3d listener position
-        Vec3 m3dPosition;
+        private Vec3 m3dPosition;
 
         // 3d listener look-at
-        Vec3 m3dAt;
+        private Vec3 m3dAt;
 
         // 3d listener up
-        Vec3 m3dUp;
+        private Vec3 m3dUp;
 
         // 3d listener velocity
-        Vec3 m3dVelocity;
+        private Vec3 m3dVelocity;
 
         // 3d speed of sound (for doppler)
-        float m3dSoundSpeed;
+        private float m3dSoundSpeed;
 
         // 3d position of speakers
-        Vec3[] m3dSpeakerPosition = new Vec3[MAX_CHANNELS];
+        private Vec3[] m3dSpeakerPosition = new Vec3[MAX_CHANNELS];
 
         // Data related to 3d processing, separate from AudioSource so we can do 3d calculations without audio mutex.
-        AudioSourceInstance3dData[] m3dData = new AudioSourceInstance3dData[VOICE_COUNT];
+        private AudioSourceInstance3dData[] m3dData = new AudioSourceInstance3dData[VOICE_COUNT];
 
         // For each voice group, first int is number of ints alocated.
-        Handle[][] mVoiceGroup = Array.Empty<Handle[]>();
-        uint mVoiceGroupCount;
+        private Handle[][] mVoiceGroup = Array.Empty<Handle[]>();
+        private uint mVoiceGroupCount;
 
         // List of currently active voices
-        uint[] mActiveVoice = new uint[VOICE_COUNT];
+        private uint[] mActiveVoice = new uint[VOICE_COUNT];
 
         // Number of currently active voices
-        uint mActiveVoiceCount;
+        private uint mActiveVoiceCount;
 
         // Active voices list needs to be recalculated
-        bool mActiveVoiceDirty;
+        private bool mActiveVoiceDirty;
 
-        static void interlace_samples_float(float* aSourceBuffer, float* aDestBuffer, uint aSamples, uint aChannels, uint aStride)
+        private static void interlace_samples_float(float* aSourceBuffer, float* aDestBuffer, uint aSamples, uint aChannels, uint aStride)
         {
             // 111222 -> 121212
             uint i, j, c;
@@ -1375,7 +1375,7 @@ namespace LoudPizza
             }
         }
 
-        static void interlace_samples_s16(float* aSourceBuffer, short* aDestBuffer, uint aSamples, uint aChannels, uint aStride)
+        private static void interlace_samples_s16(float* aSourceBuffer, short* aDestBuffer, uint aSamples, uint aChannels, uint aStride)
         {
             // 111222 -> 121212
             uint i, j, c;
@@ -1391,8 +1391,7 @@ namespace LoudPizza
             }
         }
 
-
-        static float catmullrom(float t, float p0, float p1, float p2, float p3)
+        private static float catmullrom(float t, float p0, float p1, float p2, float p3)
         {
             return 0.5f * (
                 (2 * p1) +
@@ -1402,7 +1401,7 @@ namespace LoudPizza
                 );
         }
 
-        static void resample_catmullrom(float* aSrc,
+        private static void resample_catmullrom(float* aSrc,
             float* aSrc1,
             float* aDst,
             int aSrcOffset,
@@ -1452,7 +1451,7 @@ namespace LoudPizza
             }
         }
 
-        static void resample_linear(float* aSrc,
+        private static void resample_linear(float* aSrc,
             float* aSrc1,
             float* aDst,
             int aSrcOffset,
@@ -1483,7 +1482,7 @@ namespace LoudPizza
             }
         }
 
-        static void resample_point(float* aSrc,
+        private static void resample_point(float* aSrc,
             float* aSrc1,
             float* aDst,
             int aSrcOffset,
@@ -1500,7 +1499,7 @@ namespace LoudPizza
             }
         }
 
-        void panAndExpand(AudioSourceInstance aVoice, float* aBuffer, uint aSamplesToRead, uint aBufferSize, float* aScratch, uint aChannels)
+        private void panAndExpand(AudioSourceInstance aVoice, float* aBuffer, uint aSamplesToRead, uint aBufferSize, float* aScratch, uint aChannels)
         {
 #if SSE_INTRINSICS
             Debug.Assert(((nint)aBuffer & 0xf) == 0);
