@@ -1,4 +1,4 @@
-﻿namespace LoudPizza
+namespace LoudPizza
 {
     public unsafe abstract class AudioStream : AudioSource
     {
@@ -272,7 +272,7 @@
             return res;
         }
         */
-
+         
         public Time getLength()
         {
             if (mBaseSamplerate == 0)
