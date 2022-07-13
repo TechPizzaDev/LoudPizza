@@ -41,15 +41,16 @@ namespace LoudPizza
 
             if (mInstance != null)
             {
-                mSoloud.lockAudioMutex_internal();
-                mInstance.mFilter[aFilterId]?.Dispose();
-                mInstance.mFilter[aFilterId] = null;
-
-                if (aFilter != null)
+                lock (mSoloud.mAudioThreadMutex)
                 {
-                    mInstance.mFilter[aFilterId] = aFilter.createInstance();
+                    mInstance.mFilter[aFilterId]?.Dispose();
+                    mInstance.mFilter[aFilterId] = null;
+
+                    if (aFilter != null)
+                    {
+                        mInstance.mFilter[aFilterId] = aFilter.createInstance();
+                    }
                 }
-                mSoloud.unlockAudioMutex_internal();
             }
         }
 
@@ -96,10 +97,10 @@ namespace LoudPizza
         /// Start playing a 3D audio source through the bus.
         /// </summary>
         public Handle play3d(
-            AudioSource aSound, 
-            float aPosX, float aPosY, float aPosZ, 
+            AudioSource aSound,
+            float aPosX, float aPosY, float aPosZ,
             float aVelX = 0.0f, float aVelY = 0.0f, float aVelZ = 0.0f,
-            float aVolume = 1.0f, 
+            float aVolume = 1.0f,
             bool aPaused = false)
         {
             if (mInstance == null || mSoloud == null)
@@ -120,10 +121,10 @@ namespace LoudPizza
         /// Start playing a 3D audio source through the bus, delayed in relation to other sounds called via this function.
         /// </summary>
         public Handle play3dClocked(
-            Time aSoundTime, 
+            Time aSoundTime,
             AudioSource aSound,
-            float aPosX, float aPosY, float aPosZ, 
-            float aVelX = 0.0f, float aVelY = 0.0f, float aVelZ = 0.0f, 
+            float aPosX, float aPosY, float aPosZ,
+            float aVelX = 0.0f, float aVelY = 0.0f, float aVelZ = 0.0f,
             float aVolume = 1.0f)
         {
             if (mInstance == null || mSoloud == null)
@@ -183,18 +184,19 @@ namespace LoudPizza
                 }
             }
 
-            mSoloud.lockAudioMutex_internal();
-            ArraySegment<Handle> h_ = mSoloud.voiceGroupHandleToArray_internal(aVoiceHandle);
-            if (h_.Array == null)
+            lock (mSoloud.mAudioThreadMutex)
             {
-                body(aVoiceHandle);
+                ArraySegment<Handle> h_ = mSoloud.voiceGroupHandleToArray_internal(aVoiceHandle);
+                if (h_.Array == null)
+                {
+                    body(aVoiceHandle);
+                }
+                else
+                {
+                    foreach (Handle h in h_.AsSpan())
+                        body(h);
+                }
             }
-            else
-            {
-                foreach (Handle h in h_.AsSpan())
-                    body(h);
-            }
-            mSoloud.unlockAudioMutex_internal();
         }
 
         /// <summary>
@@ -207,20 +209,20 @@ namespace LoudPizza
 
             if (mInstance != null && mSoloud != null)
             {
-                mSoloud.lockAudioMutex_internal();
-                int i;
-                for (i = 0; i < 256; i++)
+                lock (mSoloud.mAudioThreadMutex)
                 {
-                    temp[i * 2] = mInstance.mVisualizationWaveData[i];
-                    temp[i * 2 + 1] = 0;
-                    temp[i + 512] = 0;
-                    temp[i + 768] = 0;
+                    for (int i = 0; i < 256; i++)
+                    {
+                        temp[i * 2] = mInstance.mVisualizationWaveData[i];
+                        temp[i * 2 + 1] = 0;
+                        temp[i + 512] = 0;
+                        temp[i + 768] = 0;
+                    }
                 }
-                mSoloud.unlockAudioMutex_internal();
 
                 FFT.fft1024(temp);
 
-                for (i = 0; i < 256; i++)
+                for (int i = 0; i < 256; i++)
                 {
                     float real = temp[i * 2];
                     float imag = temp[i * 2 + 1];
@@ -236,9 +238,10 @@ namespace LoudPizza
         {
             if (mInstance != null && mSoloud != null)
             {
-                mSoloud.lockAudioMutex_internal();
-                data = mInstance.mVisualizationWaveData;
-                mSoloud.unlockAudioMutex_internal();
+                lock (mSoloud.mAudioThreadMutex)
+                {
+                    data = mInstance.mVisualizationWaveData;
+                }
             }
             else
             {
@@ -256,9 +259,10 @@ namespace LoudPizza
             float vol = 0;
             if (mInstance != null && mSoloud != null)
             {
-                mSoloud.lockAudioMutex_internal();
-                vol = mInstance.mVisualizationChannelVolume[aChannel];
-                mSoloud.unlockAudioMutex_internal();
+                lock (mSoloud.mAudioThreadMutex)
+                {
+                    vol = mInstance.mVisualizationChannelVolume[aChannel];
+                }
             }
             return vol;
         }
@@ -271,9 +275,10 @@ namespace LoudPizza
             ChannelBuffer buffer = default;
             if (mInstance != null && mSoloud != null)
             {
-                mSoloud.lockAudioMutex_internal();
-                buffer = mInstance.mVisualizationChannelVolume;
-                mSoloud.unlockAudioMutex_internal();
+                lock (mSoloud.mAudioThreadMutex)
+                {
+                    buffer = mInstance.mVisualizationChannelVolume;
+                }
             }
             return buffer;
         }
@@ -286,14 +291,15 @@ namespace LoudPizza
             int i;
             uint count = 0;
             findBusHandle();
-            mSoloud.lockAudioMutex_internal();
-            for (i = 0; i < SoLoud.VOICE_COUNT; i++)
+            lock (mSoloud.mAudioThreadMutex)
             {
-                AudioSourceInstance? voice = mSoloud.mVoice[i];
-                if (voice != null && voice.mBusHandle == mChannelHandle)
-                    count++;
+                for (i = 0; i < SoLoud.VOICE_COUNT; i++)
+                {
+                    AudioSourceInstance? voice = mSoloud.mVoice[i];
+                    if (voice != null && voice.mBusHandle == mChannelHandle)
+                        count++;
+                }
             }
-            mSoloud.unlockAudioMutex_internal();
             return count;
         }
 

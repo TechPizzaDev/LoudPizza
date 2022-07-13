@@ -96,7 +96,7 @@ namespace LoudPizza
         /// <summary>
         /// Pointer for the audio thread mutex.
         /// </summary>
-        private object? mAudioThreadMutex;
+        internal readonly object mAudioThreadMutex = new();
 
         /// <summary>
         /// Flag for when we're inside the mutex, used for debugging.
@@ -144,9 +144,9 @@ namespace LoudPizza
             CLIP_ROUNDOFF = 1,
 
             ENABLE_VISUALIZATION = 2,
-            
+
             LEFT_HANDED_3D = 4,
-            
+
             NO_FPU_REGISTER_CHANGE = 8,
         }
 
@@ -245,8 +245,6 @@ namespace LoudPizza
 
             mBackendCleanupFunc?.Invoke(this);
             mBackendCleanupFunc = null;
-
-            mAudioThreadMutex = null;
         }
 
         // Translate error number to an asciiz string
@@ -280,15 +278,16 @@ namespace LoudPizza
         {
             float* temp = stackalloc float[1024];
 
-            lockAudioMutex_internal();
-            for (int i = 0; i < 256; i++)
+            lock (mAudioThreadMutex)
             {
-                temp[i * 2] = mVisualizationWaveData[i];
-                temp[i * 2 + 1] = 0;
-                temp[i + 512] = 0;
-                temp[i + 768] = 0;
+                for (int i = 0; i < 256; i++)
+                {
+                    temp[i * 2] = mVisualizationWaveData[i];
+                    temp[i * 2 + 1] = 0;
+                    temp[i + 512] = 0;
+                    temp[i + 768] = 0;
+                }
             }
-            unlockAudioMutex_internal();
 
             FFT.fft1024(temp);
 
@@ -303,9 +302,10 @@ namespace LoudPizza
         // Get 256 floats of wave data for visualization. Visualization has to be enabled before use.
         public void getWave(out Buffer256 buffer)
         {
-            lockAudioMutex_internal();
-            buffer = mVisualizationWaveData;
-            unlockAudioMutex_internal();
+            lock (mAudioThreadMutex)
+            {
+                buffer = mVisualizationWaveData;
+            }
         }
 
         // Get approximate output volume for a channel for visualization. Visualization has to be enabled before use.
@@ -313,11 +313,12 @@ namespace LoudPizza
         {
             if (aChannel > mChannels)
                 return 0;
-            
-            lockAudioMutex_internal();
-            float vol = mVisualizationChannelVolume[aChannel];
-            unlockAudioMutex_internal();
-            return vol;
+
+            lock (mAudioThreadMutex)
+            {
+                float vol = mVisualizationChannelVolume[aChannel];
+                return vol;
+            }
         }
 
         // Rest of the stuff is used internally.
@@ -359,87 +360,86 @@ namespace LoudPizza
             }
             globalVolume1 = mGlobalVolume;
 
-            lockAudioMutex_internal();
-
-            // Process faders. May change scratch size.
-            for (uint i = 0; i < mHighestVoice; i++)
+            lock (mAudioThreadMutex)
             {
-                AudioSourceInstance? voice = mVoice[i];
-                if (voice != null && ((voice.mFlags & AudioSourceInstance.FLAGS.PAUSED) == 0))
+                // Process faders. May change scratch size.
+                for (uint i = 0; i < mHighestVoice; i++)
                 {
-                    voice.mActiveFader = 0;
-
-                    if (mGlobalVolumeFader.mActive > 0)
+                    AudioSourceInstance? voice = mVoice[i];
+                    if (voice != null && ((voice.mFlags & AudioSourceInstance.FLAGS.PAUSED) == 0))
                     {
-                        voice.mActiveFader = 1;
-                    }
+                        voice.mActiveFader = 0;
 
-                    voice.mStreamTime += buffertime;
-                    voice.mStreamPosition += (ulong)(aSamples * (double)voice.mOverallRelativePlaySpeed);
-
-                    // TODO: this is actually unstable, because mStreamTime depends on the relative
-                    // play speed. 
-                    if (voice.mRelativePlaySpeedFader.mActive > 0)
-                    {
-                        float speed = voice.mRelativePlaySpeedFader.get(voice.mStreamTime);
-                        setVoiceRelativePlaySpeed_internal(i, speed);
-                    }
-
-                    float volume0, volume1;
-                    volume0 = voice.mOverallVolume;
-                    if (voice.mVolumeFader.mActive > 0)
-                    {
-                        voice.mSetVolume = voice.mVolumeFader.get(voice.mStreamTime);
-                        voice.mActiveFader = 1;
-                        updateVoiceVolume_internal(i);
-                        mActiveVoiceDirty = true;
-                    }
-                    volume1 = voice.mOverallVolume;
-
-                    if (voice.mPanFader.mActive > 0)
-                    {
-                        float pan = voice.mPanFader.get(voice.mStreamTime);
-                        setVoicePan_internal(i, pan);
-                        voice.mActiveFader = 1;
-                    }
-
-                    if (voice.mPauseScheduler.mActive != Fader.ActiveFlags.Disabled)
-                    {
-                        voice.mPauseScheduler.get(voice.mStreamTime);
-                        if (voice.mPauseScheduler.mActive == Fader.ActiveFlags.Inactive)
+                        if (mGlobalVolumeFader.mActive > 0)
                         {
-                            voice.mPauseScheduler.mActive = Fader.ActiveFlags.Disabled;
-                            setVoicePause_internal(i, true);
+                            voice.mActiveFader = 1;
                         }
-                    }
 
-                    if (voice.mStopScheduler.mActive != Fader.ActiveFlags.Disabled)
-                    {
-                        voice.mStopScheduler.get(voice.mStreamTime);
-                        if (voice.mStopScheduler.mActive == Fader.ActiveFlags.Inactive)
+                        voice.mStreamTime += buffertime;
+                        voice.mStreamPosition += (ulong)(aSamples * (double)voice.mOverallRelativePlaySpeed);
+
+                        // TODO: this is actually unstable, because mStreamTime depends on the relative
+                        // play speed. 
+                        if (voice.mRelativePlaySpeedFader.mActive > 0)
                         {
-                            voice.mStopScheduler.mActive = Fader.ActiveFlags.Disabled;
-                            stopVoice_internal(i);
+                            float speed = voice.mRelativePlaySpeedFader.get(voice.mStreamTime);
+                            setVoiceRelativePlaySpeed_internal(i, speed);
+                        }
+
+                        float volume0, volume1;
+                        volume0 = voice.mOverallVolume;
+                        if (voice.mVolumeFader.mActive > 0)
+                        {
+                            voice.mSetVolume = voice.mVolumeFader.get(voice.mStreamTime);
+                            voice.mActiveFader = 1;
+                            updateVoiceVolume_internal(i);
+                            mActiveVoiceDirty = true;
+                        }
+                        volume1 = voice.mOverallVolume;
+
+                        if (voice.mPanFader.mActive > 0)
+                        {
+                            float pan = voice.mPanFader.get(voice.mStreamTime);
+                            setVoicePan_internal(i, pan);
+                            voice.mActiveFader = 1;
+                        }
+
+                        if (voice.mPauseScheduler.mActive != Fader.ActiveFlags.Disabled)
+                        {
+                            voice.mPauseScheduler.get(voice.mStreamTime);
+                            if (voice.mPauseScheduler.mActive == Fader.ActiveFlags.Inactive)
+                            {
+                                voice.mPauseScheduler.mActive = Fader.ActiveFlags.Disabled;
+                                setVoicePause_internal(i, true);
+                            }
+                        }
+
+                        if (voice.mStopScheduler.mActive != Fader.ActiveFlags.Disabled)
+                        {
+                            voice.mStopScheduler.get(voice.mStreamTime);
+                            if (voice.mStopScheduler.mActive == Fader.ActiveFlags.Inactive)
+                            {
+                                voice.mStopScheduler.mActive = Fader.ActiveFlags.Disabled;
+                                stopVoice_internal(i);
+                            }
                         }
                     }
                 }
-            }
 
-            if (mActiveVoiceDirty)
-                calcActiveVoices_internal();
+                if (mActiveVoiceDirty)
+                    calcActiveVoices_internal();
 
-            mixBus_internal(mOutputScratch.mData, aSamples, aStride, mScratch.mData, default, mSamplerate, mChannels, mResampler);
+                mixBus_internal(mOutputScratch.mData, aSamples, aStride, mScratch.mData, default, mSamplerate, mChannels, mResampler);
 
-            for (uint i = 0; i < FILTERS_PER_STREAM; i++)
-            {
-                FilterInstance? filterInstance = mFilterInstance[i];
-                if (filterInstance != null)
+                for (uint i = 0; i < FILTERS_PER_STREAM; i++)
                 {
-                    filterInstance.filter(mOutputScratch.mData, aSamples, aStride, mChannels, mSamplerate, mStreamTime);
+                    FilterInstance? filterInstance = mFilterInstance[i];
+                    if (filterInstance != null)
+                    {
+                        filterInstance.filter(mOutputScratch.mData, aSamples, aStride, mChannels, mSamplerate, mStreamTime);
+                    }
                 }
             }
-
-            unlockAudioMutex_internal();
 
             // Note: clipping channels*aStride, not channels*aSamples, so we're possibly clipping some unused data.
             // The buffers should be large enough for it, we just may do a few bytes of unneccessary work.
@@ -752,7 +752,7 @@ namespace LoudPizza
         /// Perform mixing for a specific bus.
         /// </summary>
         internal void mixBus_internal(
-            float* aBuffer, uint aSamplesToRead, uint aBufferSize, float* aScratch, 
+            float* aBuffer, uint aSamplesToRead, uint aBufferSize, float* aScratch,
             Handle aBus, float aSamplerate, uint aChannels, RESAMPLER aResampler)
         {
             nuint i, j;
@@ -827,7 +827,7 @@ namespace LoudPizza
                                         {
                                             voice.mLoopCount++;
                                             uint inc = voice.getAudio(
-                                                voice.mResampleData0.mData + readcount, 
+                                                voice.mResampleData0.mData + readcount,
                                                 SAMPLE_GRANULARITY - readcount,
                                                 SAMPLE_GRANULARITY);
 
@@ -845,8 +845,8 @@ namespace LoudPizza
                                 uint k;
                                 for (k = 0; k < voice.mChannels; k++)
                                     CRuntime.memset(
-                                        voice.mResampleData0.mData + readcount + SAMPLE_GRANULARITY * k, 
-                                        0, 
+                                        voice.mResampleData0.mData + readcount + SAMPLE_GRANULARITY * k,
+                                        0,
                                         sizeof(float) * (SAMPLE_GRANULARITY - readcount));
                             }
 
@@ -1022,7 +1022,7 @@ namespace LoudPizza
                                             voice.mLoopCount++;
                                             readcount += voice.getAudio(
                                                 voice.mResampleData0.mData + readcount,
-                                                SAMPLE_GRANULARITY - readcount, 
+                                                SAMPLE_GRANULARITY - readcount,
                                                 SAMPLE_GRANULARITY);
                                         }
                                     }
@@ -1294,32 +1294,6 @@ namespace LoudPizza
                         }
                     }
                 }
-            }
-        }
-
-        /// <summary>
-        /// Lock audio thread mutex.
-        /// </summary>
-        internal void lockAudioMutex_internal()
-        {
-            if (mAudioThreadMutex != null)
-            {
-                Monitor.Enter(mAudioThreadMutex);
-            }
-            Debug.Assert(!mInsideAudioThreadMutex);
-            mInsideAudioThreadMutex = true;
-        }
-
-        /// <summary>
-        /// Unlock audio thread mutex.
-        /// </summary>
-        internal void unlockAudioMutex_internal()
-        {
-            Debug.Assert(mInsideAudioThreadMutex);
-            mInsideAudioThreadMutex = false;
-            if (mAudioThreadMutex != null)
-            {
-                Monitor.Exit(mAudioThreadMutex);
             }
         }
 

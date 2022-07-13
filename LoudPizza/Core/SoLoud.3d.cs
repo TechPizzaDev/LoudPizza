@@ -148,19 +148,19 @@ namespace LoudPizza
             uint* voices = stackalloc uint[VOICE_COUNT];
 
             // Step 1 - find voices that need 3D processing
-            lockAudioMutex_internal();
-            uint i;
-            for (i = 0; i < mHighestVoice; i++)
+            lock (mAudioThreadMutex)
             {
-                AudioSourceInstance? voice = mVoice[i];
-                if (voice != null && (voice.mFlags & AudioSourceInstance.FLAGS.PROCESS_3D) != 0)
+                for (uint i = 0; i < mHighestVoice; i++)
                 {
-                    voices[voicecount] = i;
-                    voicecount++;
-                    m3dData[i].mFlags = voice.mFlags;
+                    AudioSourceInstance? voice = mVoice[i];
+                    if (voice != null && (voice.mFlags & AudioSourceInstance.FLAGS.PROCESS_3D) != 0)
+                    {
+                        voices[voicecount] = i;
+                        voicecount++;
+                        m3dData[i].mFlags = voice.mFlags;
+                    }
                 }
             }
-            unlockAudioMutex_internal();
 
             // Step 2 - do 3D processing
 
@@ -168,106 +168,114 @@ namespace LoudPizza
 
             // Step 3 - update SoLoud voices
 
-            lockAudioMutex_internal();
-            for (i = 0; i < voicecount; i++)
+            lock (mAudioThreadMutex)
             {
-                AudioSourceInstance? vi = mVoice[voices[i]];
-                if (vi != null)
+                for (uint i = 0; i < voicecount; i++)
                 {
-                    ref AudioSourceInstance3dData v = ref m3dData[voices[i]];
-                    updateVoiceRelativePlaySpeed_internal(voices[i]);
-                    updateVoiceVolume_internal(voices[i]);
-                    vi.mChannelVolume = v.mChannelVolume;
-
-                    if (vi.mOverallVolume < 0.001f)
+                    AudioSourceInstance? vi = mVoice[voices[i]];
+                    if (vi != null)
                     {
-                        // Inaudible.
-                        vi.mFlags |= AudioSourceInstance.FLAGS.INAUDIBLE;
+                        ref AudioSourceInstance3dData v = ref m3dData[voices[i]];
+                        updateVoiceRelativePlaySpeed_internal(voices[i]);
+                        updateVoiceVolume_internal(voices[i]);
+                        vi.mChannelVolume = v.mChannelVolume;
 
-                        if ((vi.mFlags & AudioSourceInstance.FLAGS.INAUDIBLE_KILL) != 0)
+                        if (vi.mOverallVolume < 0.001f)
                         {
-                            stopVoice_internal(voices[i]);
+                            // Inaudible.
+                            vi.mFlags |= AudioSourceInstance.FLAGS.INAUDIBLE;
+
+                            if ((vi.mFlags & AudioSourceInstance.FLAGS.INAUDIBLE_KILL) != 0)
+                            {
+                                stopVoice_internal(voices[i]);
+                            }
+                        }
+                        else
+                        {
+                            vi.mFlags &= ~AudioSourceInstance.FLAGS.INAUDIBLE;
                         }
                     }
-                    else
-                    {
-                        vi.mFlags &= ~AudioSourceInstance.FLAGS.INAUDIBLE;
-                    }
                 }
-            }
 
-            mActiveVoiceDirty = true;
-            unlockAudioMutex_internal();
+                mActiveVoiceDirty = true;
+            }
         }
 
         /// <summary>
         /// Start playing a 3D audio source.
         /// </summary>
         public Handle play3d(
-            AudioSource aSound, 
-            float aPosX, float aPosY, float aPosZ, 
-            float aVelX = 0.0f, float aVelY = 0.0f, float aVelZ = 0.0f, 
-            float aVolume = 1.0f, 
-            bool aPaused = false, 
+            AudioSource aSound,
+            float aPosX, float aPosY, float aPosZ,
+            float aVelX = 0.0f, float aVelY = 0.0f, float aVelZ = 0.0f,
+            float aVolume = 1.0f,
+            bool aPaused = false,
             Handle aBus = default)
         {
-            Handle h = play(aSound, aVolume, 0, true, aBus);
-            lockAudioMutex_internal();
-            int v = getVoiceFromHandle_internal(h);
-            if (v < 0)
-            {
-                unlockAudioMutex_internal();
-                return h;
-            }
-            m3dData[v].mHandle = h;
-            AudioSourceInstance voice = mVoice[v]!;
-            voice.mFlags |= AudioSourceInstance.FLAGS.PROCESS_3D;
-            set3dSourceParameters(h, aPosX, aPosY, aPosZ, aVelX, aVelY, aVelZ);
-
+            int v;
+            AudioSourceInstance voice;
+            Vec3 pos;
             int samples = 0;
-            if ((aSound.mFlags & AudioSource.FLAGS.DISTANCE_DELAY) != 0)
+
+            Handle h = play(aSound, aVolume, 0, true, aBus);
+            lock (mAudioThreadMutex)
             {
-                Vec3 pos;
-                pos.X = aPosX;
-                pos.Y = aPosY;
-                pos.Z = aPosZ;
-                if (((uint)voice.mFlags & (uint)AudioSource.FLAGS.LISTENER_RELATIVE) == 0)
+                v = getVoiceFromHandle_internal(h);
+                if (v < 0)
                 {
-                    pos = pos.sub(m3dPosition);
+                    return h;
                 }
-                float dist = pos.mag();
-                samples += (int)MathF.Floor((dist / m3dSoundSpeed) * mSamplerate);
+                m3dData[v].mHandle = h;
+                voice = mVoice[v]!;
+                voice.mFlags |= AudioSourceInstance.FLAGS.PROCESS_3D;
+                set3dSourceParameters(h, aPosX, aPosY, aPosZ, aVelX, aVelY, aVelZ);
+
+                if ((aSound.mFlags & AudioSource.FLAGS.DISTANCE_DELAY) != 0)
+                {
+                    pos.X = aPosX;
+                    pos.Y = aPosY;
+                    pos.Z = aPosZ;
+                    if (((uint)voice.mFlags & (uint)AudioSource.FLAGS.LISTENER_RELATIVE) == 0)
+                    {
+                        pos = pos.sub(m3dPosition);
+                    }
+                    float dist = pos.mag();
+                    samples += (int)MathF.Floor((dist / m3dSoundSpeed) * mSamplerate);
+                }
             }
 
             update3dVoices_internal((uint*)&v, 1);
-            updateVoiceRelativePlaySpeed_internal((uint)v);
-            voice.mChannelVolume = m3dData[v].mChannelVolume;
 
-            updateVoiceVolume_internal((uint)v);
-
-            // Fix initial voice volume ramp up
-            for (int i = 0; i < MAX_CHANNELS; i++)
+            lock (mAudioThreadMutex)
             {
-                voice.mCurrentChannelVolume[i] = voice.mChannelVolume[i] * voice.mOverallVolume;
-            }
+                updateVoiceRelativePlaySpeed_internal((uint)v);
+                voice.mChannelVolume = m3dData[v].mChannelVolume;
 
-            if (voice.mOverallVolume < 0.01f)
-            {
-                // Inaudible.
-                voice.mFlags |= AudioSourceInstance.FLAGS.INAUDIBLE;
+                updateVoiceVolume_internal((uint)v);
 
-                if ((voice.mFlags & AudioSourceInstance.FLAGS.INAUDIBLE_KILL) != 0)
+                // Fix initial voice volume ramp up
+                for (int i = 0; i < MAX_CHANNELS; i++)
                 {
-                    stopVoice_internal((uint)v);
+                    voice.mCurrentChannelVolume[i] = voice.mChannelVolume[i] * voice.mOverallVolume;
                 }
-            }
-            else
-            {
-                voice.mFlags &= ~AudioSourceInstance.FLAGS.INAUDIBLE;
-            }
-            mActiveVoiceDirty = true;
 
-            unlockAudioMutex_internal();
+                if (voice.mOverallVolume < 0.01f)
+                {
+                    // Inaudible.
+                    voice.mFlags |= AudioSourceInstance.FLAGS.INAUDIBLE;
+
+                    if ((voice.mFlags & AudioSourceInstance.FLAGS.INAUDIBLE_KILL) != 0)
+                    {
+                        stopVoice_internal((uint)v);
+                    }
+                }
+                else
+                {
+                    voice.mFlags &= ~AudioSourceInstance.FLAGS.INAUDIBLE;
+                }
+                mActiveVoiceDirty = true;
+            }
+
             setDelaySamples(h, (uint)samples);
             setPause(h, aPaused);
             return h;
@@ -277,77 +285,83 @@ namespace LoudPizza
         /// Start playing a 3D audio source, delayed in relation to other sounds called via this function.
         /// </summary>
         public Handle play3dClocked(
-            Time aSoundTime, 
-            AudioSource aSound, 
-            float aPosX, float aPosY, float aPosZ, 
-            float aVelX = 0.0f, float aVelY = 0.0f, float aVelZ = 0.0f, 
-            float aVolume = 1.0f, 
+            Time aSoundTime,
+            AudioSource aSound,
+            float aPosX, float aPosY, float aPosZ,
+            float aVelX = 0.0f, float aVelY = 0.0f, float aVelZ = 0.0f,
+            float aVolume = 1.0f,
             Handle aBus = default)
         {
-            Handle h = play(aSound, aVolume, 0, true, aBus);
-            lockAudioMutex_internal();
-            int v = getVoiceFromHandle_internal(h);
-            if (v < 0)
-            {
-                unlockAudioMutex_internal();
-                return h;
-            }
-            m3dData[v].mHandle = h;
-            AudioSourceInstance voice = mVoice[v]!;
-            voice.mFlags |= AudioSourceInstance.FLAGS.PROCESS_3D;
-            set3dSourceParameters(h, aPosX, aPosY, aPosZ, aVelX, aVelY, aVelZ);
-            Time lasttime = mLastClockedTime;
-            if (lasttime == 0)
-            {
-                lasttime = aSoundTime;
-                mLastClockedTime = aSoundTime;
-            }
+            int v;
+            AudioSourceInstance voice;
             Vec3 pos;
-            pos.X = aPosX;
-            pos.Y = aPosY;
-            pos.Z = aPosZ;
-            unlockAudioMutex_internal();
+            int samples;
 
-            int samples = (int)Math.Floor((aSoundTime - lasttime) * mSamplerate);
-            // Make sure we don't delay too much (or overflow)
-            if (samples < 0 || samples > 2048)
-                samples = 0;
-
-            if ((aSound.mFlags & AudioSource.FLAGS.DISTANCE_DELAY) != 0)
+            Handle h = play(aSound, aVolume, 0, true, aBus);
+            lock (mAudioThreadMutex)
             {
-                float dist = pos.mag();
-                samples += (int)MathF.Floor((dist / m3dSoundSpeed) * mSamplerate);
+                v = getVoiceFromHandle_internal(h);
+                if (v < 0)
+                {
+                    return h;
+                }
+                m3dData[v].mHandle = h;
+                voice = mVoice[v]!;
+                voice.mFlags |= AudioSourceInstance.FLAGS.PROCESS_3D;
+                set3dSourceParameters(h, aPosX, aPosY, aPosZ, aVelX, aVelY, aVelZ);
+                Time lasttime = mLastClockedTime;
+                if (lasttime == 0)
+                {
+                    lasttime = aSoundTime;
+                    mLastClockedTime = aSoundTime;
+                }
+                pos.X = aPosX;
+                pos.Y = aPosY;
+                pos.Z = aPosZ;
+
+                samples = (int)Math.Floor((aSoundTime - lasttime) * mSamplerate);
+                // Make sure we don't delay too much (or overflow)
+                if (samples < 0 || samples > 2048)
+                    samples = 0;
+
+                if ((aSound.mFlags & AudioSource.FLAGS.DISTANCE_DELAY) != 0)
+                {
+                    float dist = pos.mag();
+                    samples += (int)MathF.Floor((dist / m3dSoundSpeed) * mSamplerate);
+                }
             }
 
             update3dVoices_internal((uint*)&v, 1);
-            lockAudioMutex_internal();
-            updateVoiceRelativePlaySpeed_internal((uint)v);
-            voice.mChannelVolume = m3dData[v].mChannelVolume;
 
-            updateVoiceVolume_internal((uint)v);
-
-            // Fix initial voice volume ramp up
-            for (int i = 0; i < MAX_CHANNELS; i++)
+            lock (mAudioThreadMutex)
             {
-                voice.mCurrentChannelVolume[i] = voice.mChannelVolume[i] * voice.mOverallVolume;
-            }
+                updateVoiceRelativePlaySpeed_internal((uint)v);
+                voice.mChannelVolume = m3dData[v].mChannelVolume;
 
-            if (voice.mOverallVolume < 0.01f)
-            {
-                // Inaudible.
-                voice.mFlags |= AudioSourceInstance.FLAGS.INAUDIBLE;
+                updateVoiceVolume_internal((uint)v);
 
-                if ((voice.mFlags & AudioSourceInstance.FLAGS.INAUDIBLE_KILL) != 0)
+                // Fix initial voice volume ramp up
+                for (int i = 0; i < MAX_CHANNELS; i++)
                 {
-                    stopVoice_internal((uint)v);
+                    voice.mCurrentChannelVolume[i] = voice.mChannelVolume[i] * voice.mOverallVolume;
                 }
+
+                if (voice.mOverallVolume < 0.01f)
+                {
+                    // Inaudible.
+                    voice.mFlags |= AudioSourceInstance.FLAGS.INAUDIBLE;
+
+                    if ((voice.mFlags & AudioSourceInstance.FLAGS.INAUDIBLE_KILL) != 0)
+                    {
+                        stopVoice_internal((uint)v);
+                    }
+                }
+                else
+                {
+                    voice.mFlags &= ~AudioSourceInstance.FLAGS.INAUDIBLE;
+                }
+                mActiveVoiceDirty = true;
             }
-            else
-            {
-                voice.mFlags &= ~AudioSourceInstance.FLAGS.INAUDIBLE;
-            }
-            mActiveVoiceDirty = true;
-            unlockAudioMutex_internal();
 
             setDelaySamples(h, (uint)samples);
             setPause(h, false);
@@ -378,8 +392,8 @@ namespace LoudPizza
         /// </summary>
         public void set3dListenerParameters(
             float aPosX, float aPosY, float aPosZ,
-            float aAtX, float aAtY, float aAtZ, 
-            float aUpX, float aUpY, float aUpZ, 
+            float aAtX, float aAtY, float aAtZ,
+            float aUpX, float aUpY, float aUpZ,
             float aVelocityX, float aVelocityY, float aVelocityZ)
         {
             m3dPosition = new Vec3(aPosX, aPosY, aPosZ);
@@ -424,8 +438,8 @@ namespace LoudPizza
         /// Set 3D audio source parameters.
         /// </summary>
         public void set3dSourceParameters(
-            Handle aVoiceHandle, 
-            float aPosX, float aPosY, float aPosZ, 
+            Handle aVoiceHandle,
+            float aPosX, float aPosY, float aPosZ,
             float aVelocityX, float aVelocityY, float aVelocityZ)
         {
             void body(Handle h)

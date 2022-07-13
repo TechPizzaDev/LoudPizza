@@ -12,16 +12,17 @@ namespace LoudPizza
             if (aFilterId >= FILTERS_PER_STREAM)
                 return;
 
-            lockAudioMutex_internal();
-            mFilterInstance[aFilterId]?.Dispose();
-            mFilterInstance[aFilterId] = null;
-
-            mFilter[aFilterId] = aFilter;
-            if (aFilter != null)
+            lock (mAudioThreadMutex)
             {
-                mFilterInstance[aFilterId] = aFilter.createInstance();
+                mFilterInstance[aFilterId]?.Dispose();
+                mFilterInstance[aFilterId] = null;
+
+                mFilter[aFilterId] = aFilter;
+                if (aFilter != null)
+                {
+                    mFilterInstance[aFilterId] = aFilter.createInstance();
+                }
             }
-            unlockAudioMutex_internal();
         }
 
         /// <summary>
@@ -33,30 +34,28 @@ namespace LoudPizza
             if (aFilterId >= FILTERS_PER_STREAM)
                 return ret;
 
-            if (aVoiceHandle.Value == 0)
+            lock (mAudioThreadMutex)
             {
-                lockAudioMutex_internal();
-                FilterInstance? filterInstance = mFilterInstance[aFilterId];
-                if (filterInstance != null)
+                if (aVoiceHandle.Value == 0)
                 {
-                    ret = filterInstance.getFilterParameter(aAttributeId);
+                    FilterInstance? filterInstance = mFilterInstance[aFilterId];
+                    if (filterInstance != null)
+                    {
+                        ret = filterInstance.getFilterParameter(aAttributeId);
+                    }
+                    return ret;
                 }
-                unlockAudioMutex_internal();
-                return ret;
-            }
 
-            lockAudioMutex_internal();
-            AudioSourceInstance? ch = getVoiceRefFromHandle_internal(aVoiceHandle);
-            if (ch != null)
-            {
-                FilterInstance? filterInstance = ch.mFilter[aFilterId];
-                if (filterInstance != null)
+                AudioSourceInstance? ch = getVoiceRefFromHandle_internal(aVoiceHandle);
+                if (ch != null)
                 {
-                    ret = filterInstance.getFilterParameter(aAttributeId);
+                    FilterInstance? filterInstance = ch.mFilter[aFilterId];
+                    if (filterInstance != null)
+                    {
+                        ret = filterInstance.getFilterParameter(aAttributeId);
+                    }
                 }
             }
-            unlockAudioMutex_internal();
-
             return ret;
         }
 
@@ -68,43 +67,42 @@ namespace LoudPizza
             if (aFilterId >= FILTERS_PER_STREAM)
                 return;
 
-            if (aVoiceHandle.Value == 0)
+            lock (mAudioThreadMutex)
             {
-                lockAudioMutex_internal();
-                FilterInstance? filterInstance = mFilterInstance[aFilterId];
-                if (filterInstance != null)
+                if (aVoiceHandle.Value == 0)
                 {
-                    filterInstance.setFilterParameter(aAttributeId, aValue);
-                }
-                unlockAudioMutex_internal();
-                return;
-            }
-
-            void body(Handle h)
-            {
-                AudioSourceInstance? ch = getVoiceRefFromHandle_internal(h);
-                if (ch != null)
-                {
-                    FilterInstance? filterInstance = ch.mFilter[aFilterId];
+                    FilterInstance? filterInstance = mFilterInstance[aFilterId];
                     if (filterInstance != null)
                     {
                         filterInstance.setFilterParameter(aAttributeId, aValue);
                     }
+                    return;
+                }
+
+                void body(Handle h)
+                {
+                    AudioSourceInstance? ch = getVoiceRefFromHandle_internal(h);
+                    if (ch != null)
+                    {
+                        FilterInstance? filterInstance = ch.mFilter[aFilterId];
+                        if (filterInstance != null)
+                        {
+                            filterInstance.setFilterParameter(aAttributeId, aValue);
+                        }
+                    }
+                }
+
+                ArraySegment<Handle> h_ = voiceGroupHandleToArray_internal(aVoiceHandle);
+                if (h_.Array == null)
+                {
+                    body(aVoiceHandle);
+                }
+                else
+                {
+                    foreach (Handle h in h_.AsSpan())
+                        body(h);
                 }
             }
-
-            lockAudioMutex_internal();
-            ArraySegment<Handle> h_ = voiceGroupHandleToArray_internal(aVoiceHandle);
-            if (h_.Array == null)
-            {
-                body(aVoiceHandle);
-            }
-            else
-            {
-                foreach (Handle h in h_.AsSpan())
-                    body(h);
-            }
-            unlockAudioMutex_internal();
         }
 
         /// <summary>
@@ -115,43 +113,42 @@ namespace LoudPizza
             if (aFilterId >= FILTERS_PER_STREAM)
                 return;
 
-            if (aVoiceHandle.Value == 0)
+            lock (mAudioThreadMutex)
             {
-                lockAudioMutex_internal();
-                FilterInstance? filterInstance = mFilterInstance[aFilterId];
-                if (filterInstance != null)
+                if (aVoiceHandle.Value == 0)
                 {
-                    filterInstance.fadeFilterParameter(aAttributeId, aTo, aTime, mStreamTime);
-                }
-                unlockAudioMutex_internal();
-                return;
-            }
-
-            void body(Handle h)
-            {
-                AudioSourceInstance? ch = getVoiceRefFromHandle_internal(h);
-                if (ch != null)
-                {
-                    FilterInstance? filterInstance = ch.mFilter[aFilterId];
+                    FilterInstance? filterInstance = mFilterInstance[aFilterId];
                     if (filterInstance != null)
                     {
                         filterInstance.fadeFilterParameter(aAttributeId, aTo, aTime, mStreamTime);
                     }
+                    return;
+                }
+
+                void body(Handle h)
+                {
+                    AudioSourceInstance? ch = getVoiceRefFromHandle_internal(h);
+                    if (ch != null)
+                    {
+                        FilterInstance? filterInstance = ch.mFilter[aFilterId];
+                        if (filterInstance != null)
+                        {
+                            filterInstance.fadeFilterParameter(aAttributeId, aTo, aTime, mStreamTime);
+                        }
+                    }
+                }
+
+                ArraySegment<Handle> h_ = voiceGroupHandleToArray_internal(aVoiceHandle);
+                if (h_.Array == null)
+                {
+                    body(aVoiceHandle);
+                }
+                else
+                {
+                    foreach (Handle h in h_.AsSpan())
+                        body(h);
                 }
             }
-
-            lockAudioMutex_internal();
-            ArraySegment<Handle> h_ = voiceGroupHandleToArray_internal(aVoiceHandle);
-            if (h_.Array == null)
-            {
-                body(aVoiceHandle);
-            }
-            else
-            {
-                foreach (Handle h in h_.AsSpan())
-                    body(h);
-            }
-            unlockAudioMutex_internal();
         }
 
         /// <summary>
@@ -162,43 +159,42 @@ namespace LoudPizza
             if (aFilterId >= FILTERS_PER_STREAM)
                 return;
 
-            if (aVoiceHandle.Value == 0)
+            lock (mAudioThreadMutex)
             {
-                lockAudioMutex_internal();
-                FilterInstance? filterInstance = mFilterInstance[aFilterId];
-                if (filterInstance != null)
+                if (aVoiceHandle.Value == 0)
                 {
-                    filterInstance.oscillateFilterParameter(aAttributeId, aFrom, aTo, aTime, mStreamTime);
-                }
-                unlockAudioMutex_internal();
-                return;
-            }
-
-            void body(Handle h)
-            {
-                AudioSourceInstance? ch = getVoiceRefFromHandle_internal(h);
-                if (ch != null)
-                {
-                    FilterInstance? filterInstance = ch.mFilter[aFilterId];
+                    FilterInstance? filterInstance = mFilterInstance[aFilterId];
                     if (filterInstance != null)
                     {
                         filterInstance.oscillateFilterParameter(aAttributeId, aFrom, aTo, aTime, mStreamTime);
                     }
+                    return;
+                }
+
+                void body(Handle h)
+                {
+                    AudioSourceInstance? ch = getVoiceRefFromHandle_internal(h);
+                    if (ch != null)
+                    {
+                        FilterInstance? filterInstance = ch.mFilter[aFilterId];
+                        if (filterInstance != null)
+                        {
+                            filterInstance.oscillateFilterParameter(aAttributeId, aFrom, aTo, aTime, mStreamTime);
+                        }
+                    }
+                }
+
+                ArraySegment<Handle> h_ = voiceGroupHandleToArray_internal(aVoiceHandle);
+                if (h_.Array == null)
+                {
+                    body(aVoiceHandle);
+                }
+                else
+                {
+                    foreach (Handle h in h_.AsSpan())
+                        body(h);
                 }
             }
-
-            lockAudioMutex_internal();
-            ArraySegment<Handle> h_ = voiceGroupHandleToArray_internal(aVoiceHandle);
-            if (h_.Array == null)
-            {
-                body(aVoiceHandle);
-            }
-            else
-            {
-                foreach (Handle h in h_.AsSpan())
-                    body(h);
-            }
-            unlockAudioMutex_internal();
         }
     }
 }

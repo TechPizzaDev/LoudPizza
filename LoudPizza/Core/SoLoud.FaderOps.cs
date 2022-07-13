@@ -24,18 +24,19 @@ namespace LoudPizza
                 }
             }
 
-            lockAudioMutex_internal();
-            ArraySegment<Handle> h_ = voiceGroupHandleToArray_internal(aVoiceHandle);
-            if (h_.Array == null)
+            lock (mAudioThreadMutex)
             {
-                body(aVoiceHandle);
+                ArraySegment<Handle> h_ = voiceGroupHandleToArray_internal(aVoiceHandle);
+                if (h_.Array == null)
+                {
+                    body(aVoiceHandle);
+                }
+                else
+                {
+                    foreach (Handle h in h_.AsSpan())
+                        body(h);
+                }
             }
-            else
-            {
-                foreach (Handle h in h_.AsSpan())
-                    body(h);
-            }
-            unlockAudioMutex_internal();
         }
 
         /// <summary>
@@ -58,18 +59,19 @@ namespace LoudPizza
                 }
             }
 
-            lockAudioMutex_internal();
-            ArraySegment<Handle> h_ = voiceGroupHandleToArray_internal(aVoiceHandle);
-            if (h_.Array == null)
+            lock (mAudioThreadMutex)
             {
-                body(aVoiceHandle);
+                ArraySegment<Handle> h_ = voiceGroupHandleToArray_internal(aVoiceHandle);
+                if (h_.Array == null)
+                {
+                    body(aVoiceHandle);
+                }
+                else
+                {
+                    foreach (Handle h in h_.AsSpan())
+                        body(h);
+                }
             }
-            else
-            {
-                foreach (Handle h in h_.AsSpan())
-                    body(h);
-            }
-            unlockAudioMutex_internal();
         }
 
         /// <summary>
@@ -93,18 +95,19 @@ namespace LoudPizza
                 }
             }
 
-            lockAudioMutex_internal();
-            ArraySegment<Handle> h_ = voiceGroupHandleToArray_internal(aVoiceHandle);
-            if (h_.Array == null)
+            lock (mAudioThreadMutex)
             {
-                body(aVoiceHandle);
+                ArraySegment<Handle> h_ = voiceGroupHandleToArray_internal(aVoiceHandle);
+                if (h_.Array == null)
+                {
+                    body(aVoiceHandle);
+                }
+                else
+                {
+                    foreach (Handle h in h_.AsSpan())
+                        body(h);
+                }
             }
-            else
-            {
-                foreach (Handle h in h_.AsSpan())
-                    body(h);
-            }
-            unlockAudioMutex_internal();
         }
 
         /// <summary>
@@ -128,18 +131,19 @@ namespace LoudPizza
                 }
             }
 
-            lockAudioMutex_internal();
-            ArraySegment<Handle> h_ = voiceGroupHandleToArray_internal(aVoiceHandle);
-            if (h_.Array == null)
+            lock (mAudioThreadMutex)
             {
-                body(aVoiceHandle);
+                ArraySegment<Handle> h_ = voiceGroupHandleToArray_internal(aVoiceHandle);
+                if (h_.Array == null)
+                {
+                    body(aVoiceHandle);
+                }
+                else
+                {
+                    foreach (Handle h in h_.AsSpan())
+                        body(h);
+                }
             }
-            else
-            {
-                foreach (Handle h in h_.AsSpan())
-                    body(h);
-            }
-            unlockAudioMutex_internal();
         }
 
         /// <summary>
@@ -163,18 +167,19 @@ namespace LoudPizza
                 }
             }
 
-            lockAudioMutex_internal();
-            ArraySegment<Handle> h_ = voiceGroupHandleToArray_internal(aVoiceHandle);
-            if (h_.Array == null)
+            lock (mAudioThreadMutex)
             {
-                body(aVoiceHandle);
+                ArraySegment<Handle> h_ = voiceGroupHandleToArray_internal(aVoiceHandle);
+                if (h_.Array == null)
+                {
+                    body(aVoiceHandle);
+                }
+                else
+                {
+                    foreach (Handle h in h_.AsSpan())
+                        body(h);
+                }
             }
-            else
-            {
-                foreach (Handle h in h_.AsSpan())
-                    body(h);
-            }
-            unlockAudioMutex_internal();
         }
 
         /// <summary>
@@ -211,18 +216,19 @@ namespace LoudPizza
                 }
             }
 
-            lockAudioMutex_internal();
-            ArraySegment<Handle> h_ = voiceGroupHandleToArray_internal(aVoiceHandle);
-            if (h_.Array == null)
+            lock (mAudioThreadMutex)
             {
-                body(aVoiceHandle);
+                ArraySegment<Handle> h_ = voiceGroupHandleToArray_internal(aVoiceHandle);
+                if (h_.Array == null)
+                {
+                    body(aVoiceHandle);
+                }
+                else
+                {
+                    foreach (Handle h in h_.AsSpan())
+                        body(h);
+                }
             }
-            else
-            {
-                foreach (Handle h in h_.AsSpan())
-                    body(h);
-            }
-            unlockAudioMutex_internal();
         }
 
         /// <summary>
@@ -245,18 +251,19 @@ namespace LoudPizza
                 }
             }
 
-            lockAudioMutex_internal();
-            ArraySegment<Handle> h_ = voiceGroupHandleToArray_internal(aVoiceHandle);
-            if (h_.Array == null)
+            lock (mAudioThreadMutex)
             {
-                body(aVoiceHandle);
+                ArraySegment<Handle> h_ = voiceGroupHandleToArray_internal(aVoiceHandle);
+                if (h_.Array == null)
+                {
+                    body(aVoiceHandle);
+                }
+                else
+                {
+                    foreach (Handle h in h_.AsSpan())
+                        body(h);
+                }
             }
-            else
-            {
-                foreach (Handle h in h_.AsSpan())
-                    body(h);
-            }
-            unlockAudioMutex_internal();
         }
 
         /// <summary>
@@ -279,18 +286,19 @@ namespace LoudPizza
                 }
             }
 
-            lockAudioMutex_internal();
-            ArraySegment<Handle> h_ = voiceGroupHandleToArray_internal(aVoiceHandle);
-            if (h_.Array == null)
+            lock (mAudioThreadMutex)
             {
-                body(aVoiceHandle);
+                ArraySegment<Handle> h_ = voiceGroupHandleToArray_internal(aVoiceHandle);
+                if (h_.Array == null)
+                {
+                    body(aVoiceHandle);
+                }
+                else
+                {
+                    foreach (Handle h in h_.AsSpan())
+                        body(h);
+                }
             }
-            else
-            {
-                foreach (Handle h in h_.AsSpan())
-                    body(h);
-            }
-            unlockAudioMutex_internal();
         }
 
         /// <summary>

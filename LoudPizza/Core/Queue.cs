@@ -62,12 +62,12 @@ namespace LoudPizza
             instance.init(aSound, 0);
             instance.mAudioSourceID = aSound.mAudioSourceID;
 
-            mSoloud.lockAudioMutex_internal();
-            mSource[mWriteIndex] = instance;
-            mWriteIndex = (mWriteIndex + 1) % (uint)mSource.Length;
-            mCount++;
-            mSoloud.unlockAudioMutex_internal();
-
+            lock (mSoloud.mAudioThreadMutex)
+            {
+                mSource[mWriteIndex] = instance;
+                mWriteIndex = (mWriteIndex + 1) % (uint)mSource.Length;
+                mCount++;
+            }
             return SOLOUD_ERRORS.SO_NO_ERROR;
         }
 
@@ -80,11 +80,12 @@ namespace LoudPizza
             {
                 return 0;
             }
-            uint count;
-            mSoloud.lockAudioMutex_internal();
-            count = mCount;
-            mSoloud.unlockAudioMutex_internal();
-            return count;
+
+            lock (mSoloud.mAudioThreadMutex)
+            {
+                uint count = mCount;
+                return count;
+            }
         }
 
         /// <summary>
@@ -95,10 +96,11 @@ namespace LoudPizza
             if (mSoloud == null || mCount == 0 || aSound.mAudioSourceID == 0)
                 return false;
 
-            mSoloud.lockAudioMutex_internal();
-            bool res = mSource[mReadIndex]!.mAudioSourceID == aSound.mAudioSourceID;
-            mSoloud.unlockAudioMutex_internal();
-            return res;
+            lock (mSoloud.mAudioThreadMutex)
+            {
+                bool res = mSource[mReadIndex]!.mAudioSourceID == aSound.mAudioSourceID;
+                return res;
+            }
         }
 
         /// <summary>

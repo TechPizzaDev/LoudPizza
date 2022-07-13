@@ -22,72 +22,71 @@ namespace LoudPizza
             aSound.mSoloud = this;
             AudioSourceInstance instance = aSound.createInstance();
 
-            lockAudioMutex_internal();
-            int ch = findFreeVoice_internal();
-            if (ch < 0)
+            lock (mAudioThreadMutex)
             {
-                unlockAudioMutex_internal();
-                instance.Dispose();
-                return new Handle((uint)SOLOUD_ERRORS.UNKNOWN_ERROR);
-            }
-            if (aSound.mAudioSourceID == 0)
-            {
-                aSound.mAudioSourceID = mAudioSourceID;
-                mAudioSourceID++;
-            }
-            mVoice[ch] = instance;
-            instance.mAudioSourceID = aSound.mAudioSourceID;
-            instance.mBusHandle = aBus;
-            instance.init(aSound, mPlayIndex);
-            m3dData[ch].init(aSound);
-
-            mPlayIndex++;
-
-            // 20 bits, skip the last one (top bits full = voice group)
-            if (mPlayIndex == 0xfffff)
-            {
-                mPlayIndex = 0;
-            }
-
-            if (aPaused)
-            {
-                instance.mFlags |= AudioSourceInstance.FLAGS.PAUSED;
-            }
-
-            setVoicePan_internal((uint)ch, aPan);
-            if (aVolume < 0)
-            {
-                setVoiceVolume_internal((uint)ch, aSound.mVolume);
-            }
-            else
-            {
-                setVoiceVolume_internal((uint)ch, aVolume);
-            }
-
-            // Fix initial voice volume ramp up		
-            int i;
-            for (i = 0; i < MAX_CHANNELS; i++)
-            {
-                instance.mCurrentChannelVolume[i] = instance.mChannelVolume[i] * instance.mOverallVolume;
-            }
-
-            setVoiceRelativePlaySpeed_internal((uint)ch, 1);
-
-            for (i = 0; i < FILTERS_PER_STREAM; i++)
-            {
-                Filter? filter = aSound.mFilter[i];
-                if (filter != null)
+                int ch = findFreeVoice_internal();
+                if (ch < 0)
                 {
-                    instance.mFilter[i] = filter.createInstance();
+                    instance.Dispose();
+                    return new Handle((uint)SOLOUD_ERRORS.UNKNOWN_ERROR);
                 }
+                if (aSound.mAudioSourceID == 0)
+                {
+                    aSound.mAudioSourceID = mAudioSourceID;
+                    mAudioSourceID++;
+                }
+                mVoice[ch] = instance;
+                instance.mAudioSourceID = aSound.mAudioSourceID;
+                instance.mBusHandle = aBus;
+                instance.init(aSound, mPlayIndex);
+                m3dData[ch].init(aSound);
+
+                mPlayIndex++;
+
+                // 20 bits, skip the last one (top bits full = voice group)
+                if (mPlayIndex == 0xfffff)
+                {
+                    mPlayIndex = 0;
+                }
+
+                if (aPaused)
+                {
+                    instance.mFlags |= AudioSourceInstance.FLAGS.PAUSED;
+                }
+
+                setVoicePan_internal((uint)ch, aPan);
+                if (aVolume < 0)
+                {
+                    setVoiceVolume_internal((uint)ch, aSound.mVolume);
+                }
+                else
+                {
+                    setVoiceVolume_internal((uint)ch, aVolume);
+                }
+
+                // Fix initial voice volume ramp up		
+                int i;
+                for (i = 0; i < MAX_CHANNELS; i++)
+                {
+                    instance.mCurrentChannelVolume[i] = instance.mChannelVolume[i] * instance.mOverallVolume;
+                }
+
+                setVoiceRelativePlaySpeed_internal((uint)ch, 1);
+
+                for (i = 0; i < FILTERS_PER_STREAM; i++)
+                {
+                    Filter? filter = aSound.mFilter[i];
+                    if (filter != null)
+                    {
+                        instance.mFilter[i] = filter.createInstance();
+                    }
+                }
+
+                mActiveVoiceDirty = true;
+
+                Handle handle = getHandleFromVoice_internal((uint)ch);
+                return handle;
             }
-
-            mActiveVoiceDirty = true;
-
-            unlockAudioMutex_internal();
-
-            Handle handle = getHandleFromVoice_internal((uint)ch);
-            return handle;
         }
 
         /// <summary>
@@ -97,15 +96,17 @@ namespace LoudPizza
         public Handle playClocked(Time aSoundTime, AudioSource aSound, float aVolume = -1.0f, float aPan = 0.0f, Handle aBus = default)
         {
             Handle h = play(aSound, aVolume, aPan, true, aBus);
-            lockAudioMutex_internal();
-            // mLastClockedTime is cleared to zero at start of every output buffer
-            Time lasttime = mLastClockedTime;
-            if (lasttime == 0)
+            Time lasttime;
+            lock (mAudioThreadMutex)
             {
-                mLastClockedTime = aSoundTime;
-                lasttime = aSoundTime;
+                // mLastClockedTime is cleared to zero at start of every output buffer
+                lasttime = mLastClockedTime;
+                if (lasttime == 0)
+                {
+                    mLastClockedTime = aSoundTime;
+                    lasttime = aSoundTime;
+                }
             }
-            unlockAudioMutex_internal();
             int samples = (int)Math.Floor((aSoundTime - lasttime) * mSamplerate);
             // Make sure we don't delay too much (or overflow)
             if (samples < 0 || samples > 2048)
@@ -147,19 +148,19 @@ namespace LoudPizza
                 }
             }
 
-            lockAudioMutex_internal();
-            ArraySegment<Handle> h_ = voiceGroupHandleToArray_internal(aVoiceHandle);
-            if (h_.Array == null)
+            lock (mAudioThreadMutex)
             {
-                body(aVoiceHandle);
+                ArraySegment<Handle> h_ = voiceGroupHandleToArray_internal(aVoiceHandle);
+                if (h_.Array == null)
+                {
+                    body(aVoiceHandle);
+                }
+                else
+                {
+                    foreach (Handle h in h_.AsSpan())
+                        body(h);
+                }
             }
-            else
-            {
-                foreach (Handle h in h_.AsSpan())
-                    body(h);
-            }
-            unlockAudioMutex_internal();
-
             return res;
         }
 
@@ -177,18 +178,19 @@ namespace LoudPizza
                 }
             }
 
-            lockAudioMutex_internal();
-            ArraySegment<Handle> h_ = voiceGroupHandleToArray_internal(aVoiceHandle);
-            if (h_.Array == null)
+            lock (mAudioThreadMutex)
             {
-                body(aVoiceHandle);
+                ArraySegment<Handle> h_ = voiceGroupHandleToArray_internal(aVoiceHandle);
+                if (h_.Array == null)
+                {
+                    body(aVoiceHandle);
+                }
+                else
+                {
+                    foreach (Handle h in h_.AsSpan())
+                        body(h);
+                }
             }
-            else
-            {
-                foreach (Handle h in h_.AsSpan())
-                    body(h);
-            }
-            unlockAudioMutex_internal();
         }
 
         /// <summary>
@@ -198,17 +200,17 @@ namespace LoudPizza
         {
             if (aSound.mAudioSourceID != 0)
             {
-                lockAudioMutex_internal();
-
-                for (uint i = 0; i < mHighestVoice; i++)
+                lock (mAudioThreadMutex)
                 {
-                    AudioSourceInstance? voice = mVoice[i];
-                    if (voice != null && voice.mAudioSourceID == aSound.mAudioSourceID)
+                    for (uint i = 0; i < mHighestVoice; i++)
                     {
-                        stopVoice_internal(i);
+                        AudioSourceInstance? voice = mVoice[i];
+                        if (voice != null && voice.mAudioSourceID == aSound.mAudioSourceID)
+                        {
+                            stopVoice_internal(i);
+                        }
                     }
                 }
-                unlockAudioMutex_internal();
             }
         }
 
@@ -217,12 +219,13 @@ namespace LoudPizza
         /// </summary>
         public void stopAll()
         {
-            lockAudioMutex_internal();
-            for (uint i = 0; i < mHighestVoice; i++)
+            lock (mAudioThreadMutex)
             {
-                stopVoice_internal(i);
+                for (uint i = 0; i < mHighestVoice; i++)
+                {
+                    stopVoice_internal(i);
+                }
             }
-            unlockAudioMutex_internal();
         }
 
         /// <summary>
@@ -233,16 +236,17 @@ namespace LoudPizza
             int count = 0;
             if (aSound.mAudioSourceID != 0)
             {
-                lockAudioMutex_internal();
-                for (uint i = 0; i < mHighestVoice; i++)
+                lock (mAudioThreadMutex)
                 {
-                    AudioSourceInstance? voice = mVoice[i];
-                    if (voice != null && voice.mAudioSourceID == aSound.mAudioSourceID)
+                    for (uint i = 0; i < mHighestVoice; i++)
                     {
-                        count++;
+                        AudioSourceInstance? voice = mVoice[i];
+                        if (voice != null && voice.mAudioSourceID == aSound.mAudioSourceID)
+                        {
+                            count++;
+                        }
                     }
                 }
-                unlockAudioMutex_internal();
             }
             return count;
         }

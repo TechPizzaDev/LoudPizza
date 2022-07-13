@@ -113,12 +113,13 @@ namespace LoudPizza
         /// </summary>
         public uint getActiveVoiceCount()
         {
-            lockAudioMutex_internal();
-            if (mActiveVoiceDirty)
-                calcActiveVoices_internal();
-            uint c = mActiveVoiceCount;
-            unlockAudioMutex_internal();
-            return c;
+            lock (mAudioThreadMutex)
+            {
+                if (mActiveVoiceDirty)
+                    calcActiveVoices_internal();
+                uint c = mActiveVoiceCount;
+                return c;
+            }
         }
 
         /// <summary>
@@ -126,17 +127,18 @@ namespace LoudPizza
         /// </summary>
         public uint getVoiceCount()
         {
-            lockAudioMutex_internal();
-            uint c = 0;
-            for (uint i = 0; i < mHighestVoice; i++)
+            lock (mAudioThreadMutex)
             {
-                if (mVoice[i] != null)
+                uint c = 0;
+                for (uint i = 0; i < mHighestVoice; i++)
                 {
-                    c++;
+                    if (mVoice[i] != null)
+                    {
+                        c++;
+                    }
                 }
+                return c;
             }
-            unlockAudioMutex_internal();
-            return c;
         }
 
         /// <summary>
@@ -148,14 +150,11 @@ namespace LoudPizza
             if ((aVoiceHandle.Value & 0xfffff000) == 0xfffff000)
                 return false;
 
-            lockAudioMutex_internal();
-            if (getVoiceFromHandle_internal(aVoiceHandle) != -1)
+            lock (mAudioThreadMutex)
             {
-                unlockAudioMutex_internal();
-                return true;
+                bool result = getVoiceFromHandle_internal(aVoiceHandle) != -1;
+                return result;
             }
-            unlockAudioMutex_internal();
-            return false;
         }
 
         /// <summary>
@@ -163,16 +162,16 @@ namespace LoudPizza
         /// </summary>
         public Time getLoopPoint(Handle aVoiceHandle)
         {
-            lockAudioMutex_internal();
-            AudioSourceInstance? ch = getVoiceRefFromHandle_internal(aVoiceHandle);
-            if (ch == null)
+            lock (mAudioThreadMutex)
             {
-                unlockAudioMutex_internal();
-                return 0;
+                AudioSourceInstance? ch = getVoiceRefFromHandle_internal(aVoiceHandle);
+                if (ch == null)
+                {
+                    return 0;
+                }
+                Time v = ch.mLoopPoint;
+                return v;
             }
-            Time v = ch.mLoopPoint;
-            unlockAudioMutex_internal();
-            return v;
         }
 
         /// <summary>
@@ -180,16 +179,16 @@ namespace LoudPizza
         /// </summary>
         public bool getLooping(Handle aVoiceHandle)
         {
-            lockAudioMutex_internal();
-            AudioSourceInstance? ch = getVoiceRefFromHandle_internal(aVoiceHandle);
-            if (ch == null)
+            lock (mAudioThreadMutex)
             {
-                unlockAudioMutex_internal();
-                return false;
+                AudioSourceInstance? ch = getVoiceRefFromHandle_internal(aVoiceHandle);
+                if (ch == null)
+                {
+                    return false;
+                }
+                AudioSourceInstance.FLAGS v = ch.mFlags & AudioSourceInstance.FLAGS.LOOPING;
+                return v != 0;
             }
-            AudioSourceInstance.FLAGS v = ch.mFlags & AudioSourceInstance.FLAGS.LOOPING;
-            unlockAudioMutex_internal();
-            return v != 0;
         }
 
         /// <summary>
@@ -197,16 +196,16 @@ namespace LoudPizza
         /// </summary>
         public bool getAutoStop(Handle aVoiceHandle)
         {
-            lockAudioMutex_internal();
-            AudioSourceInstance? ch = getVoiceRefFromHandle_internal(aVoiceHandle);
-            if (ch == null)
+            lock (mAudioThreadMutex)
             {
-                unlockAudioMutex_internal();
-                return false;
+                AudioSourceInstance? ch = getVoiceRefFromHandle_internal(aVoiceHandle);
+                if (ch == null)
+                {
+                    return false;
+                }
+                AudioSourceInstance.FLAGS v = ch.mFlags & AudioSourceInstance.FLAGS.DISABLE_AUTOSTOP;
+                return v == 0;
             }
-            AudioSourceInstance.FLAGS v = ch.mFlags & AudioSourceInstance.FLAGS.DISABLE_AUTOSTOP;
-            unlockAudioMutex_internal();
-            return v == 0;
         }
 
         /// <summary>
@@ -214,16 +213,16 @@ namespace LoudPizza
         /// </summary>
         public float getInfo(Handle aVoiceHandle, uint mInfoKey)
         {
-            lockAudioMutex_internal();
-            AudioSourceInstance? ch = getVoiceRefFromHandle_internal(aVoiceHandle);
-            if (ch == null)
+            lock (mAudioThreadMutex)
             {
-                unlockAudioMutex_internal();
-                return 0;
+                AudioSourceInstance? ch = getVoiceRefFromHandle_internal(aVoiceHandle);
+                if (ch == null)
+                {
+                    return 0;
+                }
+                float v = ch.getInfo(mInfoKey);
+                return v;
             }
-            float v = ch.getInfo(mInfoKey);
-            unlockAudioMutex_internal();
-            return v;
         }
 
         /// <summary>
@@ -231,16 +230,16 @@ namespace LoudPizza
         /// </summary>
         public float getVolume(Handle aVoiceHandle)
         {
-            lockAudioMutex_internal();
-            AudioSourceInstance? ch = getVoiceRefFromHandle_internal(aVoiceHandle);
-            if (ch == null)
+            lock (mAudioThreadMutex)
             {
-                unlockAudioMutex_internal();
-                return 0;
+                AudioSourceInstance? ch = getVoiceRefFromHandle_internal(aVoiceHandle);
+                if (ch == null)
+                {
+                    return 0;
+                }
+                float v = ch.mSetVolume;
+                return v;
             }
-            float v = ch.mSetVolume;
-            unlockAudioMutex_internal();
-            return v;
         }
 
         /// <summary>
@@ -248,16 +247,16 @@ namespace LoudPizza
         /// </summary>
         public float getOverallVolume(Handle aVoiceHandle)
         {
-            lockAudioMutex_internal();
-            AudioSourceInstance? ch = getVoiceRefFromHandle_internal(aVoiceHandle);
-            if (ch == null)
+            lock (mAudioThreadMutex)
             {
-                unlockAudioMutex_internal();
-                return 0;
+                AudioSourceInstance? ch = getVoiceRefFromHandle_internal(aVoiceHandle);
+                if (ch == null)
+                {
+                    return 0;
+                }
+                float v = ch.mOverallVolume;
+                return v;
             }
-            float v = ch.mOverallVolume;
-            unlockAudioMutex_internal();
-            return v;
         }
 
         /// <summary>
@@ -265,16 +264,16 @@ namespace LoudPizza
         /// </summary>
         public float getPan(Handle aVoiceHandle)
         {
-            lockAudioMutex_internal();
-            AudioSourceInstance? ch = getVoiceRefFromHandle_internal(aVoiceHandle);
-            if (ch == null)
+            lock (mAudioThreadMutex)
             {
-                unlockAudioMutex_internal();
-                return 0;
+                AudioSourceInstance? ch = getVoiceRefFromHandle_internal(aVoiceHandle);
+                if (ch == null)
+                {
+                    return 0;
+                }
+                float v = ch.mPan;
+                return v;
             }
-            float v = ch.mPan;
-            unlockAudioMutex_internal();
-            return v;
         }
 
         /// <summary>
@@ -282,16 +281,16 @@ namespace LoudPizza
         /// </summary>
         public Time getStreamTime(Handle aVoiceHandle)
         {
-            lockAudioMutex_internal();
-            AudioSourceInstance? ch = getVoiceRefFromHandle_internal(aVoiceHandle);
-            if (ch == null)
+            lock (mAudioThreadMutex)
             {
-                unlockAudioMutex_internal();
-                return 0;
+                AudioSourceInstance? ch = getVoiceRefFromHandle_internal(aVoiceHandle);
+                if (ch == null)
+                {
+                    return 0;
+                }
+                Time v = ch.mStreamTime;
+                return v;
             }
-            Time v = ch.mStreamTime;
-            unlockAudioMutex_internal();
-            return v;
         }
 
         /// <summary>
@@ -299,16 +298,16 @@ namespace LoudPizza
         /// </summary>
         public ulong getStreamSamplePosition(Handle aVoiceHandle)
         {
-            lockAudioMutex_internal();
-            AudioSourceInstance? ch = getVoiceRefFromHandle_internal(aVoiceHandle);
-            if (ch == null)
+            lock (mAudioThreadMutex)
             {
-                unlockAudioMutex_internal();
-                return 0;
+                AudioSourceInstance? ch = getVoiceRefFromHandle_internal(aVoiceHandle);
+                if (ch == null)
+                {
+                    return 0;
+                }
+                ulong v = ch.mStreamPosition;
+                return v;
             }
-            ulong v = ch.mStreamPosition;
-            unlockAudioMutex_internal();
-            return v;
         }
 
         /// <summary>
@@ -316,17 +315,17 @@ namespace LoudPizza
         /// </summary>
         public Time getStreamTimePosition(Handle aVoiceHandle)
         {
-            lockAudioMutex_internal();
-            AudioSourceInstance? ch = getVoiceRefFromHandle_internal(aVoiceHandle);
-            if (ch == null)
+            lock (mAudioThreadMutex)
             {
-                unlockAudioMutex_internal();
-                return 0;
+                AudioSourceInstance? ch = getVoiceRefFromHandle_internal(aVoiceHandle);
+                if (ch == null)
+                {
+                    return 0;
+                }
+                ulong pos = ch.mStreamPosition;
+                float rate = ch.mSamplerate;
+                return pos / (double)rate;
             }
-            ulong pos = ch.mStreamPosition;
-            float rate = ch.mSamplerate;
-            unlockAudioMutex_internal();
-            return pos / (double)rate;
         }
 
         /// <summary>
@@ -334,16 +333,16 @@ namespace LoudPizza
         /// </summary>
         public float getRelativePlaySpeed(Handle aVoiceHandle)
         {
-            lockAudioMutex_internal();
-            AudioSourceInstance? ch = getVoiceRefFromHandle_internal(aVoiceHandle);
-            if (ch == null)
+            lock (mAudioThreadMutex)
             {
-                unlockAudioMutex_internal();
-                return 1;
+                AudioSourceInstance? ch = getVoiceRefFromHandle_internal(aVoiceHandle);
+                if (ch == null)
+                {
+                    return 1;
+                }
+                float v = ch.mSetRelativePlaySpeed;
+                return v;
             }
-            float v = ch.mSetRelativePlaySpeed;
-            unlockAudioMutex_internal();
-            return v;
         }
 
         /// <summary>
@@ -351,16 +350,16 @@ namespace LoudPizza
         /// </summary>
         public float getSamplerate(Handle aVoiceHandle)
         {
-            lockAudioMutex_internal();
-            AudioSourceInstance? ch = getVoiceRefFromHandle_internal(aVoiceHandle);
-            if (ch == null)
+            lock (mAudioThreadMutex)
             {
-                unlockAudioMutex_internal();
-                return 0;
+                AudioSourceInstance? ch = getVoiceRefFromHandle_internal(aVoiceHandle);
+                if (ch == null)
+                {
+                    return 0;
+                }
+                float v = ch.mBaseSamplerate;
+                return v;
             }
-            float v = ch.mBaseSamplerate;
-            unlockAudioMutex_internal();
-            return v;
         }
 
         /// <summary>
@@ -368,16 +367,16 @@ namespace LoudPizza
         /// </summary>
         public bool getPause(Handle aVoiceHandle)
         {
-            lockAudioMutex_internal();
-            AudioSourceInstance? ch = getVoiceRefFromHandle_internal(aVoiceHandle);
-            if (ch == null)
+            lock (mAudioThreadMutex)
             {
-                unlockAudioMutex_internal();
-                return false;
+                AudioSourceInstance? ch = getVoiceRefFromHandle_internal(aVoiceHandle);
+                if (ch == null)
+                {
+                    return false;
+                }
+                AudioSourceInstance.FLAGS v = ch.mFlags & AudioSourceInstance.FLAGS.PAUSED;
+                return v != 0;
             }
-            AudioSourceInstance.FLAGS v = ch.mFlags & AudioSourceInstance.FLAGS.PAUSED;
-            unlockAudioMutex_internal();
-            return v != 0;
         }
 
         /// <summary>
@@ -385,16 +384,16 @@ namespace LoudPizza
         /// </summary>
         public bool getProtectVoice(Handle aVoiceHandle)
         {
-            lockAudioMutex_internal();
-            AudioSourceInstance? ch = getVoiceRefFromHandle_internal(aVoiceHandle);
-            if (ch == null)
+            lock (mAudioThreadMutex)
             {
-                unlockAudioMutex_internal();
-                return false;
+                AudioSourceInstance? ch = getVoiceRefFromHandle_internal(aVoiceHandle);
+                if (ch == null)
+                {
+                    return false;
+                }
+                AudioSourceInstance.FLAGS v = ch.mFlags & AudioSourceInstance.FLAGS.PROTECTED;
+                return v != 0;
             }
-            AudioSourceInstance.FLAGS v = ch.mFlags & AudioSourceInstance.FLAGS.PROTECTED;
-            unlockAudioMutex_internal();
-            return v != 0;
         }
 
         /// <summary>
@@ -439,16 +438,16 @@ namespace LoudPizza
         /// </remarks>
         public uint getLoopCount(Handle aVoiceHandle)
         {
-            lockAudioMutex_internal();
-            AudioSourceInstance? ch = getVoiceRefFromHandle_internal(aVoiceHandle);
-            if (ch == null)
+            lock (mAudioThreadMutex)
             {
-                unlockAudioMutex_internal();
-                return 0;
+                AudioSourceInstance? ch = getVoiceRefFromHandle_internal(aVoiceHandle);
+                if (ch == null)
+                {
+                    return 0;
+                }
+                uint v = ch.mLoopCount;
+                return v;
             }
-            uint v = ch.mLoopCount;
-            unlockAudioMutex_internal();
-            return v;
         }
 
         /// <summary>
