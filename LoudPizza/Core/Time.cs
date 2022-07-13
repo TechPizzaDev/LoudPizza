@@ -1,45 +1,36 @@
-﻿using System.Diagnostics;
+using System;
+using System.Diagnostics;
 
 namespace LoudPizza
 {
     [DebuggerDisplay("{" + nameof(GetDebuggerDisplay) + "(),nq}")]
     public readonly struct Time
     {
-        public double Value { get; }
+        public double Seconds { get; }
 
-        public Time(double value)
+        public Time(double seconds)
         {
-            Value = value;
+            Seconds = seconds;
         }
 
-        public static Time FromSeconds(double seconds)
+        public static implicit operator Time(TimeSpan timeSpan)
+        {
+            return new Time(timeSpan.TotalSeconds);
+        }
+
+        public static implicit operator Time(double seconds)
         {
             return new Time(seconds);
         }
 
-        public static Time operator +(Time a, Time b)
-        {
-            return a.Value + b.Value;
-        }
-
-        public static Time operator -(Time a, Time b)
-        {
-            return a.Value - b.Value;
-        }
-
-        public static implicit operator Time(double value)
-        {
-            return new Time(value);
-        }
-
         public static implicit operator double(Time time)
         {
-            return time.Value;
+            return time.Seconds;
         }
 
         public override string ToString()
         {
-            return Value.ToString();
+            return $"{Seconds}s";
         }
 
         private string GetDebuggerDisplay()

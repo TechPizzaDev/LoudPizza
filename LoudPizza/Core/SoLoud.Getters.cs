@@ -289,7 +289,7 @@ namespace LoudPizza
                 unlockAudioMutex_internal();
                 return 0;
             }
-            double v = ch.mStreamTime;
+            Time v = ch.mStreamTime;
             unlockAudioMutex_internal();
             return v;
         }
