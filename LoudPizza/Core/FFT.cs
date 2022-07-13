@@ -1,47 +1,70 @@
-﻿using System;
+// Copyright Takuya OOURA, 1996-2001 
+// You may use, copy, modify and distribute this code for any purpose 
+// (include commercial use) and without fee. Please refer to this package 
+// when you modify this code.
+
+using System;
 
 namespace LoudPizza
 {
+    /// <summary>
+    /// Based on <see href="http://www.kurims.kyoto-u.ac.jp/~ooura/fft.html"/>.
+    /// </summary>
     public static unsafe class FFT
     {
-        // Based on http://www.kurims.kyoto-u.ac.jp/~ooura/fft.html
-        // "Copyright Takuya OOURA, 1996-2001 
-        //  You may use, copy, modify and distribute this code for any purpose 
-        //  (include commercial use) and without fee. Please refer to this package 
-        //  when you modify this code."
-
-
-        // M_PI_2
+        /// <summary>
+        /// <see cref="M_PI_2"/>
+        /// </summary>
         public const float M_PI_2 = 1.570796326794896619231321691639751442098584699687f;
 
-        // WR5000 = cos(M_PI_2*0.5000) 
+        /// <summary>
+        /// <see cref="WR5000"/> = cos(<see cref="M_PI_2"/> * 0.5000) 
+        /// </summary>
         public const float WR5000 = 0.707106781186547524400844362104849039284835937688f;
 
-        // WR2500 = cos(M_PI_2*0.2500) 
+        /// <summary>
+        /// <see cref="WR2500"/> = cos(<see cref="M_PI_2"/> * 0.2500) 
+        /// </summary>
         public const float WR2500 = 0.923879532511286756128183189396788286822416625863f;
 
-        // WI2500 = sin(M_PI_2*0.2500)
+        /// <summary>
+        /// <see cref="WI2500"/> = sin(<see cref="M_PI_2"/> * 0.2500)
+        /// </summary>
         public const float WI2500 = 0.382683432365089771728459984030398866761344562485f;
 
-        // WR1250 = cos(M_PI_2*0.1250) 
+        /// <summary>
+        /// <see cref="WR1250"/> = cos(<see cref="M_PI_2"/> * 0.1250) 
+        /// </summary>
         public const float WR1250 = 0.980785280403230449126182236134239036973933730893f;
 
-        // WI1250 = sin(M_PI_2*0.1250) 
+        /// <summary>
+        /// <see cref="WI1250"/> = sin(<see cref="M_PI_2"/> * 0.1250) 
+        /// </summary>
         public const float WI1250 = 0.195090322016128267848284868477022240927691617751f;
 
-        // WR3750 = cos(M_PI_2*0.3750) 
+        /// <summary>
+        /// <see cref="WR3750"/> = cos(<see cref="M_PI_2"/> * 0.3750) 
+        /// </summary>
         public const float WR3750 = 0.831469612302545237078788377617905756738560811987f;
 
-        // WI3750 = sin(M_PI_2*0.3750) 
+        /// <summary>
+        /// <see cref="WI3750"/> = sin(<see cref="M_PI_2"/> * 0.3750) 
+        /// </summary>
         public const float WI3750 = 0.555570233019602224742830813948532874374937190754f;
 
-        // CDFT_LOOP_DIV = control of the CDFT's speed & tolerance 
+        /// <summary>
+        /// <see cref="CDFT_LOOP_DIV"/> = control of the CDFT's speed &amp; tolerance.
+        /// </summary>
         public const int CDFT_LOOP_DIV = 32;
 
-        // RDFT_LOOP_DIV = control of the RDFT's speed & tolerance 
+        /// <summary>
+        /// <see cref="RDFT_LOOP_DIV"/> = control of the RDFT's speed &amp; tolerance.
+        /// </summary> 
         public const int RDFT_LOOP_DIV = 64;
 
-        // DCST_LOOP_DIV = control of the DCT,DST's speed & tolerance 
+        /// <summary>
+        /// <see cref="DCST_LOOP_DIV"/> = control of the DCT,DST's speed &amp; tolerance.
+        /// </summary>
         public const int DCST_LOOP_DIV = 64;
 
         private static void bitrv2(int n, float* a)
@@ -2468,31 +2491,41 @@ namespace LoudPizza
             }
         }
 
-        // Perform 1024 unit FFT. Buffer must have 1024 floats, and will be overwritten
+        /// <summary>
+        /// Perform 1024 unit FFT. Buffer must have 1024 floats, and will be overwritten.
+        /// </summary>
         public static void fft1024(float* aBuffer)
         {
             fft(aBuffer, 1024);
         }
 
-        // Perform 256 unit FFT. Buffer must have 256 floats, and will be overwritten
+        /// <summary>
+        /// Perform 256 unit FFT. Buffer must have 256 floats, and will be overwritten.
+        /// </summary>
         public static void fft256(float* aBuffer)
         {
             fft(aBuffer, 256);
         }
 
-        // Perform 256 unit IFFT. Buffer must have 256 floats, and will be overwritten
+        /// <summary>
+        /// Perform 256 unit IFFT. Buffer must have 256 floats, and will be overwritten.
+        /// </summary>
         public static void ifft256(float* aBuffer)
         {
             ifft(aBuffer, 256);
         }
 
-        // Generic (slower) power of two FFT. Buffer is overwritten.
+        /// <summary>
+        /// Generic (slower) power of two FFT. Buffer is overwritten.
+        /// </summary>
         public static void fft(float* aBuffer, uint aBufferLength)
         {
             cftbsub((int)aBufferLength, aBuffer);
         }
 
-        // Generic (slower) power of two IFFT. Buffer is overwritten.
+        /// <summary>
+        /// Generic (slower) power of two IFFT. Buffer is overwritten.
+        /// </summary>
         public static void ifft(float* aBuffer, uint aBufferLength)
         {
             cftfsub((int)aBufferLength, aBuffer);

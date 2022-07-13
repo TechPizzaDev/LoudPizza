@@ -1,10 +1,14 @@
-﻿using System;
+using System;
 
 namespace LoudPizza
 {
     public unsafe partial class SoLoud
     {
-        // Start playing a sound. Returns voice handle, which can be ignored or used to alter the playing sound's parameters. Negative volume means to use default.
+        /// <summary>
+        /// Start playing a sound. 
+        /// Returns voice handle, which can be ignored or used to alter the playing sound's parameters. 
+        /// Negative volume means to use default.
+        /// </summary>
         public Handle play(AudioSource aSound, float aVolume = -1.0f, float aPan = 0.0f, bool aPaused = false, Handle aBus = default)
         {
             if ((aSound.mFlags & AudioSource.FLAGS.SINGLE_INSTANCE) != 0)
@@ -86,7 +90,10 @@ namespace LoudPizza
             return handle;
         }
 
-        // Start playing a sound delayed in relation to other sounds called via this function. Negative volume means to use default.
+        /// <summary>
+        /// Start playing a sound delayed in relation to other sounds called via this function. 
+        /// Negative volume means to use default.
+        /// </summary>
         public Handle playClocked(Time aSoundTime, AudioSource aSound, float aVolume = -1.0f, float aPan = 0.0f, Handle aBus = default)
         {
             Handle h = play(aSound, aVolume, aPan, true, aBus);
@@ -108,7 +115,9 @@ namespace LoudPizza
             return h;
         }
 
-        // Start playing a sound without any panning. It will be played at full volume.
+        /// <summary>
+        /// Start playing a sound without any panning. It will be played at full volume.
+        /// </summary>
         public Handle playBackground(AudioSource aSound, float aVolume = -1.0f, bool aPaused = false, Handle aBus = default)
         {
             Handle h = play(aSound, aVolume, 0.0f, aPaused, aBus);
@@ -116,7 +125,13 @@ namespace LoudPizza
             return h;
         }
 
-        // Seek the audio stream to certain point in time. Some streams can't seek backwards. Relative play speed affects time.
+        /// <summary>
+        /// Seek the audio stream to certain point in time.
+        /// </summary>
+        /// <remarks>
+        /// Some streams can't seek backwards. 
+        /// Relative play speed affects time.
+        /// </remarks>
         public SOLOUD_ERRORS seek(Handle aVoiceHandle, ulong aSamplePosition)
         {
             SOLOUD_ERRORS res = SOLOUD_ERRORS.SO_NO_ERROR;
@@ -148,7 +163,9 @@ namespace LoudPizza
             return res;
         }
 
-        // Stop the sound.
+        /// <summary>
+        /// Stop the sound.
+        /// </summary>
         public void stop(Handle aVoiceHandle)
         {
             void body(Handle h)
@@ -174,7 +191,9 @@ namespace LoudPizza
             unlockAudioMutex_internal();
         }
 
-        // Stop all voices that play this sound source
+        /// <summary>
+        /// Stop all voices that play this sound source.
+        /// </summary>
         public void stopAudioSource(AudioSource aSound)
         {
             if (aSound.mAudioSourceID != 0)
@@ -193,7 +212,9 @@ namespace LoudPizza
             }
         }
 
-        // Stop all voices.
+        /// <summary>
+        /// Stop all voices.
+        /// </summary>
         public void stopAll()
         {
             lockAudioMutex_internal();
@@ -204,7 +225,9 @@ namespace LoudPizza
             unlockAudioMutex_internal();
         }
 
-        // Count voices that play this audio source
+        /// <summary>
+        /// Gets the amount of voices that play this audio source.
+        /// </summary>
         public int countAudioSource(AudioSource aSound)
         {
             int count = 0;

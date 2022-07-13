@@ -1,37 +1,55 @@
-﻿using System;
+using System;
 
 namespace LoudPizza
 {
     public struct Fader
     {
-        // Value to fade from
+        /// <summary>
+        /// Value to fade from.
+        /// </summary>
         public float mFrom;
 
-        // Value to fade to
+        /// <summary>
+        /// Value to fade to.
+        /// </summary>
         public float mTo;
 
-        // Delta between from and to
+        /// <summary>
+        /// Delta between from and to.
+        /// </summary>
         public float mDelta;
 
-        // Total time to fade
+        /// <summary>
+        /// Total time to fade.
+        /// </summary>
         public Time mTime;
 
-        // Time fading started
+        /// <summary>
+        /// Time fading started.
+        /// </summary>
         public Time mStartTime;
 
-        // Time fading will end
+        /// <summary>
+        /// Time fading will end.
+        /// </summary>
         public Time mEndTime;
 
-        // Current value. Used in case time rolls over.
+        /// <summary>
+        /// Current value. Used in case time rolls over.
+        /// </summary>
         public float mCurrent;
 
-        // Active flag; 0 means disabled, 1 is active, 2 is LFO, -1 means was active, but stopped
-        public int mActive;
+        /// <summary>
+        /// Active flag.
+        /// </summary>
+        public ActiveFlags mActive;
 
-        // Set up LFO
+        /// <summary>
+        /// Set up LFO.
+        /// </summary>
         public void setLFO(float aFrom, float aTo, Time aTime, Time aStartTime)
         {
-            mActive = 2;
+            mActive = ActiveFlags.LFO;
             mCurrent = 0;
             mFrom = aFrom;
             mTo = aTo;
@@ -43,7 +61,9 @@ namespace LoudPizza
             mEndTime = MathF.PI * 2 / mTime;
         }
 
-        // Set up fader
+        /// <summary>
+        /// Set up fader.
+        /// </summary>
         public void set(float aFrom, float aTo, Time aTime, Time aStartTime)
         {
             mCurrent = mFrom;
@@ -53,13 +73,15 @@ namespace LoudPizza
             mStartTime = aStartTime;
             mDelta = aTo - aFrom;
             mEndTime = mStartTime + mTime;
-            mActive = 1;
+            mActive = ActiveFlags.Active;
         }
 
-        // Get the current fading value
+        /// <summary>
+        /// Get the current fading value.
+        /// </summary>
         public float get(Time aCurrentTime)
         {
-            if (mActive == 2)
+            if (mActive == ActiveFlags.LFO)
             {
                 // LFO mode
                 if (mStartTime > aCurrentTime)
@@ -84,11 +106,19 @@ namespace LoudPizza
             }
             if (aCurrentTime > mEndTime)
             {
-                mActive = -1;
+                mActive = ActiveFlags.Inactive;
                 return mTo;
             }
             mCurrent = (float)(mFrom + mDelta * ((aCurrentTime - mStartTime) / mTime));
             return mCurrent;
+        }
+
+        public enum ActiveFlags
+        {
+            Inactive = -1,
+            Disabled = 0,
+            Active = 1,
+            LFO = 2,
         }
     }
 }

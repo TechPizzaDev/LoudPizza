@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 
 namespace LoudPizza
 {
@@ -36,7 +36,9 @@ namespace LoudPizza
             return copylen;
         }
 
-        // Seek to certain place in the stream. Base implementation is generic "tape" seek (and slow).
+        /// <summary>
+        /// Seek to certain place in the buffer.
+        /// </summary>
         public override SOLOUD_ERRORS seek(ulong aSamplePosition, float* mScratch, uint mScratchSize)
         {
             long offset = (long)(aSamplePosition - mStreamPosition);

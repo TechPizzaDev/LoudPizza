@@ -1,31 +1,39 @@
-﻿using System;
+using System;
 
 namespace LoudPizza
 {
     // Setters - set various bits of SoLoud state
     public unsafe partial class SoLoud
     {
-        // Set the post clip scaler value
+        /// <summary>
+        /// Set the post clip scaler value.
+        /// </summary>
         public void setPostClipScaler(float aScaler)
         {
             mPostClipScaler = aScaler;
         }
 
-        // Set the main resampler
+        /// <summary>
+        /// Set the main resampler.
+        /// </summary>
         public void setMainResampler(RESAMPLER aResampler)
         {
             if (aResampler <= RESAMPLER.RESAMPLER_CATMULLROM)
                 mResampler = aResampler;
         }
 
-        // Set the global volume
+        /// <summary>
+        /// Set the global volume.
+        /// </summary>
         public void setGlobalVolume(float aVolume)
         {
             mGlobalVolumeFader.mActive = 0;
             mGlobalVolume = aVolume;
         }
 
-        // Set the relative play speed
+        /// <summary>
+        /// Set the relative play speed.
+        /// </summary>
         public SOLOUD_ERRORS setRelativePlaySpeed(Handle aVoiceHandle, float aSpeed)
         {
             SOLOUD_ERRORS retVal = 0;
@@ -56,7 +64,9 @@ namespace LoudPizza
             return retVal;
         }
 
-        // Set the sample rate
+        /// <summary>
+        /// Set the sample rate.
+        /// </summary>
         public void setSamplerate(Handle aVoiceHandle, float aSamplerate)
         {
             void body(Handle h)
@@ -83,7 +93,9 @@ namespace LoudPizza
             unlockAudioMutex_internal();
         }
 
-        // Set the pause state
+        /// <summary>
+        /// Set the pause state.
+        /// </summary>
         public void setPause(Handle aVoiceHandle, bool aPause)
         {
             void body(Handle h)
@@ -109,7 +121,9 @@ namespace LoudPizza
             unlockAudioMutex_internal();
         }
 
-        // Set current maximum active voice setting
+        /// <summary>
+        /// Set current maximum active voice setting.
+        /// </summary>
         public SOLOUD_ERRORS setMaxActiveVoiceCount(uint aVoiceCount)
         {
             if (aVoiceCount == 0 || aVoiceCount >= VOICE_COUNT)
@@ -122,7 +136,9 @@ namespace LoudPizza
             return SOLOUD_ERRORS.SO_NO_ERROR;
         }
 
-        // Pause all voices
+        /// <summary>
+        /// Pause all voices.
+        /// </summary>
         public void setPauseAll(bool aPause)
         {
             lockAudioMutex_internal();
@@ -133,7 +149,9 @@ namespace LoudPizza
             unlockAudioMutex_internal();
         }
 
-        // Set the voice protection state
+        /// <summary>
+        /// Set the voice protection state.
+        /// </summary>
         public void setProtectVoice(Handle aVoiceHandle, bool aProtect)
         {
             void body(Handle h)
@@ -166,7 +184,9 @@ namespace LoudPizza
             unlockAudioMutex_internal();
         }
 
-        // Set panning value; -1 is left, 0 is center, 1 is right
+        /// <summary>
+        /// Set panning value; -1 is left, 0 is center, 1 is right.
+        /// </summary>
         public void setPan(Handle aVoiceHandle, float aPan)
         {
             void body(Handle h)
@@ -192,7 +212,9 @@ namespace LoudPizza
             unlockAudioMutex_internal();
         }
 
-        // Set channel volume (volume for a specific speaker)
+        /// <summary>
+        /// Set channel volume (volume for a specific speaker).
+        /// </summary>
         public void setChannelVolume(Handle aVoiceHandle, uint aChannel, float aVolume)
         {
             void body(Handle h)
@@ -221,7 +243,9 @@ namespace LoudPizza
             unlockAudioMutex_internal();
         }
 
-        // Set absolute left/right volumes
+        /// <summary>
+        /// Set absolute left/right volumes.
+        /// </summary>
         public void setPanAbsolute(Handle aVoiceHandle, float aLVolume, float aRVolume)
         {
             void body(Handle h)
@@ -271,7 +295,9 @@ namespace LoudPizza
             unlockAudioMutex_internal();
         }
 
-        // Set behavior for inaudible sounds
+        /// <summary>
+        /// Set behavior for inaudible sounds.
+        /// </summary>
         public void setInaudibleBehavior(Handle aVoiceHandle, bool aMustTick, bool aKill)
         {
             void body(Handle h)
@@ -305,7 +331,9 @@ namespace LoudPizza
             unlockAudioMutex_internal();
         }
 
-        // Set voice loop point value
+        /// <summary>
+        /// Set voice loop point value.
+        /// </summary>
         public void setLoopPoint(Handle aVoiceHandle, ulong aLoopPoint)
         {
             void body(Handle h)
@@ -331,7 +359,9 @@ namespace LoudPizza
             unlockAudioMutex_internal();
         }
 
-        // Set voice's loop state
+        /// <summary>
+        /// Set voice's loop state.
+        /// </summary>
         public void setLooping(Handle aVoiceHandle, bool aLooping)
         {
             void body(Handle h)
@@ -364,7 +394,9 @@ namespace LoudPizza
             unlockAudioMutex_internal();
         }
 
-        // Set whether sound should auto-stop when it ends
+        /// <summary>
+        /// Set whether sound should auto-stop when it ends.
+        /// </summary>
         public void setAutoStop(Handle aVoiceHandle, bool aAutoStop)
         {
             void body(Handle h)
@@ -397,7 +429,9 @@ namespace LoudPizza
             unlockAudioMutex_internal();
         }
 
-        // Set overall volume
+        /// <summary>
+        /// Set overall volume.
+        /// </summary>
         public void setVolume(Handle aVoiceHandle, float aVolume)
         {
             void body(Handle h)
@@ -424,7 +458,12 @@ namespace LoudPizza
             unlockAudioMutex_internal();
         }
 
-        // Set delay, in samples, before starting to play samples. Calling this on a live sound will cause glitches.
+        /// <summary>
+        /// Set delay, in samples, before starting to play samples.
+        /// </summary>
+        /// <remarks>
+        /// Calling this on a live sound will cause glitches.
+        /// </remarks>
         public void setDelaySamples(Handle aVoiceHandle, uint aSamples)
         {
             void body(Handle h)
@@ -450,7 +489,9 @@ namespace LoudPizza
             unlockAudioMutex_internal();
         }
 
-        // Enable or disable visualization data gathering
+        /// <summary>
+        /// Enable or disable visualization data gathering.
+        /// </summary>
         public void setVisualizationEnable(bool aEnable)
         {
             if (aEnable)
@@ -463,7 +504,9 @@ namespace LoudPizza
             }
         }
 
-        // Set speaker position in 3d space
+        /// <summary>
+        /// Set speaker position in 3D space.
+        /// </summary>
         public SOLOUD_ERRORS setSpeakerPosition(uint aChannel, float aX, float aY, float aZ)
         {
             if (aChannel >= mChannels)

@@ -1,10 +1,12 @@
-﻿using System;
+using System;
 
 namespace LoudPizza
 {
     public unsafe partial class SoLoud
     {
-        // Set global filters. Set to NULL to clear the filter.
+        /// <summary>
+        /// Set global filters. Set to <see langword="null"/> to clear the filter.
+        /// </summary>
         public void setGlobalFilter(uint aFilterId, Filter? aFilter)
         {
             if (aFilterId >= FILTERS_PER_STREAM)
@@ -22,7 +24,9 @@ namespace LoudPizza
             unlockAudioMutex_internal();
         }
 
-        // Get a live filter parameter. Use 0 for the global filters.
+        /// <summary>
+        /// Get a live filter parameter. Use 0 for the global filters.
+        /// </summary>
         public float getFilterParameter(Handle aVoiceHandle, uint aFilterId, uint aAttributeId)
         {
             float ret = (int)SOLOUD_ERRORS.INVALID_PARAMETER;
@@ -56,7 +60,9 @@ namespace LoudPizza
             return ret;
         }
 
-        // Set a live filter parameter. Use 0 for the global filters.
+        /// <summary>
+        /// Set a live filter parameter. Use 0 for the global filters.
+        /// </summary>
         public void setFilterParameter(Handle aVoiceHandle, uint aFilterId, uint aAttributeId, float aValue)
         {
             if (aFilterId >= FILTERS_PER_STREAM)
@@ -101,7 +107,9 @@ namespace LoudPizza
             unlockAudioMutex_internal();
         }
 
-        // Fade a live filter parameter. Use 0 for the global filters.
+        /// <summary>
+        /// Fade a live filter parameter. Use 0 for the global filters.
+        /// </summary>
         public void fadeFilterParameter(Handle aVoiceHandle, uint aFilterId, uint aAttributeId, float aTo, double aTime)
         {
             if (aFilterId >= FILTERS_PER_STREAM)
@@ -146,7 +154,9 @@ namespace LoudPizza
             unlockAudioMutex_internal();
         }
 
-        // Oscillate a live filter parameter. Use 0 for the global filters.
+        /// <summary>
+        /// Oscillate a live filter parameter. Use 0 for the global filters.
+        /// </summary>
         public void oscillateFilterParameter(Handle aVoiceHandle, uint aFilterId, uint aAttributeId, float aFrom, float aTo, double aTime)
         {
             if (aFilterId >= FILTERS_PER_STREAM)

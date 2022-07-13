@@ -1,35 +1,45 @@
-﻿using System;
+using System;
 
 namespace LoudPizza
 {
     // Getters - return information about SoLoud state
     public unsafe partial class SoLoud
     {
-        // Query SoLoud version number (should equal to SOLOUD_VERSION macro)
+        /// <summary>
+        /// Query the version number (should equal to SOLOUD_VERSION macro).
+        /// </summary>
         public uint getVersion()
         {
             return 202002;
         }
 
-        // Get current post-clip scaler value.
+        /// <summary>
+        /// Get current post-clip scaler value.
+        /// </summary>
         public float getPostClipScaler()
         {
             return mPostClipScaler;
         }
 
-        // Get the current main resampler
+        /// <summary>
+        /// Get the current main resampler.
+        /// </summary>
         public RESAMPLER getMainResampler()
         {
             return mResampler;
         }
 
-        // Get current global volume
+        /// <summary>
+        /// Get current global volume.
+        /// </summary>
         public float getGlobalVolume()
         {
             return mGlobalVolume;
         }
 
-        // Converts voice + playindex into handle
+        /// <summary>
+        /// Converts voice + playindex into handle.
+        /// </summary>
         internal Handle getHandleFromVoice_internal(uint aVoice)
         {
             AudioSourceInstance? voice = mVoice[aVoice];
@@ -38,7 +48,9 @@ namespace LoudPizza
             return new Handle((aVoice + 1) | (voice.mPlayIndex << 12));
         }
 
-        // Converts handle to voice, if the handle is valid. Returns -1 if not.
+        /// <summary>
+        /// Converts handle to voice, if the handle is valid. Returns -1 if not.
+        /// </summary>
         internal int getVoiceFromHandle_internal(Handle aVoiceHandle)
         {
             // If this is a voice group handle, pick the first handle from the group
@@ -62,7 +74,9 @@ namespace LoudPizza
             return -1;
         }
 
-        // Converts handle to voice, if the handle is valid. Returns -1 if not.
+        /// <summary>
+        /// Converts handle to voice, if the handle is valid. Returns -1 if not.
+        /// </summary>
         internal AudioSourceInstance? getVoiceRefFromHandle_internal(Handle aVoiceHandle)
         {
             // If this is a voice group handle, pick the first handle from the group
@@ -86,13 +100,17 @@ namespace LoudPizza
             return null;
         }
 
-        // Get current maximum active voice setting
+        /// <summary>
+        /// Get current maximum active voice setting.
+        /// </summary>
         public uint getMaxActiveVoiceCount()
         {
             return mMaxActiveVoices;
         }
 
-        // Get the current number of busy voices.
+        /// <summary>
+        /// Get the current number of busy voices.
+        /// </summary>
         public uint getActiveVoiceCount()
         {
             lockAudioMutex_internal();
@@ -103,7 +121,9 @@ namespace LoudPizza
             return c;
         }
 
-        // Get the current number of voices in SoLoud
+        /// <summary>
+        /// Get the current number of voices.
+        /// </summary>
         public uint getVoiceCount()
         {
             lockAudioMutex_internal();
@@ -119,7 +139,9 @@ namespace LoudPizza
             return c;
         }
 
-        // Check if the handle is still valid, or if the sound has stopped.
+        /// <summary>
+        /// Check if the handle is still valid, or if the sound has stopped.
+        /// </summary>
         public bool isValidVoiceHandle(Handle aVoiceHandle)
         {
             // voice groups are not valid voice handles
@@ -136,7 +158,9 @@ namespace LoudPizza
             return false;
         }
 
-        // Get voice loop point value
+        /// <summary>
+        /// Get voice loop point value.
+        /// </summary>
         public Time getLoopPoint(Handle aVoiceHandle)
         {
             lockAudioMutex_internal();
@@ -151,22 +175,26 @@ namespace LoudPizza
             return v;
         }
 
-        // Query whether a voice is set to loop.
+        /// <summary>
+        /// Query whether a voice is set to loop.
+        /// </summary>
         public bool getLooping(Handle aVoiceHandle)
         {
             lockAudioMutex_internal();
-            var ch = getVoiceRefFromHandle_internal(aVoiceHandle);
+            AudioSourceInstance? ch = getVoiceRefFromHandle_internal(aVoiceHandle);
             if (ch == null)
             {
                 unlockAudioMutex_internal();
                 return false;
             }
-            var v = ch.mFlags & AudioSourceInstance.FLAGS.LOOPING;
+            AudioSourceInstance.FLAGS v = ch.mFlags & AudioSourceInstance.FLAGS.LOOPING;
             unlockAudioMutex_internal();
             return v != 0;
         }
 
-        // Query whether a voice is set to auto-stop when it ends.
+        /// <summary>
+        /// Query whether a voice is set to auto-stop when it ends.
+        /// </summary>
         public bool getAutoStop(Handle aVoiceHandle)
         {
             lockAudioMutex_internal();
@@ -176,12 +204,14 @@ namespace LoudPizza
                 unlockAudioMutex_internal();
                 return false;
             }
-            var v = ch.mFlags & AudioSourceInstance.FLAGS.DISABLE_AUTOSTOP;
+            AudioSourceInstance.FLAGS v = ch.mFlags & AudioSourceInstance.FLAGS.DISABLE_AUTOSTOP;
             unlockAudioMutex_internal();
             return v == 0;
         }
 
-        // Get audiosource-specific information from a voice.
+        /// <summary>
+        /// Get audiosource-specific information from a voice.
+        /// </summary>
         public float getInfo(Handle aVoiceHandle, uint mInfoKey)
         {
             lockAudioMutex_internal();
@@ -196,11 +226,13 @@ namespace LoudPizza
             return v;
         }
 
-        // Get current volume.
+        /// <summary>
+        /// Get current volume.
+        /// </summary>
         public float getVolume(Handle aVoiceHandle)
         {
             lockAudioMutex_internal();
-            var ch = getVoiceRefFromHandle_internal(aVoiceHandle);
+            AudioSourceInstance? ch = getVoiceRefFromHandle_internal(aVoiceHandle);
             if (ch == null)
             {
                 unlockAudioMutex_internal();
@@ -211,7 +243,9 @@ namespace LoudPizza
             return v;
         }
 
-        // Get current overall volume (set volume * 3d volume)
+        /// <summary>
+        /// Get current overall volume (set volume * 3D volume).
+        /// </summary>
         public float getOverallVolume(Handle aVoiceHandle)
         {
             lockAudioMutex_internal();
@@ -226,7 +260,9 @@ namespace LoudPizza
             return v;
         }
 
-        // Get current pan.
+        /// <summary>
+        /// Get current pan.
+        /// </summary>
         public float getPan(Handle aVoiceHandle)
         {
             lockAudioMutex_internal();
@@ -241,7 +277,9 @@ namespace LoudPizza
             return v;
         }
 
-        // Get current play time, in seconds.
+        /// <summary>
+        /// Get current play time.
+        /// </summary>
         public Time getStreamTime(Handle aVoiceHandle)
         {
             lockAudioMutex_internal();
@@ -256,7 +294,9 @@ namespace LoudPizza
             return v;
         }
 
-        // Get current stream position in samples.
+        /// <summary>
+        /// Get current stream position in samples.
+        /// </summary>
         public ulong getStreamSamplePosition(Handle aVoiceHandle)
         {
             lockAudioMutex_internal();
@@ -271,7 +311,9 @@ namespace LoudPizza
             return v;
         }
 
-        // Get current stream position in seconds.
+        /// <summary>
+        /// Get current stream position in seconds.
+        /// </summary>
         public Time getStreamTimePosition(Handle aVoiceHandle)
         {
             lockAudioMutex_internal();
@@ -287,7 +329,9 @@ namespace LoudPizza
             return pos / (double)rate;
         }
 
-        // Get current relative play speed.
+        /// <summary>
+        /// Get current relative play speed.
+        /// </summary>
         public float getRelativePlaySpeed(Handle aVoiceHandle)
         {
             lockAudioMutex_internal();
@@ -302,7 +346,9 @@ namespace LoudPizza
             return v;
         }
 
-        // Get current sample rate.
+        /// <summary>
+        /// Get current sample rate.
+        /// </summary>
         public float getSamplerate(Handle aVoiceHandle)
         {
             lockAudioMutex_internal();
@@ -317,7 +363,9 @@ namespace LoudPizza
             return v;
         }
 
-        // Get current pause state.
+        /// <summary>
+        /// Get current pause state.
+        /// </summary>
         public bool getPause(Handle aVoiceHandle)
         {
             lockAudioMutex_internal();
@@ -327,12 +375,14 @@ namespace LoudPizza
                 unlockAudioMutex_internal();
                 return false;
             }
-            var v = ch.mFlags & AudioSourceInstance.FLAGS.PAUSED;
+            AudioSourceInstance.FLAGS v = ch.mFlags & AudioSourceInstance.FLAGS.PAUSED;
             unlockAudioMutex_internal();
             return v != 0;
         }
 
-        // Get current voice protection state.
+        /// <summary>
+        /// Get current voice protection state.
+        /// </summary>
         public bool getProtectVoice(Handle aVoiceHandle)
         {
             lockAudioMutex_internal();
@@ -342,12 +392,14 @@ namespace LoudPizza
                 unlockAudioMutex_internal();
                 return false;
             }
-            var v = ch.mFlags & AudioSourceInstance.FLAGS.PROTECTED;
+            AudioSourceInstance.FLAGS v = ch.mFlags & AudioSourceInstance.FLAGS.PROTECTED;
             unlockAudioMutex_internal();
             return v != 0;
         }
 
-        // Find a free voice, stopping the oldest if no free voice is found.
+        /// <summary>
+        /// Find a free voice, stopping the oldest if no free voice is found.
+        /// </summary>
         internal int findFreeVoice_internal()
         {
             uint lowest_play_index_value = 0xffffffff;
@@ -379,7 +431,12 @@ namespace LoudPizza
             return lowest_play_index;
         }
 
-        // Get current loop count. Returns 0 if handle is not valid. (All audio sources may not update loop count)
+        /// <summary>
+        /// Get current loop count. Returns 0 if handle is not valid. 
+        /// </summary>
+        /// <remarks>
+        /// All audio sources may not update loop count.
+        /// </remarks>
         public uint getLoopCount(Handle aVoiceHandle)
         {
             lockAudioMutex_internal();
@@ -394,37 +451,49 @@ namespace LoudPizza
             return v;
         }
 
-        // Returns current backend ID (BACKENDS enum)
+        /// <summary>
+        /// Returns current backend ID.
+        /// </summary>
         public BACKENDS getBackendId()
         {
             return mBackendID;
         }
 
-        // Returns current backend string. May be NULL.
+        /// <summary>
+        /// Returns current backend string. May be <see langword="null"/>.
+        /// </summary>
         public string? getBackendString()
         {
             return mBackendString;
         }
 
-        // Returns current backend channel count (1 mono, 2 stereo, etc)
+        /// <summary>
+        /// Returns current backend channel count (1 mono, 2 stereo, etc).
+        /// </summary>
         public uint getBackendChannels()
         {
             return mChannels;
         }
 
-        // Returns current backend sample rate
+        /// <summary>
+        /// Returns current backend sample rate.
+        /// </summary>
         public uint getBackendSamplerate()
         {
             return mSamplerate;
         }
 
-        // Returns current backend buffer size
+        /// <summary>
+        /// Returns current backend buffer size.
+        /// </summary>
         public uint getBackendBufferSize()
         {
             return mBufferSize;
         }
 
-        // Get speaker position in 3d space
+        /// <summary>
+        /// Get speaker position in 3D space.
+        /// </summary>
         public SOLOUD_ERRORS getSpeakerPosition(uint aChannel, out float aX, out float aY, out float aZ)
         {
             if (aChannel >= mChannels)

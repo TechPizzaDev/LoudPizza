@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Runtime.CompilerServices;
 
 namespace LoudPizza
@@ -39,7 +39,9 @@ namespace LoudPizza
             return MathF.Pow(distance / aMinDistance, -aRolloffFactor);
         }
 
-        // Perform 3d audio calculation for array of voices
+        /// <summary>
+        /// Perform 3D audio calculation for array of voices.
+        /// </summary>
         [SkipLocalsInit]
         internal void update3dVoices_internal(uint* aVoiceArray, uint aVoiceCount)
         {
@@ -136,14 +138,16 @@ namespace LoudPizza
             }
         }
 
-        // Perform 3d audio parameter update
+        /// <summary>
+        /// Perform 3D audio parameter update.
+        /// </summary>
         [SkipLocalsInit]
         public void update3dAudio()
         {
             uint voicecount = 0;
             uint* voices = stackalloc uint[VOICE_COUNT];
 
-            // Step 1 - find voices that need 3d processing
+            // Step 1 - find voices that need 3D processing
             lockAudioMutex_internal();
             uint i;
             for (i = 0; i < mHighestVoice; i++)
@@ -158,7 +162,7 @@ namespace LoudPizza
             }
             unlockAudioMutex_internal();
 
-            // Step 2 - do 3d processing
+            // Step 2 - do 3D processing
 
             update3dVoices_internal(voices, voicecount);
 
@@ -196,8 +200,16 @@ namespace LoudPizza
             unlockAudioMutex_internal();
         }
 
-        // Start playing a 3d audio source
-        public Handle play3d(AudioSource aSound, float aPosX, float aPosY, float aPosZ, float aVelX = 0.0f, float aVelY = 0.0f, float aVelZ = 0.0f, float aVolume = 1.0f, bool aPaused = false, Handle aBus = default)
+        /// <summary>
+        /// Start playing a 3D audio source.
+        /// </summary>
+        public Handle play3d(
+            AudioSource aSound, 
+            float aPosX, float aPosY, float aPosZ, 
+            float aVelX = 0.0f, float aVelY = 0.0f, float aVelZ = 0.0f, 
+            float aVolume = 1.0f, 
+            bool aPaused = false, 
+            Handle aBus = default)
         {
             Handle h = play(aSound, aVolume, 0, true, aBus);
             lockAudioMutex_internal();
@@ -261,8 +273,16 @@ namespace LoudPizza
             return h;
         }
 
-        // Start playing a 3d audio source, delayed in relation to other sounds called via this function.
-        public Handle play3dClocked(Time aSoundTime, AudioSource aSound, float aPosX, float aPosY, float aPosZ, float aVelX = 0.0f, float aVelY = 0.0f, float aVelZ = 0.0f, float aVolume = 1.0f, Handle aBus = default)
+        /// <summary>
+        /// Start playing a 3D audio source, delayed in relation to other sounds called via this function.
+        /// </summary>
+        public Handle play3dClocked(
+            Time aSoundTime, 
+            AudioSource aSound, 
+            float aPosX, float aPosY, float aPosZ, 
+            float aVelX = 0.0f, float aVelY = 0.0f, float aVelZ = 0.0f, 
+            float aVolume = 1.0f, 
+            Handle aBus = default)
         {
             Handle h = play(aSound, aVolume, 0, true, aBus);
             lockAudioMutex_internal();
@@ -334,7 +354,9 @@ namespace LoudPizza
             return h;
         }
 
-        // Set the speed of sound constant for doppler
+        /// <summary>
+        /// Set the speed of sound constant for doppler.
+        /// </summary>
         public SOLOUD_ERRORS set3dSoundSpeed(float aSpeed)
         {
             if (aSpeed <= 0)
@@ -343,14 +365,22 @@ namespace LoudPizza
             return SOLOUD_ERRORS.SO_NO_ERROR;
         }
 
-        // Get the current speed of sound constant for doppler
+        /// <summary>
+        /// Get the current speed of sound constant for doppler.
+        /// </summary>
         public float get3dSoundSpeed()
         {
             return m3dSoundSpeed;
         }
 
-        // Set 3d listener parameters
-        public void set3dListenerParameters(float aPosX, float aPosY, float aPosZ, float aAtX, float aAtY, float aAtZ, float aUpX, float aUpY, float aUpZ, float aVelocityX, float aVelocityY, float aVelocityZ)
+        /// <summary>
+        /// Set 3D listener parameters.
+        /// </summary>
+        public void set3dListenerParameters(
+            float aPosX, float aPosY, float aPosZ,
+            float aAtX, float aAtY, float aAtZ, 
+            float aUpX, float aUpY, float aUpZ, 
+            float aVelocityX, float aVelocityY, float aVelocityZ)
         {
             m3dPosition = new Vec3(aPosX, aPosY, aPosZ);
             m3dAt = new Vec3(aAtX, aAtY, aAtZ);
@@ -358,32 +388,45 @@ namespace LoudPizza
             m3dVelocity = new Vec3(aVelocityX, aVelocityY, aVelocityZ);
         }
 
-        // Set 3d listener position
+        /// <summary>
+        /// Set 3D listener position.
+        /// </summary>
         public void set3dListenerPosition(float aPosX, float aPosY, float aPosZ)
         {
             m3dPosition = new Vec3(aPosX, aPosY, aPosZ);
         }
 
-        // Set 3d listener "at" vector
+        /// <summary>
+        /// Set 3D listener "at" vector.
+        /// </summary>
         public void set3dListenerAt(float aAtX, float aAtY, float aAtZ)
         {
             m3dAt = new Vec3(aAtX, aAtY, aAtZ);
         }
 
-        // set 3d listener "up" vector
+        /// <summary>
+        /// Set 3D listener "up" vector.
+        /// </summary>
         public void set3dListenerUp(float aUpX, float aUpY, float aUpZ)
         {
             m3dUp = new Vec3(aUpX, aUpY, aUpZ);
         }
 
-        // Set 3d listener velocity
+        /// <summary>
+        /// Set 3D listener velocity.
+        /// </summary>
         public void set3dListenerVelocity(float aVelocityX, float aVelocityY, float aVelocityZ)
         {
             m3dVelocity = new Vec3(aVelocityX, aVelocityY, aVelocityZ);
         }
 
-        // Set 3d audio source parameters
-        public void set3dSourceParameters(Handle aVoiceHandle, float aPosX, float aPosY, float aPosZ, float aVelocityX, float aVelocityY, float aVelocityZ)
+        /// <summary>
+        /// Set 3D audio source parameters.
+        /// </summary>
+        public void set3dSourceParameters(
+            Handle aVoiceHandle, 
+            float aPosX, float aPosY, float aPosZ, 
+            float aVelocityX, float aVelocityY, float aVelocityZ)
         {
             void body(Handle h)
             {
@@ -407,7 +450,9 @@ namespace LoudPizza
             }
         }
 
-        // Set 3d audio source position
+        /// <summary>
+        /// Set 3D audio source position.
+        /// </summary>
         public void set3dSourcePosition(Handle aVoiceHandle, float aPosX, float aPosY, float aPosZ)
         {
             void body(Handle h)
@@ -431,7 +476,9 @@ namespace LoudPizza
             }
         }
 
-        // Set 3d audio source velocity
+        /// <summary>
+        /// Set 3D audio source velocity.
+        /// </summary>
         public void set3dSourceVelocity(Handle aVoiceHandle, float aVelocityX, float aVelocityY, float aVelocityZ)
         {
             void body(Handle h)
@@ -455,7 +502,9 @@ namespace LoudPizza
             }
         }
 
-        // Set 3d audio source min/max distance (distance < min means max volume)
+        /// <summary>
+        /// Set 3D audio source min/max distance (distance less than min means max volume).
+        /// </summary>
         public void set3dSourceMinMaxDistance(Handle aVoiceHandle, float aMinDistance, float aMaxDistance)
         {
             void body(Handle h)
@@ -480,7 +529,9 @@ namespace LoudPizza
             }
         }
 
-        // Set 3d audio source collider. Set to NULL to disable.
+        /// <summary>
+        /// Set 3D audio source collider. Set to <see langword="null"/> to disable.
+        /// </summary>
         public void set3dSourceCollider(Handle aVoiceHandle, AudioCollider? aCollider, int aUserData = 0)
         {
             void body(Handle h)
@@ -505,7 +556,9 @@ namespace LoudPizza
             }
         }
 
-        // Set 3d audio source attenuation rolloff factor
+        /// <summary>
+        /// Set 3D audio source attenuation rolloff factor.
+        /// </summary>
         public void set3dSourceAttenuationRolloffFactor(Handle aVoiceHandle, float aAttenuationRolloffFactor)
         {
             void body(Handle h)
@@ -529,7 +582,9 @@ namespace LoudPizza
             }
         }
 
-        // Set 3d audio source attenuator. Set to NULL to disable.
+        /// <summary>
+        /// Set 3D audio source attenuator. Set to <see langword="null"/> to disable.
+        /// </summary>
         public void set3dSourceAttenuator(Handle aVoiceHandle, AudioAttenuator? aAttenuator)
         {
             void body(Handle h)
@@ -553,7 +608,9 @@ namespace LoudPizza
             }
         }
 
-        // Set 3d audio source doppler factor to reduce or enhance doppler effect. Default = 1.0
+        /// <summary>
+        /// Set 3D audio source doppler factor to reduce or enhance doppler effect (default = 1.0).
+        /// </summary>
         public void set3dSourceDopplerFactor(Handle aVoiceHandle, float aDopplerFactor)
         {
             void body(Handle h)

@@ -1,7 +1,9 @@
-﻿
+
 namespace LoudPizza
 {
-    // Exponential distance attenuation model
+    /// <summary>
+    /// Exponential distance attenuation model.
+    /// </summary>
     public class ExponentialDistanceAudioAttenuator : AudioAttenuator
     {
         public static ExponentialDistanceAudioAttenuator Instance { get; } = new ExponentialDistanceAudioAttenuator();

@@ -1,11 +1,13 @@
-﻿using System;
+using System;
 
 namespace LoudPizza
 {
     // Voice group operations
     public unsafe partial class SoLoud
     {
-        // Create a voice group. Returns 0 if unable (out of voice groups / out of memory)
+        /// <summary>
+        /// Create a voice group. Returns 0 if unable (out of voice groups / out of memory).
+        /// </summary>
         public Handle createVoiceGroup()
         {
             lockAudioMutex_internal();
@@ -73,7 +75,9 @@ namespace LoudPizza
             return new Handle(0xfffff000 | i);
         }
 
-        // Destroy a voice group.
+        /// <summary>
+        /// Destroy a voice group.
+        /// </summary>
         public SOLOUD_ERRORS destroyVoiceGroup(Handle aVoiceGroupHandle)
         {
             if (!isVoiceGroup(aVoiceGroupHandle))
@@ -87,7 +91,9 @@ namespace LoudPizza
             return SOLOUD_ERRORS.SO_NO_ERROR;
         }
 
-        // Add a voice handle to a voice group
+        /// <summary>
+        /// Add a voice handle to a voice group.
+        /// </summary>
         public SOLOUD_ERRORS addVoiceToGroup(Handle aVoiceGroupHandle, Handle aVoiceHandle)
         {
             if (!isVoiceGroup(aVoiceGroupHandle))
@@ -142,7 +148,9 @@ namespace LoudPizza
             return SOLOUD_ERRORS.SO_NO_ERROR;
         }
 
-        // Is this handle a valid voice group?
+        /// <summary>
+        /// Get whether the given handle is a valid voice group.
+        /// </summary>
         public bool isVoiceGroup(Handle aVoiceGroupHandle)
         {
             if ((aVoiceGroupHandle.Value & 0xfffff000) != 0xfffff000)
@@ -158,7 +166,9 @@ namespace LoudPizza
             return res;
         }
 
-        // Is this voice group empty?
+        /// <summary>
+        /// Get whether the given voice group is empty.
+        /// </summary>
         public bool isVoiceGroupEmpty(Handle aVoiceGroupHandle)
         {
             // If not a voice group, yeah, we're empty alright..
@@ -174,7 +184,9 @@ namespace LoudPizza
             return res;
         }
 
-        // Remove all non-active voices from group
+        /// <summary>
+        /// Remove all non-active voices from group.
+        /// </summary>
         internal void trimVoiceGroup_internal(Handle aVoiceGroupHandle)
         {
             if (!isVoiceGroup(aVoiceGroupHandle))
@@ -228,7 +240,9 @@ namespace LoudPizza
             unlockAudioMutex_internal();
         }
 
-        // Get pointer to the zero-terminated array of voice handles in a voice group
+        /// <summary>
+        /// Get pointer to the zero-terminated array of voice handles in a voice group.
+        /// </summary>
         internal ArraySegment<Handle> voiceGroupHandleToArray_internal(Handle aVoiceGroupHandle)
         {
             if ((aVoiceGroupHandle.Value & 0xfffff000) != 0xfffff000)

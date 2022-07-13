@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Runtime.CompilerServices;
 
 namespace LoudPizza
@@ -29,7 +29,9 @@ namespace LoudPizza
             return mInstance;
         }
 
-        // Set filter. Set to NULL to clear the filter.
+        /// <summary>
+        /// Set filter. Set to <see langword="null"/> to clear the filter.
+        /// </summary>
         public override void setFilter(uint aFilterId, Filter? aFilter)
         {
             if (aFilterId >= SoLoud.FILTERS_PER_STREAM)
@@ -51,7 +53,9 @@ namespace LoudPizza
             }
         }
 
-        // Play sound through the bus
+        /// <summary>
+        /// Play sound through the bus.
+        /// </summary>
         public Handle play(AudioSource aSound, float aVolume = 1.0f, float aPan = 0.0f, bool aPaused = false)
         {
             if (mInstance == null || mSoloud == null)
@@ -68,7 +72,9 @@ namespace LoudPizza
             return mSoloud.play(aSound, aVolume, aPan, aPaused, mChannelHandle);
         }
 
-        // Play sound through the bus, delayed in relation to other sounds called via this function.
+        /// <summary>
+        /// Play sound through the bus, delayed in relation to other sounds called via this function.
+        /// </summary>
         public Handle playClocked(Time aSoundTime, AudioSource aSound, float aVolume = 1.0f, float aPan = 0.0f)
         {
             if (mInstance == null || mSoloud == null)
@@ -86,8 +92,15 @@ namespace LoudPizza
             return mSoloud.playClocked(aSoundTime, aSound, aVolume, aPan, mChannelHandle);
         }
 
-        // Start playing a 3d audio source through the bus
-        public Handle play3d(AudioSource aSound, float aPosX, float aPosY, float aPosZ, float aVelX = 0.0f, float aVelY = 0.0f, float aVelZ = 0.0f, float aVolume = 1.0f, bool aPaused = false)
+        /// <summary>
+        /// Start playing a 3D audio source through the bus.
+        /// </summary>
+        public Handle play3d(
+            AudioSource aSound, 
+            float aPosX, float aPosY, float aPosZ, 
+            float aVelX = 0.0f, float aVelY = 0.0f, float aVelZ = 0.0f,
+            float aVolume = 1.0f, 
+            bool aPaused = false)
         {
             if (mInstance == null || mSoloud == null)
             {
@@ -103,8 +116,15 @@ namespace LoudPizza
             return mSoloud.play3d(aSound, aPosX, aPosY, aPosZ, aVelX, aVelY, aVelZ, aVolume, aPaused, mChannelHandle);
         }
 
-        // Start playing a 3d audio source through the bus, delayed in relation to other sounds called via this function.
-        public Handle play3dClocked(Time aSoundTime, AudioSource aSound, float aPosX, float aPosY, float aPosZ, float aVelX = 0.0f, float aVelY = 0.0f, float aVelZ = 0.0f, float aVolume = 1.0f)
+        /// <summary>
+        /// Start playing a 3D audio source through the bus, delayed in relation to other sounds called via this function.
+        /// </summary>
+        public Handle play3dClocked(
+            Time aSoundTime, 
+            AudioSource aSound,
+            float aPosX, float aPosY, float aPosZ, 
+            float aVelX = 0.0f, float aVelY = 0.0f, float aVelZ = 0.0f, 
+            float aVolume = 1.0f)
         {
             if (mInstance == null || mSoloud == null)
             {
@@ -120,7 +140,9 @@ namespace LoudPizza
             return mSoloud.play3dClocked(aSoundTime, aSound, aPosX, aPosY, aPosZ, aVelX, aVelY, aVelZ, aVolume, mChannelHandle);
         }
 
-        // Set number of channels for the bus (default 2)
+        /// <summary>
+        /// Set number of channels for the bus (default 2).
+        /// </summary>
         public SOLOUD_ERRORS setChannels(uint aChannels)
         {
             if (aChannels == 0 || aChannels == 3 || aChannels == 5 || aChannels == 7 || aChannels > SoLoud.MAX_CHANNELS)
@@ -130,7 +152,9 @@ namespace LoudPizza
             return SOLOUD_ERRORS.SO_NO_ERROR;
         }
 
-        // Enable or disable visualization data gathering
+        /// <summary>
+        /// Enable or disable visualization data gathering.
+        /// </summary>
         public void setVisualizationEnable(bool aEnable)
         {
             if (aEnable)
@@ -143,7 +167,9 @@ namespace LoudPizza
             }
         }
 
-        // Move a live sound to this bus
+        /// <summary>
+        /// Move a live sound to this bus.
+        /// </summary>
         public void annexSound(Handle aVoiceHandle)
         {
             findBusHandle();
@@ -171,7 +197,9 @@ namespace LoudPizza
             mSoloud.unlockAudioMutex_internal();
         }
 
-        // Calculate and get 256 floats of FFT data for visualization. Visualization has to be enabled before use.
+        /// <summary>
+        /// Calculate and get 256 floats of FFT data for visualization. Visualization has to be enabled before use.
+        /// </summary>
         [SkipLocalsInit]
         public void calcFFT(out Buffer256 data)
         {
@@ -201,7 +229,9 @@ namespace LoudPizza
             }
         }
 
-        // Get 256 floats of wave data for visualization. Visualization has to be enabled before use.
+        /// <summary>
+        /// Get 256 floats of wave data for visualization. Visualization has to be enabled before use.
+        /// </summary>
         public void getWave(out Buffer256 data)
         {
             if (mInstance != null && mSoloud != null)
@@ -216,7 +246,9 @@ namespace LoudPizza
             }
         }
 
-        // Get approximate volume for output channel for visualization. Visualization has to be enabled before use.
+        /// <summary>
+        /// Get approximate volume for output channel for visualization. Visualization has to be enabled before use.
+        /// </summary>
         public float getApproximateVolume(uint aChannel)
         {
             if (aChannel > mChannels)
@@ -231,7 +263,9 @@ namespace LoudPizza
             return vol;
         }
 
-        // Get approximate volumes for all output channels for visualization. Visualization has to be enabled before use.
+        /// <summary>
+        /// Get approximate volumes for all output channels for visualization. Visualization has to be enabled before use.
+        /// </summary>
         public ChannelBuffer getApproximateVolumes()
         {
             ChannelBuffer buffer = default;
@@ -244,7 +278,9 @@ namespace LoudPizza
             return buffer;
         }
 
-        // Get number of immediate child voices to this bus
+        /// <summary>
+        /// Get number of immediate child voices to this bus.
+        /// </summary>
         public uint getActiveVoiceCount()
         {
             int i;
@@ -261,13 +297,18 @@ namespace LoudPizza
             return count;
         }
 
-        // Get current the resampler for this bus
+        /// <summary>
+        /// Get current the resampler for this bus.
+        /// </summary>
         public SoLoud.RESAMPLER getResampler()
         {
             return mResampler;
         }
 
-        // Set the resampler for this bus
+        /// <summary>
+        /// Set the resampler for this bus.
+        /// </summary>
+        /// <param name="aResampler"></param>
         public void setResampler(SoLoud.RESAMPLER aResampler)
         {
             if (aResampler <= SoLoud.RESAMPLER.RESAMPLER_CATMULLROM)
@@ -280,7 +321,9 @@ namespace LoudPizza
         // Snapshot of wave data for visualization
         //public float mWaveData[256];
 
-        // Internal: find the bus' channel
+        /// <summary>
+        /// Find the bus' channel.
+        /// </summary>
         internal void findBusHandle()
         {
             // Find the channel the bus is playing on to calculate handle..

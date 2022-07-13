@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Diagnostics;
 
 namespace LoudPizza
@@ -6,7 +6,9 @@ namespace LoudPizza
     // Direct voice operations (no mutexes - called from other functions)
     public unsafe partial class SoLoud
     {
-        // Set voice (not handle) relative play speed.
+        /// <summary>
+        /// Set voice (not handle) relative play speed.
+        /// </summary>
         internal SOLOUD_ERRORS setVoiceRelativePlaySpeed_internal(uint aVoice, float aSpeed)
         {
             Debug.Assert(aVoice < VOICE_COUNT);
@@ -27,7 +29,9 @@ namespace LoudPizza
             return SOLOUD_ERRORS.SO_NO_ERROR;
         }
 
-        // Set voice (not handle) pause state.
+        /// <summary>
+        /// Set voice (not handle) pause state.
+        /// </summary>
         internal void setVoicePause_internal(uint aVoice, bool aPause)
         {
             Debug.Assert(aVoice < VOICE_COUNT);
@@ -50,7 +54,9 @@ namespace LoudPizza
             }
         }
 
-        // Set voice (not handle) pan.
+        /// <summary>
+        /// Set voice (not handle) pan.
+        /// </summary>
         internal void setVoicePan_internal(uint aVoice, float aPan)
         {
             Debug.Assert(aVoice < VOICE_COUNT);
@@ -88,7 +94,9 @@ namespace LoudPizza
             }
         }
 
-        // Set voice (not handle) volume.
+        /// <summary>
+        /// Set voice (not handle) volume.
+        /// </summary>
         internal void setVoiceVolume_internal(uint aVoice, float aVolume)
         {
             Debug.Assert(aVoice < VOICE_COUNT);
@@ -103,7 +111,9 @@ namespace LoudPizza
             }
         }
 
-        // Stop voice (not handle).
+        /// <summary>
+        /// Stop voice (not handle).
+        /// </summary>
         internal void stopVoice_internal(uint aVoice)
         {
             Debug.Assert(aVoice < VOICE_COUNT);
@@ -129,7 +139,9 @@ namespace LoudPizza
             }
         }
 
-        // Update overall relative play speed from set and 3d speeds
+        /// <summary>
+        /// Update overall relative play speed from set and 3D speeds.
+        /// </summary>
         internal void updateVoiceRelativePlaySpeed_internal(uint aVoice)
         {
             Debug.Assert(aVoice < VOICE_COUNT);
@@ -142,7 +154,9 @@ namespace LoudPizza
             voice.mSamplerate = voice.mBaseSamplerate * voice.mOverallRelativePlaySpeed;
         }
 
-        // Update overall volume from set and 3d volumes
+        /// <summary>
+        /// Update overall volume from set and 3D volumes.
+        /// </summary>
         internal void updateVoiceVolume_internal(uint aVoice)
         {
             Debug.Assert(aVoice < VOICE_COUNT);

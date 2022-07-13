@@ -1,16 +1,31 @@
-﻿using System;
+using System;
 using System.Runtime.InteropServices;
 
 namespace LoudPizza
 {
-    // Class that handles aligned allocations to support vectorized operations
+    /// <summary>
+    /// Handles aligned allocations to support vectorized operations.
+    /// </summary>
     public unsafe struct AlignedFloatBuffer
     {
-        public float* mData; // aligned pointer
-        public IntPtr mBasePtr; // raw allocated pointer (for delete)
-        public uint mFloats; // size of buffer (w/out padding)
+        /// <summary>
+        /// Aligned pointer.
+        /// </summary>
+        public float* mData;
 
-        // Allocate and align buffer
+        /// <summary>
+        /// Raw allocated pointer (for delete).
+        /// </summary>
+        public IntPtr mBasePtr;
+
+        /// <summary>
+        /// Size of buffer (w/out padding).
+        /// </summary>
+        public uint mFloats;
+
+        /// <summary>
+        /// Allocate and align buffer.
+        /// </summary>
         public SOLOUD_ERRORS init(uint aFloats)
         {
             destroy();
@@ -31,13 +46,14 @@ namespace LoudPizza
             return SOLOUD_ERRORS.SO_NO_ERROR;
         }
 
-        // Clear data to zero.
+        /// <summary>
+        /// Clear data to zero.
+        /// </summary>
         public void clear()
         {
             CRuntime.memset(mData, 0, sizeof(float) * mFloats);
         }
 
-        // dtor
         public void destroy()
         {
             if (mBasePtr != IntPtr.Zero)

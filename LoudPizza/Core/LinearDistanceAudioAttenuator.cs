@@ -1,7 +1,9 @@
-﻿
+
 namespace LoudPizza
 {
-    // Linear distance attenuation model
+    /// <summary>
+    /// Linear distance attenuation model.
+    /// </summary>
     public class LinearDistanceAudioAttenuator : AudioAttenuator
     {
         public static LinearDistanceAudioAttenuator Instance { get; } = new LinearDistanceAudioAttenuator();

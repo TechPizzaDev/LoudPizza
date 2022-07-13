@@ -1,7 +1,9 @@
-﻿
+
 namespace LoudPizza
 {
-    // Inverse distance attenuation model
+    /// <summary>
+    /// Inverse distance attenuation model.
+    /// </summary>
     public class InverseDistanceAudioAttenuator : AudioAttenuator
     {
         public static InverseDistanceAudioAttenuator Instance { get; } = new InverseDistanceAudioAttenuator();

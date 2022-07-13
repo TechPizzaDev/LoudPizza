@@ -1,36 +1,63 @@
-﻿using System;
+using System;
 
 namespace LoudPizza
 {
-    // Base class for audio instances
+    /// <summary>
+    /// Base class for audio instances.
+    /// </summary>
     public abstract unsafe class AudioSourceInstance : IAudioStream, IDisposable
     {
         [Flags]
         public enum FLAGS
         {
-            // This audio instance loops (if supported)
+            /// <summary>
+            /// This audio instance loops (if supported).
+            /// </summary>
             LOOPING = 1,
-            // This audio instance is protected - won't get stopped if we run out of voices
+
+            /// <summary>
+            /// This audio instance is protected - won't get stopped if we run out of voices.
+            /// </summary>
             PROTECTED = 2,
-            // This audio instance is paused
+
+            /// <summary>
+            /// This audio instance is paused.
+            /// </summary>
             PAUSED = 4,
-            // This audio instance is affected by 3d processing
+
+            /// <summary>
+            /// This audio instance is affected by 3D processing.
+            /// </summary>
             PROCESS_3D = 8,
-            // This audio instance has listener-relative 3d coordinates
+
+            /// <summary>
+            /// This audio instance has listener-relative 3D coordinates.
+            /// </summary>
             LISTENER_RELATIVE = 16,
-            // Currently inaudible
+
+            /// <summary>
+            /// Currently inaudible.
+            /// </summary>
             INAUDIBLE = 32,
-            // If inaudible, should be killed (default = don't kill kill)
+
+            /// <summary>
+            /// If inaudible, should be killed (default = don't kill).
+            /// </summary>
             INAUDIBLE_KILL = 64,
-            // If inaudible, should still be ticked (default = pause)
+
+            /// <summary>
+            /// If inaudible, should still be ticked (default = pause).
+            /// </summary>
             INAUDIBLE_TICK = 128,
-            // Don't auto-stop sound
+
+            /// <summary>
+            /// Don't auto-stop sound.
+            /// </summary>
             DISABLE_AUTOSTOP = 256
         }
 
         private bool _isDisposed;
 
-        // Ctor
         public AudioSourceInstance()
         {
             mPlayIndex = 0;
@@ -66,79 +93,126 @@ namespace LoudPizza
             mOverallRelativePlaySpeed = 1;
         }
 
-        // Play index; used to identify instances from handles
+        /// <summary>
+        /// Play index; used to identify instances from handles.
+        /// </summary>
         public uint mPlayIndex;
 
-        // Loop count
+        /// <summary>
+        /// Loop count.
+        /// </summary>
         public uint mLoopCount;
 
-        // Flags; see AudioSourceInstance.FLAGS.FLAGS
         public FLAGS mFlags;
 
-        // Pan value, for getPan()
+        /// <summary>
+        /// Pan value, for getPan().
+        /// </summary>
         public float mPan;
 
-        // Volume for each channel (panning)
+        /// <summary>
+        /// Volume for each channel (panning).
+        /// </summary>
         public ChannelBuffer mChannelVolume;
 
-        // Set volume
+        /// <summary>
+        /// Set volume.
+        /// </summary>
         public float mSetVolume;
 
-        // Overall volume overall = set * 3d
+        /// <summary>
+        /// Overall volume overall = set * 3D.
+        /// </summary>
         public float mOverallVolume;
 
-        // Base samplerate; samplerate = base samplerate * relative play speed
+        /// <summary>
+        /// Base samplerate; samplerate = base samplerate * relative play speed.
+        /// </summary>
         public float mBaseSamplerate;
 
-        // Samplerate; samplerate = base samplerate * relative play speed
+        /// <summary>
+        /// Samplerate; samplerate = base samplerate * relative play speed
+        /// </summary>
         public float mSamplerate;
 
-        // Number of channels this audio source produces
+        /// <summary>
+        /// Number of channels this audio source produces.
+        /// </summary>
         public uint mChannels;
 
-        // Relative play speed; samplerate = base samplerate * relative play speed
+        /// <summary>
+        /// Relative play speed; samplerate = base samplerate * relative play speed.
+        /// </summary>
         public float mSetRelativePlaySpeed;
 
-        // Overall relative plays peed; overall = set * 3d
+        /// <summary>
+        /// Overall relative plays peed; overall = set * 3D.
+        /// </summary>
         public float mOverallRelativePlaySpeed;
 
-        // How long this stream has played, in seconds.
+        /// <summary>
+        /// How long this stream has played, in seconds.
+        /// </summary>
         public Time mStreamTime;
 
-        // Position of this stream, in samples.
+        /// <summary>
+        /// Position of this stream, in samples.
+        /// </summary>
         public ulong mStreamPosition;
 
-        // Fader for the audio panning
+        /// <summary>
+        /// Fader for the audio panning.
+        /// </summary>
         public Fader mPanFader;
 
-        // Fader for the audio volume
+        /// <summary>
+        /// Fader for the audio volume.
+        /// </summary>
         public Fader mVolumeFader;
 
-        // Fader for the relative play speed
+        /// <summary>
+        /// Fader for the relative play speed.
+        /// </summary>
         public Fader mRelativePlaySpeedFader;
 
-        // Fader used to schedule pausing of the stream
+        /// <summary>
+        /// Fader used to schedule pausing of the stream.
+        /// </summary>
         public Fader mPauseScheduler;
 
-        // Fader used to schedule stopping of the stream
+        /// <summary>
+        /// Fader used to schedule stopping of the stream.
+        /// </summary>
         public Fader mStopScheduler;
 
-        // Affected by some fader
+        /// <summary>
+        /// Affected by some fader.
+        /// </summary>
         public int mActiveFader;
 
-        // Current channel volumes, used to ramp the volume changes to avoid clicks
+        /// <summary>
+        /// Current channel volumes, used to ramp the volume changes to avoid clicks.
+        /// </summary>
         public ChannelBuffer mCurrentChannelVolume;
 
-        // ID of the sound source that generated this instance
+        /// <summary>
+        /// ID of the sound source that generated this instance.
+        /// </summary>
         public uint mAudioSourceID;
 
-        // Handle of the bus this audio instance is playing on. 0 for root.
+        /// <summary>
+        /// Handle of the bus this audio instance is playing on. 0 for root.
+        /// </summary>
         public Handle mBusHandle;
 
-        // Filter pointer
+        /// <summary>
+        /// Filters.
+        /// </summary>
         public FilterInstance?[] mFilter = new FilterInstance[SoLoud.FILTERS_PER_STREAM];
 
-        // Initialize instance. Mostly internal use.
+        /// <summary>
+        /// Initialize instance. Mostly internal use.
+        /// </summary>
         public void init(AudioSource aSource, uint aPlayIndex)
         {
             mPlayIndex = aPlayIndex;
@@ -175,32 +249,58 @@ namespace LoudPizza
             }
         }
 
-        // Pointers to buffers for the resampler
+        /// <summary>
+        /// Buffer for the resampler.
+        /// </summary>
         public AlignedFloatBuffer mResampleData0;
+
+        /// <summary>
+        /// Buffer for the resampler.
+        /// </summary>
         public AlignedFloatBuffer mResampleData1;
 
-        // Sub-sample playhead; 16.16 fixed point
+        /// <summary>
+        /// Sub-sample playhead; 16.16 fixed point.
+        /// </summary>
         public uint mSrcOffset;
 
-        // Samples left over from earlier pass
+        /// <summary>
+        /// Samples left over from earlier pass.
+        /// </summary>
         public uint mLeftoverSamples;
 
-        // Number of samples to delay streaming
+        /// <summary>
+        /// Number of samples to delay streaming.
+        /// </summary>
         public uint mDelaySamples;
 
-        // When looping, start playing from this time
+        /// <summary>
+        /// When looping, start playing from this time.
+        /// </summary>
         public ulong mLoopPoint;
 
-        // Get N samples from the stream to the buffer. Report samples written.
+        /// <summary>
+        /// Get samples from the stream to the buffer.
+        /// </summary>
+        /// <returns>The amount of samples written.</returns>
         public abstract uint getAudio(float* aBuffer, uint aSamplesToRead, uint aBufferSize);
 
-        // Has the stream ended?
+        /// <summary>
+        /// Get whether the has stream ended.
+        /// </summary>
         public abstract bool hasEnded();
 
-        // Seek to certain place in the stream. Base implementation is generic "tape" seek (and slow).
+        /// <summary>
+        /// Seek to certain place in the stream. 
+        /// </summary>
+        /// <remarks>
+        /// Base implementation is generic "tape" seek (and slow).
+        /// </remarks>
         public abstract SOLOUD_ERRORS seek(ulong aSamplePosition, float* mScratch, uint mScratchSize);
 
-        // Get information. Returns 0 by default.
+        /// <summary>
+        /// Get information. Returns 0 by default.
+        /// </summary>
         public virtual float getInfo(uint aInfoKey)
         {
             return 0;

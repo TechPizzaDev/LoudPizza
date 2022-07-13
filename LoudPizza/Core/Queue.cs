@@ -1,4 +1,4 @@
-﻿
+
 namespace LoudPizza
 {
     public class Queue : AudioSource
@@ -29,7 +29,9 @@ namespace LoudPizza
             return mInstance;
         }
 
-        // Play sound through the queue
+        /// <summary>
+        /// Play sound through the queue.
+        /// </summary>
         public SOLOUD_ERRORS play(AudioSource aSound)
         {
             if (mSoloud == null)
@@ -69,7 +71,9 @@ namespace LoudPizza
             return SOLOUD_ERRORS.SO_NO_ERROR;
         }
 
-        // Number of audio sources queued for replay
+        /// <summary>
+        /// Get the number of audio sources queued for replay.
+        /// </summary>
         public uint getQueueCount()
         {
             if (mSoloud == null)
@@ -83,7 +87,9 @@ namespace LoudPizza
             return count;
         }
 
-        // Is this audio source currently playing?
+        /// <summary>
+        /// Get whether the given audio source currently playing.
+        /// </summary>
         public bool isCurrentlyPlaying(AudioSource aSound)
         {
             if (mSoloud == null || mCount == 0 || aSound.mAudioSourceID == 0)
@@ -95,7 +101,9 @@ namespace LoudPizza
             return res;
         }
 
-        // Set params by reading them from an audio source
+        /// <summary>
+        /// Set params by reading them from the given audio source.
+        /// </summary>
         public SOLOUD_ERRORS setParamsFromAudioSource(AudioSource aSound)
         {
             mChannels = aSound.mChannels;
@@ -104,7 +112,9 @@ namespace LoudPizza
             return SOLOUD_ERRORS.SO_NO_ERROR;
         }
 
-        // Set params manually
+        /// <summary>
+        /// Set params manually.
+        /// </summary>
         public SOLOUD_ERRORS setParams(float aSamplerate, uint aChannels = 2)
         {
             if (aChannels < 1 || aChannels > SoLoud.MAX_CHANNELS)
@@ -115,9 +125,11 @@ namespace LoudPizza
             return SOLOUD_ERRORS.SO_NO_ERROR;
         }
 
+        /// <summary>
+        /// Find the channel the queue is playing on to calculate handle.
+        /// </summary>
         internal void findQueueHandle()
         {
-            // Find the channel the queue is playing on to calculate handle..
             for (uint i = 0; mQueueHandle.Value == 0 && i < mSoloud.mHighestVoice; i++)
             {
                 if (mSoloud.mVoice[i] == mInstance)

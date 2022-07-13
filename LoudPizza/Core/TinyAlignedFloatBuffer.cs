@@ -1,6 +1,8 @@
-﻿namespace LoudPizza
+namespace LoudPizza
 {
-    // Lightweight class that handles small aligned buffer to support vectorized operations
+    /// <summary>
+    /// Handles small aligned buffer to support vectorized operations.
+    /// </summary>
     internal unsafe struct TinyAlignedFloatBuffer
     {
         public const int Length = sizeof(float) * 16 + 16;

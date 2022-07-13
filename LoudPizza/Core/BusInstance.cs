@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 
 namespace LoudPizza
 {
@@ -8,10 +8,14 @@ namespace LoudPizza
         protected uint mScratchSize;
         protected AlignedFloatBuffer mScratch;
 
-        // Approximate volume for channels.
+        /// <summary>
+        /// Approximate volume for channels.
+        /// </summary>
         public ChannelBuffer mVisualizationChannelVolume;
 
-        // Mono-mixed wave data for visualization and for visualization FFT input
+        /// <summary>
+        /// Mono-mixed wave data for visualization and for visualization FFT input.
+        /// </summary>
         public Buffer256 mVisualizationWaveData;
 
         public BusInstance(Bus aParent)
@@ -87,9 +91,11 @@ namespace LoudPizza
             return SOLOUD_ERRORS.NOT_IMPLEMENTED;
         }
 
+        /// <summary>
+        /// Busses never stop for fear of going under 50mph.
+        /// </summary>
         public override bool hasEnded()
         {
-            // Busses never stop for fear of going under 50mph.
             return false;
         }
 

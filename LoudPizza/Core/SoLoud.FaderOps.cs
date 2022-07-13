@@ -1,10 +1,12 @@
-﻿using System;
+using System;
 
 namespace LoudPizza
 {
     public unsafe partial class SoLoud
     {
-        // Schedule a stream to pause
+        /// <summary>
+        /// Schedule a stream to pause.
+        /// </summary>
         public void schedulePause(Handle aVoiceHandle, Time aTime)
         {
             if (aTime <= 0)
@@ -36,7 +38,9 @@ namespace LoudPizza
             unlockAudioMutex_internal();
         }
 
-        // Schedule a stream to stop
+        /// <summary>
+        /// Schedule a stream to stop.
+        /// </summary>
         public void scheduleStop(Handle aVoiceHandle, Time aTime)
         {
             if (aTime <= 0)
@@ -68,7 +72,9 @@ namespace LoudPizza
             unlockAudioMutex_internal();
         }
 
-        // Set up volume fader
+        /// <summary>
+        /// Set up volume fader.
+        /// </summary>
         public void fadeVolume(Handle aVoiceHandle, float aTo, Time aTime)
         {
             float from = getVolume(aVoiceHandle);
@@ -101,7 +107,9 @@ namespace LoudPizza
             unlockAudioMutex_internal();
         }
 
-        // Set up panning fader
+        /// <summary>
+        /// Set up panning fader.
+        /// </summary>
         public void fadePan(Handle aVoiceHandle, float aTo, Time aTime)
         {
             float from = getPan(aVoiceHandle);
@@ -134,7 +142,9 @@ namespace LoudPizza
             unlockAudioMutex_internal();
         }
 
-        // Set up relative play speed fader
+        /// <summary>
+        /// Set up relative play speed fader.
+        /// </summary>
         public void fadeRelativePlaySpeed(Handle aVoiceHandle, float aTo, Time aTime)
         {
             float from = getRelativePlaySpeed(aVoiceHandle);
@@ -167,7 +177,9 @@ namespace LoudPizza
             unlockAudioMutex_internal();
         }
 
-        // Set up global volume fader
+        /// <summary>
+        /// Set up global volume fader.
+        /// </summary>
         public void fadeGlobalVolume(float aTo, Time aTime)
         {
             float from = getGlobalVolume();
@@ -179,7 +191,9 @@ namespace LoudPizza
             mGlobalVolumeFader.set(from, aTo, aTime, mStreamTime);
         }
 
-        // Set up volume oscillator
+        /// <summary>
+        /// Set up volume oscillator.
+        /// </summary>
         public void oscillateVolume(Handle aVoiceHandle, float aFrom, float aTo, Time aTime)
         {
             if (aTime <= 0 || aTo == aFrom)
@@ -211,7 +225,9 @@ namespace LoudPizza
             unlockAudioMutex_internal();
         }
 
-        // Set up panning oscillator
+        /// <summary>
+        /// Set up panning oscillator.
+        /// </summary>
         public void oscillatePan(Handle aVoiceHandle, float aFrom, float aTo, Time aTime)
         {
             if (aTime <= 0 || aTo == aFrom)
@@ -243,7 +259,9 @@ namespace LoudPizza
             unlockAudioMutex_internal();
         }
 
-        // Set up relative play speed oscillator
+        /// <summary>
+        /// Set up relative play speed oscillator.
+        /// </summary>
         public void oscillateRelativePlaySpeed(Handle aVoiceHandle, float aFrom, float aTo, Time aTime)
         {
             if (aTime <= 0 || aTo == aFrom)
@@ -275,7 +293,9 @@ namespace LoudPizza
             unlockAudioMutex_internal();
         }
 
-        // Set up global volume oscillator
+        /// <summary>
+        /// Set up global volume oscillator.
+        /// </summary>
         public void oscillateGlobalVolume(float aFrom, float aTo, Time aTime)
         {
             if (aTime <= 0 || aTo == aFrom)

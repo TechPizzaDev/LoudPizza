@@ -1,9 +1,8 @@
-﻿
+
 namespace LoudPizza
 {
     public struct AudioSourceInstance3dData
     {
-        // ctor
         public static AudioSourceInstance3dData ctor()
         {
             AudioSourceInstance3dData s;
@@ -25,7 +24,9 @@ namespace LoudPizza
             return s;
         }
 
-        // Set settings from audiosource
+        /// <summary>
+        /// Set settings from an <see cref="AudioSource"/>.
+        /// </summary>
         public void init(AudioSource aSource)
         {
             m3dAttenuationRolloff = aSource.m3dAttenuationRolloff;
@@ -46,56 +47,85 @@ namespace LoudPizza
                 mChannelVolume[i] = 0;
         }
 
-        // 3d position
+        /// <summary>
+        /// 3D position.
+        /// </summary>
         public Vec3 m3dPosition;
 
-        // 3d velocity
+        /// <summary>
+        /// 3D velocity.
+        /// </summary>
         public Vec3 m3dVelocity;
 
-        // 3d cone direction
+        // 3D cone direction
         /*
         float m3dConeDirection[3];
-        // 3d cone inner angle
+        // 3D cone inner angle
         float m3dConeInnerAngle;
-        // 3d cone outer angle
+        // 3D cone outer angle
         float m3dConeOuterAngle;
-        // 3d cone outer volume multiplier
+        // 3D cone outer volume multiplier
         float m3dConeOuterVolume;
         */
-        // 3d min distance
+
+        /// <summary>
+        /// 3D min distance.
+        /// </summary>
         public float m3dMinDistance;
 
-        // 3d max distance
+        /// <summary>
+        /// 3D max distance.
+        /// </summary>
         public float m3dMaxDistance;
 
-        // 3d attenuation rolloff factor
+        /// <summary>
+        /// 3D attenuation rolloff factor.
+        /// </summary>
         public float m3dAttenuationRolloff;
 
-        // 3d doppler factor
+        /// <summary>
+        /// 3D doppler factor.
+        /// </summary>
         public float m3dDopplerFactor;
 
-        // Pointer to a custom audio collider object
+        /// <summary>
+        /// Custom audio collider object.
+        /// </summary>
         public AudioCollider? mCollider;
 
-        // Pointer to a custom audio attenuator object
+        /// <summary>
+        /// Custom audio attenuator object.
+        /// </summary>
         public AudioAttenuator? mAttenuator;
 
-        // User data related to audio collider
+        /// <summary>
+        /// User data related to audio collider.
+        /// </summary>
         public int mColliderData;
 
-        // Doppler sample rate multiplier
+        /// <summary>
+        /// Doppler sample rate multiplier.
+        /// </summary>
         public float mDopplerValue;
 
-        // Overall 3d volume
+        /// <summary>
+        /// Overall 3D volume.
+        /// </summary>
         public float m3dVolume;
 
-        // Channel volume
+        /// <summary>
+        /// Channel volume.
+        /// </summary>
         public ChannelBuffer mChannelVolume;
 
-        // Copy of flags
+        /// <summary>
+        /// Copy of flags.
+        /// </summary>
         public AudioSourceInstance.FLAGS mFlags;
 
-        // Latest handle for this voice
+        /// <summary>
+        /// Latest handle for this voice.
+        /// </summary>
         public Handle mHandle;
     };
 }
