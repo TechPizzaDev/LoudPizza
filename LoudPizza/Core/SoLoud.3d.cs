@@ -1,17 +1,18 @@
 using System;
+using System.Numerics;
 using System.Runtime.CompilerServices;
 
 namespace LoudPizza
 {
     public unsafe partial class SoLoud
     {
-        public static float doppler(Vec3 aDeltaPos, Vec3 aSrcVel, Vec3 aDstVel, float aFactor, float aSoundSpeed)
+        public static float doppler(Vector3 aDeltaPos, Vector3 aSrcVel, Vector3 aDstVel, float aFactor, float aSoundSpeed)
         {
-            float deltamag = aDeltaPos.mag();
+            float deltamag = aDeltaPos.Length();
             if (deltamag == 0)
                 return 1.0f;
-            float vls = aDeltaPos.dot(aDstVel) / deltamag;
-            float vss = aDeltaPos.dot(aSrcVel) / deltamag;
+            float vls = Vector3.Dot(aDeltaPos, aDstVel) / deltamag;
+            float vss = Vector3.Dot(aDeltaPos, aSrcVel) / deltamag;
             float maxspeed = aSoundSpeed / aFactor;
             vss = MathF.Min(vss, maxspeed);
             vls = MathF.Min(vls, maxspeed);
@@ -45,23 +46,22 @@ namespace LoudPizza
         [SkipLocalsInit]
         internal void update3dVoices_internal(uint* aVoiceArray, uint aVoiceCount)
         {
-            Vec3* speaker = stackalloc Vec3[MaxChannels];
+            Vector3* speaker = stackalloc Vector3[MaxChannels];
 
             int i;
             for (i = 0; i < mChannels; i++)
             {
-                speaker[i] = m3dSpeakerPosition[i];
-                speaker[i].normalize();
+                speaker[i] = Vector3.Normalize(m3dSpeakerPosition[i]);
             }
             for (; i < MaxChannels; i++)
             {
                 speaker[i] = default;
             }
 
-            Vec3 lpos = m3dPosition;
-            Vec3 lvel = m3dVelocity;
-            Vec3 at = m3dAt;
-            Vec3 up = m3dUp;
+            Vector3 lpos = m3dPosition;
+            Vector3 lvel = m3dVelocity;
+            Vector3 at = m3dAt;
+            Vector3 up = m3dUp;
 
             CRuntime.SkipInit(out Mat3 m);
             if ((mFlags & Flags.LeftHanded3D) != 0)
@@ -85,19 +85,18 @@ namespace LoudPizza
                     vol *= v.mCollider.collide(this, v, v.mColliderData);
                 }
 
-                Vec3 pos = v.m3dPosition;
-                Vec3 vel = v.m3dVelocity;
+                Vector3 pos = v.m3dPosition;
+                Vector3 vel = v.m3dVelocity;
 
                 if ((v.mFlags & AudioSourceInstance.Flags.ListenerRelative) == 0)
                 {
-                    pos = pos.sub(lpos);
+                    pos -= lpos;
                 }
-
-                float dist = pos.mag();
 
                 // attenuation
                 if (v.mAttenuator != null)
                 {
+                    float dist = pos.Length();
                     vol *= v.mAttenuator.attenuate(dist, v.m3dMinDistance, v.m3dMaxDistance, v.m3dAttenuationRolloff);
                 }
 
@@ -109,18 +108,17 @@ namespace LoudPizza
                 v.mDopplerValue = doppler(pos, vel, lvel, v.m3dDopplerFactor, m3dSoundSpeed);
 
                 // panning
-                pos = m.mul(pos);
-                pos.normalize();
+                pos = Vector3.Normalize(m.mul(pos));
 
                 // Apply volume to channels based on speaker vectors
                 int j;
                 for (j = 0; j < mChannels; j++)
                 {
                     float finalvol = vol;
-                    Vec3 spk = speaker[j];
-                    if (!spk.isZero())
+                    Vector3 spk = speaker[j];
+                    if (spk.LengthSquared() != 0)
                     {
-                        float speakervol = (spk.dot(pos) + 1) / 2;
+                        float speakervol = (Vector3.Dot(spk, pos) + 1) / 2;
 
                         // Different speaker "focus" calculations to try, if the default "bleeds" too much..
                         //speakervol = (speakervol * speakervol + speakervol) / 2;
@@ -214,7 +212,6 @@ namespace LoudPizza
         {
             int v;
             AudioSourceInstance voice;
-            Vec3 pos;
             int samples = 0;
 
             Handle h = play(aSound, aVolume, 0, true, aBus);
@@ -232,15 +229,16 @@ namespace LoudPizza
 
                 if ((aSound.mFlags & AudioSource.Flags.DistanceDelay) != 0)
                 {
+                    Vector3 pos;
                     pos.X = aPosX;
                     pos.Y = aPosY;
                     pos.Z = aPosZ;
                     if (((uint)voice.mFlags & (uint)AudioSource.Flags.ListenerRelative) == 0)
                     {
-                        pos = pos.sub(m3dPosition);
+                        pos -= m3dPosition;
                     }
-                    float dist = pos.mag();
-                    samples += (int)MathF.Floor((dist / m3dSoundSpeed) * mSamplerate);
+                    float dist = pos.LengthSquared();
+                    samples += (int)MathF.Floor((dist / (m3dSoundSpeed * m3dSoundSpeed)) * mSamplerate);
                 }
             }
 
@@ -294,7 +292,6 @@ namespace LoudPizza
         {
             int v;
             AudioSourceInstance voice;
-            Vec3 pos;
             int samples;
 
             Handle h = play(aSound, aVolume, 0, true, aBus);
@@ -315,9 +312,6 @@ namespace LoudPizza
                     lasttime = aSoundTime;
                     mLastClockedTime = aSoundTime;
                 }
-                pos.X = aPosX;
-                pos.Y = aPosY;
-                pos.Z = aPosZ;
 
                 samples = (int)Math.Floor((aSoundTime - lasttime) * mSamplerate);
                 // Make sure we don't delay too much (or overflow)
@@ -326,8 +320,13 @@ namespace LoudPizza
 
                 if ((aSound.mFlags & AudioSource.Flags.DistanceDelay) != 0)
                 {
-                    float dist = pos.mag();
-                    samples += (int)MathF.Floor((dist / m3dSoundSpeed) * mSamplerate);
+                    Vector3 pos;
+                    pos.X = aPosX;
+                    pos.Y = aPosY;
+                    pos.Z = aPosZ;
+
+                    float dist = pos.LengthSquared();
+                    samples += (int)MathF.Floor((dist / (m3dSoundSpeed * m3dSoundSpeed)) * mSamplerate);
                 }
             }
 
@@ -396,10 +395,10 @@ namespace LoudPizza
             float aUpX, float aUpY, float aUpZ,
             float aVelocityX, float aVelocityY, float aVelocityZ)
         {
-            m3dPosition = new Vec3(aPosX, aPosY, aPosZ);
-            m3dAt = new Vec3(aAtX, aAtY, aAtZ);
-            m3dUp = new Vec3(aUpX, aUpY, aUpZ);
-            m3dVelocity = new Vec3(aVelocityX, aVelocityY, aVelocityZ);
+            m3dPosition = new Vector3(aPosX, aPosY, aPosZ);
+            m3dAt = new Vector3(aAtX, aAtY, aAtZ);
+            m3dUp = new Vector3(aUpX, aUpY, aUpZ);
+            m3dVelocity = new Vector3(aVelocityX, aVelocityY, aVelocityZ);
         }
 
         /// <summary>
@@ -407,7 +406,7 @@ namespace LoudPizza
         /// </summary>
         public void set3dListenerPosition(float aPosX, float aPosY, float aPosZ)
         {
-            m3dPosition = new Vec3(aPosX, aPosY, aPosZ);
+            m3dPosition = new Vector3(aPosX, aPosY, aPosZ);
         }
 
         /// <summary>
@@ -415,7 +414,7 @@ namespace LoudPizza
         /// </summary>
         public void set3dListenerAt(float aAtX, float aAtY, float aAtZ)
         {
-            m3dAt = new Vec3(aAtX, aAtY, aAtZ);
+            m3dAt = new Vector3(aAtX, aAtY, aAtZ);
         }
 
         /// <summary>
@@ -423,7 +422,7 @@ namespace LoudPizza
         /// </summary>
         public void set3dListenerUp(float aUpX, float aUpY, float aUpZ)
         {
-            m3dUp = new Vec3(aUpX, aUpY, aUpZ);
+            m3dUp = new Vector3(aUpX, aUpY, aUpZ);
         }
 
         /// <summary>
@@ -431,7 +430,7 @@ namespace LoudPizza
         /// </summary>
         public void set3dListenerVelocity(float aVelocityX, float aVelocityY, float aVelocityZ)
         {
-            m3dVelocity = new Vec3(aVelocityX, aVelocityY, aVelocityZ);
+            m3dVelocity = new Vector3(aVelocityX, aVelocityY, aVelocityZ);
         }
 
         /// <summary>
@@ -448,8 +447,8 @@ namespace LoudPizza
                 int ch = (int)(h.Value & 0xfff - 1);
                 if (ch != -1 && m3dData[ch].mHandle == h)
                 {
-                    m3dData[ch].m3dPosition = new Vec3(aPosX, aPosY, aPosZ);
-                    m3dData[ch].m3dVelocity = new Vec3(aVelocityX, aVelocityY, aVelocityZ);
+                    m3dData[ch].m3dPosition = new Vector3(aPosX, aPosY, aPosZ);
+                    m3dData[ch].m3dVelocity = new Vector3(aVelocityX, aVelocityY, aVelocityZ);
                 }
             }
         }
@@ -465,7 +464,7 @@ namespace LoudPizza
                 int ch = (int)(h.Value & 0xfff - 1);
                 if (ch != -1 && m3dData[ch].mHandle == h)
                 {
-                    m3dData[ch].m3dPosition = new Vec3(aPosX, aPosY, aPosZ);
+                    m3dData[ch].m3dPosition = new Vector3(aPosX, aPosY, aPosZ);
                 }
             }
         }
@@ -481,7 +480,7 @@ namespace LoudPizza
                 int ch = (int)(h.Value & 0xfff - 1);
                 if (ch != -1 && m3dData[ch].mHandle == h)
                 {
-                    m3dData[ch].m3dVelocity = new Vec3(aVelocityX, aVelocityY, aVelocityZ);
+                    m3dData[ch].m3dVelocity = new Vector3(aVelocityX, aVelocityY, aVelocityZ);
                 }
             }
         }

@@ -50,12 +50,12 @@ namespace LoudPizza
         /// <summary>
         /// 3D position.
         /// </summary>
-        public Vec3 m3dPosition;
+        public Vector3 m3dPosition;
 
         /// <summary>
         /// 3D velocity.
         /// </summary>
-        public Vec3 m3dVelocity;
+        public Vector3 m3dVelocity;
 
         // 3D cone direction
         /*

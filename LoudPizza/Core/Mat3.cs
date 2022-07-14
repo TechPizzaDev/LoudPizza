@@ -1,15 +1,17 @@
-﻿
+
+using System.Numerics;
+
 namespace LoudPizza
 {
     public struct Mat3
     {
-        public Vec3 M0;
-        public Vec3 M1;
-        public Vec3 M2;
+        public Vector3 M0;
+        public Vector3 M1;
+        public Vector3 M2;
 
-        public Vec3 mul(Vec3 a)
+        public Vector3 mul(Vector3 a)
         {
-            Vec3 r;
+            Vector3 r;
 
             r.X = M0.X * a.X + M0.Y * a.Y + M0.Z * a.Z;
             r.Y = M1.X * a.X + M1.Y * a.Y + M1.Z * a.Z;
@@ -18,26 +20,22 @@ namespace LoudPizza
             return r;
         }
 
-        public void lookatRH(Vec3 at, Vec3 up)
+        public void lookatRH(Vector3 at, Vector3 up)
         {
-            Vec3 z = at;
-            z.normalize();
-            Vec3 x = up.cross(z);
-            x.normalize();
-            Vec3 y = z.cross(x);
+            Vector3 z = Vector3.Normalize(at);
+            Vector3 x = Vector3.Normalize(Vector3.Cross(up, z));
+            Vector3 y = Vector3.Cross(z, x);
             M0 = x;
             M1 = y;
             M2 = z;
         }
 
-        public void lookatLH(Vec3 at, Vec3 up)
+        public void lookatLH(Vector3 at, Vector3 up)
         {
-            Vec3 z = at;
-            z.normalize();
-            Vec3 x = up.cross(z);
-            x.normalize();
-            Vec3 y = z.cross(x);
-            x.neg();  // flip x
+            Vector3 z = Vector3.Normalize(at);
+            Vector3 x = Vector3.Normalize(Vector3.Cross(up, z));
+            Vector3 y = Vector3.Cross(z, x);
+            x = Vector3.Negate(x); // flip x
             M0 = x;
             M1 = y;
             M2 = z;

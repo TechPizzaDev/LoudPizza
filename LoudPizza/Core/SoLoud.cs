@@ -156,8 +156,8 @@ namespace LoudPizza
             mVoiceGroupCount = 0;
 
             m3dPosition = default;
-            m3dAt = new Vec3(0, 0, -1);
-            m3dUp = new Vec3(0, 1, 0);
+            m3dAt = new Vector3(0, 0, -1);
+            m3dUp = new Vector3(0, 1, 0);
             m3dVelocity = default;
             m3dSoundSpeed = 343.3f;
             mMaxActiveVoices = 16;
@@ -468,54 +468,54 @@ namespace LoudPizza
             switch (mChannels)
             {
                 case 1:
-                    m3dSpeakerPosition[0] = new Vec3(0, 0, 1);
+                    m3dSpeakerPosition[0] = new Vector3(0, 0, 1);
                     break;
 
                 case 2:
-                    m3dSpeakerPosition[0] = new Vec3(2, 0, 1);
-                    m3dSpeakerPosition[1] = new Vec3(-2, 0, 1);
+                    m3dSpeakerPosition[0] = new Vector3(2, 0, 1);
+                    m3dSpeakerPosition[1] = new Vector3(-2, 0, 1);
                     break;
 
                 case 4:
-                    m3dSpeakerPosition[0] = new Vec3(2, 0, 1);
-                    m3dSpeakerPosition[1] = new Vec3(-2, 0, 1);
+                    m3dSpeakerPosition[0] = new Vector3(2, 0, 1);
+                    m3dSpeakerPosition[1] = new Vector3(-2, 0, 1);
                     // I suppose technically the second pair should be straight left & right,
                     // but I prefer moving them a bit back to mirror the front speakers.
-                    m3dSpeakerPosition[2] = new Vec3(2, 0, -1);
-                    m3dSpeakerPosition[3] = new Vec3(-2, 0, -1);
+                    m3dSpeakerPosition[2] = new Vector3(2, 0, -1);
+                    m3dSpeakerPosition[3] = new Vector3(-2, 0, -1);
                     break;
 
                 case 6:
-                    m3dSpeakerPosition[0] = new Vec3(2, 0, 1);
-                    m3dSpeakerPosition[1] = new Vec3(-2, 0, 1);
+                    m3dSpeakerPosition[0] = new Vector3(2, 0, 1);
+                    m3dSpeakerPosition[1] = new Vector3(-2, 0, 1);
 
                     // center and subwoofer. 
-                    m3dSpeakerPosition[2] = new Vec3(0, 0, 1);
+                    m3dSpeakerPosition[2] = new Vector3(0, 0, 1);
                     // Sub should be "mix of everything". We'll handle it as a special case and make it a null vector.
-                    m3dSpeakerPosition[3] = new Vec3(0, 0, 0);
+                    m3dSpeakerPosition[3] = new Vector3(0, 0, 0);
 
                     // I suppose technically the second pair should be straight left & right,
                     // but I prefer moving them a bit back to mirror the front speakers.
-                    m3dSpeakerPosition[4] = new Vec3(2, 0, -2);
-                    m3dSpeakerPosition[5] = new Vec3(-2, 0, -2);
+                    m3dSpeakerPosition[4] = new Vector3(2, 0, -2);
+                    m3dSpeakerPosition[5] = new Vector3(-2, 0, -2);
                     break;
 
                 case 8:
-                    m3dSpeakerPosition[0] = new Vec3(2, 0, 1);
-                    m3dSpeakerPosition[1] = new Vec3(-2, 0, 1);
+                    m3dSpeakerPosition[0] = new Vector3(2, 0, 1);
+                    m3dSpeakerPosition[1] = new Vector3(-2, 0, 1);
 
                     // center and subwoofer. 
-                    m3dSpeakerPosition[2] = new Vec3(0, 0, 1);
+                    m3dSpeakerPosition[2] = new Vector3(0, 0, 1);
                     // Sub should be "mix of everything". We'll handle it as a special case and make it a null vector.
-                    m3dSpeakerPosition[3] = new Vec3(0, 0, 0);
+                    m3dSpeakerPosition[3] = new Vector3(0, 0, 0);
 
                     // side
-                    m3dSpeakerPosition[4] = new Vec3(2, 0, 0);
-                    m3dSpeakerPosition[5] = new Vec3(-2, 0, 0);
+                    m3dSpeakerPosition[4] = new Vector3(2, 0, 0);
+                    m3dSpeakerPosition[5] = new Vector3(-2, 0, 0);
 
                     // back
-                    m3dSpeakerPosition[6] = new Vec3(2, 0, -1);
-                    m3dSpeakerPosition[7] = new Vec3(-2, 0, -1);
+                    m3dSpeakerPosition[6] = new Vector3(2, 0, -1);
+                    m3dSpeakerPosition[7] = new Vector3(-2, 0, -1);
                     break;
             }
         }
@@ -1365,22 +1365,22 @@ namespace LoudPizza
         /// <summary>
         /// 3D listener position.
         /// </summary>
-        private Vec3 m3dPosition;
+        private Vector3 m3dPosition;
 
         /// <summary>
         /// 3D listener look-at.
         /// </summary>
-        private Vec3 m3dAt;
+        private Vector3 m3dAt;
 
         /// <summary>
         /// 3D listener up.
         /// </summary>
-        private Vec3 m3dUp;
+        private Vector3 m3dUp;
 
         /// <summary>
         /// 3D listener velocity.
         /// </summary>
-        private Vec3 m3dVelocity;
+        private Vector3 m3dVelocity;
 
         /// <summary>
         /// 3D speed of sound (for doppler).
@@ -1390,7 +1390,7 @@ namespace LoudPizza
         /// <summary>
         /// 3D position of speakers.
         /// </summary>
-        private Vec3[] m3dSpeakerPosition = new Vec3[MaxChannels];
+        private Vector3[] m3dSpeakerPosition = new Vector3[MaxChannels];
 
         /// <summary>
         /// Data related to 3D processing, separate from AudioSource so we can do 3D calculations without audio mutex.

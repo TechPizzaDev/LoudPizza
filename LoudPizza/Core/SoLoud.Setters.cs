@@ -1,4 +1,5 @@
 using System;
+using System.Numerics;
 
 namespace LoudPizza
 {
@@ -398,7 +399,7 @@ namespace LoudPizza
             if (aChannel >= mChannels)
                 return SoLoudStatus.InvalidParameter;
 
-            m3dSpeakerPosition[aChannel] = new Vec3(aX, aY, aZ);
+            m3dSpeakerPosition[aChannel] = new Vector3(aX, aY, aZ);
             return SoLoudStatus.Ok;
         }
     }
