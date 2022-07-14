@@ -45,7 +45,7 @@ namespace LoudPizza
         [SkipLocalsInit]
         internal void update3dVoices_internal(uint* aVoiceArray, uint aVoiceCount)
         {
-            Vec3* speaker = stackalloc Vec3[MAX_CHANNELS];
+            Vec3* speaker = stackalloc Vec3[MaxChannels];
 
             int i;
             for (i = 0; i < mChannels; i++)
@@ -53,7 +53,7 @@ namespace LoudPizza
                 speaker[i] = m3dSpeakerPosition[i];
                 speaker[i].normalize();
             }
-            for (; i < MAX_CHANNELS; i++)
+            for (; i < MaxChannels; i++)
             {
                 speaker[i] = default;
             }
@@ -64,7 +64,7 @@ namespace LoudPizza
             Vec3 up = m3dUp;
 
             CRuntime.SkipInit(out Mat3 m);
-            if ((mFlags & FLAGS.LEFT_HANDED_3D) != 0)
+            if ((mFlags & Flags.LeftHanded3D) != 0)
             {
                 m.lookatLH(at, up);
             }
@@ -88,7 +88,7 @@ namespace LoudPizza
                 Vec3 pos = v.m3dPosition;
                 Vec3 vel = v.m3dVelocity;
 
-                if ((v.mFlags & AudioSourceInstance.FLAGS.LISTENER_RELATIVE) == 0)
+                if ((v.mFlags & AudioSourceInstance.Flags.ListenerRelative) == 0)
                 {
                     pos = pos.sub(lpos);
                 }
@@ -129,7 +129,7 @@ namespace LoudPizza
                     }
                     v.mChannelVolume[j] = finalvol;
                 }
-                for (; j < MAX_CHANNELS; j++)
+                for (; j < MaxChannels; j++)
                 {
                     v.mChannelVolume[j] = 0;
                 }
@@ -145,7 +145,7 @@ namespace LoudPizza
         public void update3dAudio()
         {
             uint voicecount = 0;
-            uint* voices = stackalloc uint[VOICE_COUNT];
+            uint* voices = stackalloc uint[MaxVoiceCount];
 
             // Step 1 - find voices that need 3D processing
             lock (mAudioThreadMutex)
@@ -153,7 +153,7 @@ namespace LoudPizza
                 for (uint i = 0; i < mHighestVoice; i++)
                 {
                     AudioSourceInstance? voice = mVoice[i];
-                    if (voice != null && (voice.mFlags & AudioSourceInstance.FLAGS.PROCESS_3D) != 0)
+                    if (voice != null && (voice.mFlags & AudioSourceInstance.Flags.Process3D) != 0)
                     {
                         voices[voicecount] = i;
                         voicecount++;
@@ -183,16 +183,16 @@ namespace LoudPizza
                         if (vi.mOverallVolume < 0.001f)
                         {
                             // Inaudible.
-                            vi.mFlags |= AudioSourceInstance.FLAGS.INAUDIBLE;
+                            vi.mFlags |= AudioSourceInstance.Flags.Inaudible;
 
-                            if ((vi.mFlags & AudioSourceInstance.FLAGS.INAUDIBLE_KILL) != 0)
+                            if ((vi.mFlags & AudioSourceInstance.Flags.InaudibleKill) != 0)
                             {
                                 stopVoice_internal(voices[i]);
                             }
                         }
                         else
                         {
-                            vi.mFlags &= ~AudioSourceInstance.FLAGS.INAUDIBLE;
+                            vi.mFlags &= ~AudioSourceInstance.Flags.Inaudible;
                         }
                     }
                 }
@@ -227,15 +227,15 @@ namespace LoudPizza
                 }
                 m3dData[v].mHandle = h;
                 voice = mVoice[v]!;
-                voice.mFlags |= AudioSourceInstance.FLAGS.PROCESS_3D;
+                voice.mFlags |= AudioSourceInstance.Flags.Process3D;
                 set3dSourceParameters(h, aPosX, aPosY, aPosZ, aVelX, aVelY, aVelZ);
 
-                if ((aSound.mFlags & AudioSource.FLAGS.DISTANCE_DELAY) != 0)
+                if ((aSound.mFlags & AudioSource.Flags.DistanceDelay) != 0)
                 {
                     pos.X = aPosX;
                     pos.Y = aPosY;
                     pos.Z = aPosZ;
-                    if (((uint)voice.mFlags & (uint)AudioSource.FLAGS.LISTENER_RELATIVE) == 0)
+                    if (((uint)voice.mFlags & (uint)AudioSource.Flags.ListenerRelative) == 0)
                     {
                         pos = pos.sub(m3dPosition);
                     }
@@ -254,7 +254,7 @@ namespace LoudPizza
                 updateVoiceVolume_internal((uint)v);
 
                 // Fix initial voice volume ramp up
-                for (int i = 0; i < MAX_CHANNELS; i++)
+                for (int i = 0; i < MaxChannels; i++)
                 {
                     voice.mCurrentChannelVolume[i] = voice.mChannelVolume[i] * voice.mOverallVolume;
                 }
@@ -262,16 +262,16 @@ namespace LoudPizza
                 if (voice.mOverallVolume < 0.01f)
                 {
                     // Inaudible.
-                    voice.mFlags |= AudioSourceInstance.FLAGS.INAUDIBLE;
+                    voice.mFlags |= AudioSourceInstance.Flags.Inaudible;
 
-                    if ((voice.mFlags & AudioSourceInstance.FLAGS.INAUDIBLE_KILL) != 0)
+                    if ((voice.mFlags & AudioSourceInstance.Flags.InaudibleKill) != 0)
                     {
                         stopVoice_internal((uint)v);
                     }
                 }
                 else
                 {
-                    voice.mFlags &= ~AudioSourceInstance.FLAGS.INAUDIBLE;
+                    voice.mFlags &= ~AudioSourceInstance.Flags.Inaudible;
                 }
                 mActiveVoiceDirty = true;
             }
@@ -307,7 +307,7 @@ namespace LoudPizza
                 }
                 m3dData[v].mHandle = h;
                 voice = mVoice[v]!;
-                voice.mFlags |= AudioSourceInstance.FLAGS.PROCESS_3D;
+                voice.mFlags |= AudioSourceInstance.Flags.Process3D;
                 set3dSourceParameters(h, aPosX, aPosY, aPosZ, aVelX, aVelY, aVelZ);
                 Time lasttime = mLastClockedTime;
                 if (lasttime == 0)
@@ -324,7 +324,7 @@ namespace LoudPizza
                 if (samples < 0 || samples > 2048)
                     samples = 0;
 
-                if ((aSound.mFlags & AudioSource.FLAGS.DISTANCE_DELAY) != 0)
+                if ((aSound.mFlags & AudioSource.Flags.DistanceDelay) != 0)
                 {
                     float dist = pos.mag();
                     samples += (int)MathF.Floor((dist / m3dSoundSpeed) * mSamplerate);
@@ -341,7 +341,7 @@ namespace LoudPizza
                 updateVoiceVolume_internal((uint)v);
 
                 // Fix initial voice volume ramp up
-                for (int i = 0; i < MAX_CHANNELS; i++)
+                for (int i = 0; i < MaxChannels; i++)
                 {
                     voice.mCurrentChannelVolume[i] = voice.mChannelVolume[i] * voice.mOverallVolume;
                 }
@@ -349,16 +349,16 @@ namespace LoudPizza
                 if (voice.mOverallVolume < 0.01f)
                 {
                     // Inaudible.
-                    voice.mFlags |= AudioSourceInstance.FLAGS.INAUDIBLE;
+                    voice.mFlags |= AudioSourceInstance.Flags.Inaudible;
 
-                    if ((voice.mFlags & AudioSourceInstance.FLAGS.INAUDIBLE_KILL) != 0)
+                    if ((voice.mFlags & AudioSourceInstance.Flags.InaudibleKill) != 0)
                     {
                         stopVoice_internal((uint)v);
                     }
                 }
                 else
                 {
-                    voice.mFlags &= ~AudioSourceInstance.FLAGS.INAUDIBLE;
+                    voice.mFlags &= ~AudioSourceInstance.Flags.Inaudible;
                 }
                 mActiveVoiceDirty = true;
             }
@@ -371,12 +371,12 @@ namespace LoudPizza
         /// <summary>
         /// Set the speed of sound constant for doppler.
         /// </summary>
-        public SOLOUD_ERRORS set3dSoundSpeed(float aSpeed)
+        public SoLoudStatus set3dSoundSpeed(float aSpeed)
         {
             if (aSpeed <= 0)
-                return SOLOUD_ERRORS.INVALID_PARAMETER;
+                return SoLoudStatus.InvalidParameter;
             m3dSoundSpeed = aSpeed;
-            return SOLOUD_ERRORS.SO_NO_ERROR;
+            return SoLoudStatus.Ok;
         }
 
         /// <summary>

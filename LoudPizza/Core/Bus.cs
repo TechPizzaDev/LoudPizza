@@ -7,14 +7,14 @@ namespace LoudPizza
     {
         public BusInstance? mInstance;
         public Handle mChannelHandle;
-        public SoLoud.RESAMPLER mResampler;
+        public SoLoud.Resampler mResampler;
 
         public Bus()
         {
             mChannelHandle = default;
             mInstance = null;
             mChannels = 2;
-            mResampler = SoLoud.SOLOUD_DEFAULT_RESAMPLER;
+            mResampler = SoLoud.DefaultResampler;
         }
 
         public override BusInstance createInstance()
@@ -34,7 +34,7 @@ namespace LoudPizza
         /// </summary>
         public override void setFilter(uint aFilterId, Filter? aFilter)
         {
-            if (aFilterId >= SoLoud.FILTERS_PER_STREAM)
+            if (aFilterId >= SoLoud.FiltersPerStream)
                 return;
 
             mFilter[aFilterId] = aFilter;
@@ -144,13 +144,13 @@ namespace LoudPizza
         /// <summary>
         /// Set number of channels for the bus (default 2).
         /// </summary>
-        public SOLOUD_ERRORS setChannels(uint aChannels)
+        public SoLoudStatus setChannels(uint aChannels)
         {
-            if (aChannels == 0 || aChannels == 3 || aChannels == 5 || aChannels == 7 || aChannels > SoLoud.MAX_CHANNELS)
-                return SOLOUD_ERRORS.INVALID_PARAMETER;
+            if (aChannels == 0 || aChannels == 3 || aChannels == 5 || aChannels == 7 || aChannels > SoLoud.MaxChannels)
+                return SoLoudStatus.InvalidParameter;
 
             mChannels = aChannels;
-            return SOLOUD_ERRORS.SO_NO_ERROR;
+            return SoLoudStatus.Ok;
         }
 
         /// <summary>
@@ -160,11 +160,11 @@ namespace LoudPizza
         {
             if (aEnable)
             {
-                mFlags |= FLAGS.VISUALIZATION_DATA;
+                mFlags |= Flags.VisualizationData;
             }
             else
             {
-                mFlags &= ~FLAGS.VISUALIZATION_DATA;
+                mFlags &= ~Flags.VisualizationData;
             }
         }
 
@@ -293,7 +293,7 @@ namespace LoudPizza
             findBusHandle();
             lock (mSoloud.mAudioThreadMutex)
             {
-                for (i = 0; i < SoLoud.VOICE_COUNT; i++)
+                for (i = 0; i < SoLoud.MaxVoiceCount; i++)
                 {
                     AudioSourceInstance? voice = mSoloud.mVoice[i];
                     if (voice != null && voice.mBusHandle == mChannelHandle)
@@ -306,7 +306,7 @@ namespace LoudPizza
         /// <summary>
         /// Get current the resampler for this bus.
         /// </summary>
-        public SoLoud.RESAMPLER getResampler()
+        public SoLoud.Resampler getResampler()
         {
             return mResampler;
         }
@@ -315,9 +315,9 @@ namespace LoudPizza
         /// Set the resampler for this bus.
         /// </summary>
         /// <param name="aResampler"></param>
-        public void setResampler(SoLoud.RESAMPLER aResampler)
+        public void setResampler(SoLoud.Resampler aResampler)
         {
-            if (aResampler <= SoLoud.RESAMPLER.RESAMPLER_CATMULLROM)
+            if (aResampler <= SoLoud.Resampler.CatmullRom)
                 mResampler = aResampler;
         }
 

@@ -9,7 +9,7 @@ namespace LoudPizza
         /// </summary>
         public void setGlobalFilter(uint aFilterId, Filter? aFilter)
         {
-            if (aFilterId >= FILTERS_PER_STREAM)
+            if (aFilterId >= FiltersPerStream)
                 return;
 
             lock (mAudioThreadMutex)
@@ -30,8 +30,8 @@ namespace LoudPizza
         /// </summary>
         public float getFilterParameter(Handle aVoiceHandle, uint aFilterId, uint aAttributeId)
         {
-            float ret = (int)SOLOUD_ERRORS.INVALID_PARAMETER;
-            if (aFilterId >= FILTERS_PER_STREAM)
+            float ret = (int)SoLoudStatus.InvalidParameter;
+            if (aFilterId >= FiltersPerStream)
                 return ret;
 
             lock (mAudioThreadMutex)
@@ -64,7 +64,7 @@ namespace LoudPizza
         /// </summary>
         public void setFilterParameter(Handle aVoiceHandle, uint aFilterId, uint aAttributeId, float aValue)
         {
-            if (aFilterId >= FILTERS_PER_STREAM)
+            if (aFilterId >= FiltersPerStream)
                 return;
 
             lock (mAudioThreadMutex)
@@ -110,7 +110,7 @@ namespace LoudPizza
         /// </summary>
         public void fadeFilterParameter(Handle aVoiceHandle, uint aFilterId, uint aAttributeId, float aTo, double aTime)
         {
-            if (aFilterId >= FILTERS_PER_STREAM)
+            if (aFilterId >= FiltersPerStream)
                 return;
 
             lock (mAudioThreadMutex)
@@ -156,7 +156,7 @@ namespace LoudPizza
         /// </summary>
         public void oscillateFilterParameter(Handle aVoiceHandle, uint aFilterId, uint aAttributeId, float aFrom, float aTo, double aTime)
         {
-            if (aFilterId >= FILTERS_PER_STREAM)
+            if (aFilterId >= FiltersPerStream)
                 return;
 
             lock (mAudioThreadMutex)

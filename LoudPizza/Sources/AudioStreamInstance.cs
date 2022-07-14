@@ -319,7 +319,7 @@ namespace LoudPizza
             return mStream.getAudio(aBuffer, aSamplesToRead, aBufferSize);
         }
 
-        public override unsafe SOLOUD_ERRORS seek(ulong aSamplePosition, float* mScratch, uint mScratchSize)
+        public override unsafe SoLoudStatus seek(ulong aSamplePosition, float* mScratch, uint mScratchSize)
         {
             return mStream.seek(aSamplePosition, mScratch, mScratchSize);
         }

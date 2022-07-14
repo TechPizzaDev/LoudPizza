@@ -73,10 +73,10 @@ namespace LoudPizza
         /// <summary>
         /// Destroy a voice group.
         /// </summary>
-        public SOLOUD_ERRORS destroyVoiceGroup(Handle aVoiceGroupHandle)
+        public SoLoudStatus destroyVoiceGroup(Handle aVoiceGroupHandle)
         {
             if (!isVoiceGroup(aVoiceGroupHandle))
-                return SOLOUD_ERRORS.INVALID_PARAMETER;
+                return SoLoudStatus.InvalidParameter;
 
             int c = (int)(aVoiceGroupHandle.Value & 0xfff);
 
@@ -84,21 +84,21 @@ namespace LoudPizza
             {
                 //delete[] mVoiceGroup[c];
                 mVoiceGroup[c] = Array.Empty<Handle>();
-                return SOLOUD_ERRORS.SO_NO_ERROR;
+                return SoLoudStatus.Ok;
             }
         }
 
         /// <summary>
         /// Add a voice handle to a voice group.
         /// </summary>
-        public SOLOUD_ERRORS addVoiceToGroup(Handle aVoiceGroupHandle, Handle aVoiceHandle)
+        public SoLoudStatus addVoiceToGroup(Handle aVoiceGroupHandle, Handle aVoiceHandle)
         {
             if (!isVoiceGroup(aVoiceGroupHandle))
-                return SOLOUD_ERRORS.INVALID_PARAMETER;
+                return SoLoudStatus.InvalidParameter;
 
             // Don't consider adding invalid voice handles as an error, since the voice may just have ended.
             if (!isValidVoiceHandle(aVoiceHandle))
-                return SOLOUD_ERRORS.SO_NO_ERROR;
+                return SoLoudStatus.Ok;
 
             trimVoiceGroup_internal(aVoiceGroupHandle);
 
@@ -111,7 +111,7 @@ namespace LoudPizza
                 {
                     if (group[i] == aVoiceHandle)
                     {
-                        return SOLOUD_ERRORS.SO_NO_ERROR; // already there
+                        return SoLoudStatus.Ok; // already there
                     }
 
                     if (group[i].Value == 0)
@@ -119,7 +119,7 @@ namespace LoudPizza
                         group[i] = aVoiceHandle;
                         group[i + 1] = default;
 
-                        return SOLOUD_ERRORS.SO_NO_ERROR;
+                        return SoLoudStatus.Ok;
                     }
                 }
 
@@ -128,7 +128,7 @@ namespace LoudPizza
                 Handle[] n = new Handle[newLength];
                 if (n == null)
                 {
-                    return SOLOUD_ERRORS.OUT_OF_MEMORY;
+                    return SoLoudStatus.OutOfMemory;
                 }
 
                 for (uint i = 0; i < group.Length; i++)
@@ -138,7 +138,7 @@ namespace LoudPizza
                 //n[0] = (uint)n.Length;
                 //delete[] mVoiceGroup[c];
                 mVoiceGroup[c] = n;
-                return SOLOUD_ERRORS.SO_NO_ERROR;
+                return SoLoudStatus.Ok;
             }
         }
 

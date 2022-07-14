@@ -8,7 +8,7 @@ namespace LoudPizza
         public QueueInstance(Queue aParent)
         {
             mParent = aParent;
-            mFlags |= FLAGS.PROTECTED;
+            mFlags |= Flags.Protected;
         }
 
         public override uint getAudio(float* aBuffer, uint aSamplesToRead, uint aBufferSize)
@@ -39,9 +39,9 @@ namespace LoudPizza
             return copyofs;
         }
 
-        public override unsafe SOLOUD_ERRORS seek(ulong aSamplePosition, float* mScratch, uint mScratchSize)
+        public override unsafe SoLoudStatus seek(ulong aSamplePosition, float* mScratch, uint mScratchSize)
         {
-            return SOLOUD_ERRORS.NOT_IMPLEMENTED;
+            return SoLoudStatus.NotImplemented;
         }
 
         public override bool hasEnded()

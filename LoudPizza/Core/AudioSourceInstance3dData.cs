@@ -19,7 +19,7 @@ namespace LoudPizza
             s.mHandle = default;
             s.m3dVelocity = default;
             s.m3dPosition = default;
-            for (int i = 0; i < SoLoud.MAX_CHANNELS; i++)
+            for (int i = 0; i < SoLoud.MaxChannels; i++)
                 s.mChannelVolume[i] = 0;
             return s;
         }
@@ -43,7 +43,7 @@ namespace LoudPizza
             mHandle = default;
             m3dVelocity = default;
             m3dPosition = default;
-            for (int i = 0; i < SoLoud.MAX_CHANNELS; i++)
+            for (int i = 0; i < SoLoud.MaxChannels; i++)
                 mChannelVolume[i] = 0;
         }
 
@@ -121,7 +121,7 @@ namespace LoudPizza
         /// <summary>
         /// Copy of flags.
         /// </summary>
-        public AudioSourceInstance.FLAGS mFlags;
+        public AudioSourceInstance.Flags mFlags;
 
         /// <summary>
         /// Latest handle for this voice.

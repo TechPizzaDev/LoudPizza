@@ -9,14 +9,14 @@ namespace LoudPizza
         /// <summary>
         /// Set voice (not handle) relative play speed.
         /// </summary>
-        internal SOLOUD_ERRORS setVoiceRelativePlaySpeed_internal(uint aVoice, float aSpeed)
+        internal SoLoudStatus setVoiceRelativePlaySpeed_internal(uint aVoice, float aSpeed)
         {
-            Debug.Assert(aVoice < VOICE_COUNT);
+            Debug.Assert(aVoice < MaxVoiceCount);
             Debug.Assert(mInsideAudioThreadMutex);
 
             if (aSpeed <= 0.0f)
             {
-                return SOLOUD_ERRORS.INVALID_PARAMETER;
+                return SoLoudStatus.InvalidParameter;
             }
 
             AudioSourceInstance? voice = mVoice[aVoice];
@@ -26,7 +26,7 @@ namespace LoudPizza
                 updateVoiceRelativePlaySpeed_internal(aVoice);
             }
 
-            return SOLOUD_ERRORS.SO_NO_ERROR;
+            return SoLoudStatus.Ok;
         }
 
         /// <summary>
@@ -34,7 +34,7 @@ namespace LoudPizza
         /// </summary>
         internal void setVoicePause_internal(uint aVoice, bool aPause)
         {
-            Debug.Assert(aVoice < VOICE_COUNT);
+            Debug.Assert(aVoice < MaxVoiceCount);
             Debug.Assert(mInsideAudioThreadMutex);
 
             mActiveVoiceDirty = true;
@@ -45,11 +45,11 @@ namespace LoudPizza
 
                 if (aPause)
                 {
-                    voice.mFlags |= AudioSourceInstance.FLAGS.PAUSED;
+                    voice.mFlags |= AudioSourceInstance.Flags.Paused;
                 }
                 else
                 {
-                    voice.mFlags &= ~AudioSourceInstance.FLAGS.PAUSED;
+                    voice.mFlags &= ~AudioSourceInstance.Flags.Paused;
                 }
             }
         }
@@ -59,7 +59,7 @@ namespace LoudPizza
         /// </summary>
         internal void setVoicePan_internal(uint aVoice, float aPan)
         {
-            Debug.Assert(aVoice < VOICE_COUNT);
+            Debug.Assert(aVoice < MaxVoiceCount);
             Debug.Assert(mInsideAudioThreadMutex);
 
             AudioSourceInstance? voice = mVoice[aVoice];
@@ -99,7 +99,7 @@ namespace LoudPizza
         /// </summary>
         internal void setVoiceVolume_internal(uint aVoice, float aVolume)
         {
-            Debug.Assert(aVoice < VOICE_COUNT);
+            Debug.Assert(aVoice < MaxVoiceCount);
             Debug.Assert(mInsideAudioThreadMutex);
 
             mActiveVoiceDirty = true;
@@ -116,7 +116,7 @@ namespace LoudPizza
         /// </summary>
         internal void stopVoice_internal(uint aVoice)
         {
-            Debug.Assert(aVoice < VOICE_COUNT);
+            Debug.Assert(aVoice < MaxVoiceCount);
             Debug.Assert(mInsideAudioThreadMutex);
 
             mActiveVoiceDirty = true;
@@ -144,7 +144,7 @@ namespace LoudPizza
         /// </summary>
         internal void updateVoiceRelativePlaySpeed_internal(uint aVoice)
         {
-            Debug.Assert(aVoice < VOICE_COUNT);
+            Debug.Assert(aVoice < MaxVoiceCount);
             Debug.Assert(mInsideAudioThreadMutex);
 
             AudioSourceInstance? voice = mVoice[aVoice];
@@ -159,16 +159,16 @@ namespace LoudPizza
         /// </summary>
         internal void updateVoiceVolume_internal(uint aVoice)
         {
-            Debug.Assert(aVoice < VOICE_COUNT);
+            Debug.Assert(aVoice < MaxVoiceCount);
             Debug.Assert(mInsideAudioThreadMutex);
 
             AudioSourceInstance? voice = mVoice[aVoice];
             Debug.Assert(voice != null);
 
             voice.mOverallVolume = voice.mSetVolume * m3dData[aVoice].m3dVolume;
-            if ((voice.mFlags & AudioSourceInstance.FLAGS.PAUSED) != 0)
+            if ((voice.mFlags & AudioSourceInstance.Flags.Paused) != 0)
             {
-                for (int i = 0; i < MAX_CHANNELS; i++)
+                for (int i = 0; i < MaxChannels; i++)
                 {
                     voice.mCurrentChannelVolume[i] = voice.mChannelVolume[i] * voice.mOverallVolume;
                 }

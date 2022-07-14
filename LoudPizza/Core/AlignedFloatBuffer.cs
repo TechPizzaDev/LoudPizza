@@ -26,7 +26,7 @@ namespace LoudPizza
         /// <summary>
         /// Allocate and align buffer.
         /// </summary>
-        public SOLOUD_ERRORS init(uint aFloats)
+        public SoLoudStatus init(uint aFloats)
         {
             destroy();
 
@@ -35,7 +35,7 @@ namespace LoudPizza
 #if SSE_INTRINSICS
             mBasePtr = Marshal.AllocHGlobal((int)aFloats * sizeof(float) + 16);
             if (mBasePtr == IntPtr.Zero)
-                return SOLOUD_ERRORS.OUT_OF_MEMORY;
+                return SoLoudStatus.OutOfMemory;
             mData = (float*)(((long)mBasePtr + 15) & ~15);
 #else
             mBasePtr = Marshal.AllocHGlobal((int)aFloats * sizeof(float));
@@ -43,7 +43,7 @@ namespace LoudPizza
                 return SOLOUD_ERRORS.OUT_OF_MEMORY;
             mData = (float*)mBasePtr;
 #endif
-            return SOLOUD_ERRORS.SO_NO_ERROR;
+            return SoLoudStatus.Ok;
         }
 
         /// <summary>

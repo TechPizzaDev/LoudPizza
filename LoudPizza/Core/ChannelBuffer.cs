@@ -1,10 +1,10 @@
-﻿using System.Runtime.CompilerServices;
+using System.Runtime.CompilerServices;
 
 namespace LoudPizza
 {
     public unsafe struct ChannelBuffer
     {
-        public fixed float Data[SoLoud.MAX_CHANNELS];
+        public fixed float Data[SoLoud.MaxChannels];
 
         public float this[nint index]
         {

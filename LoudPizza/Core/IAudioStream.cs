@@ -21,6 +21,6 @@ namespace LoudPizza
         /// <remarks>
         /// Base implementation is generic "tape" seek (and slow).
         /// </remarks>
-        SOLOUD_ERRORS seek(ulong aSamplePosition, float* mScratch, uint mScratchSize);
+        SoLoudStatus seek(ulong aSamplePosition, float* mScratch, uint mScratchSize);
     }
 }

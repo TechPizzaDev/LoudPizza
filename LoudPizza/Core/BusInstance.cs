@@ -21,13 +21,13 @@ namespace LoudPizza
         public BusInstance(Bus aParent)
         {
             mParent = aParent;
-            mFlags |= FLAGS.PROTECTED | FLAGS.INAUDIBLE_TICK;
-            for (nuint i = 0; i < SoLoud.MAX_CHANNELS; i++)
+            mFlags |= Flags.Protected | Flags.InaudibleTick;
+            for (nuint i = 0; i < SoLoud.MaxChannels; i++)
                 mVisualizationChannelVolume[i] = 0;
             for (nuint i = 0; i < 256; i++)
                 mVisualizationWaveData[i] = 0;
-            mScratchSize = SoLoud.SAMPLE_GRANULARITY;
-            mScratch.init(mScratchSize * SoLoud.MAX_CHANNELS);
+            mScratchSize = SoLoud.SampleGranularity;
+            mScratch.init(mScratchSize * SoLoud.MaxChannels);
         }
 
         public override uint getAudio(float* aBuffer, uint aSamplesToRead, uint aBufferSize)
@@ -46,9 +46,9 @@ namespace LoudPizza
             SoLoud s = mParent.mSoloud;
             s.mixBus_internal(aBuffer, aSamplesToRead, aBufferSize, mScratch.mData, handle, mSamplerate, mChannels, mParent.mResampler);
 
-            if ((mParent.mFlags & AudioSource.FLAGS.VISUALIZATION_DATA) != 0)
+            if ((mParent.mFlags & AudioSource.Flags.VisualizationData) != 0)
             {
-                for (i = 0; i < SoLoud.MAX_CHANNELS; i++)
+                for (i = 0; i < SoLoud.MaxChannels; i++)
                     mVisualizationChannelVolume[i] = 0;
 
                 if (aSamplesToRead > 255)
@@ -86,9 +86,9 @@ namespace LoudPizza
             return aSamplesToRead;
         }
 
-        public override SOLOUD_ERRORS seek(ulong aSamplePosition, float* mScratch, uint mScratchSize)
+        public override SoLoudStatus seek(ulong aSamplePosition, float* mScratch, uint mScratchSize)
         {
-            return SOLOUD_ERRORS.NOT_IMPLEMENTED;
+            return SoLoudStatus.NotImplemented;
         }
 
         /// <summary>

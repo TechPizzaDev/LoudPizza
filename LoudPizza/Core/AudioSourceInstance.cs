@@ -8,52 +8,52 @@ namespace LoudPizza
     public abstract unsafe class AudioSourceInstance : IAudioStream, IDisposable
     {
         [Flags]
-        public enum FLAGS
+        public enum Flags
         {
             /// <summary>
             /// This audio instance loops (if supported).
             /// </summary>
-            LOOPING = 1,
+            Looping = 1,
 
             /// <summary>
             /// This audio instance is protected - won't get stopped if we run out of voices.
             /// </summary>
-            PROTECTED = 2,
+            Protected = 2,
 
             /// <summary>
             /// This audio instance is paused.
             /// </summary>
-            PAUSED = 4,
+            Paused = 4,
 
             /// <summary>
             /// This audio instance is affected by 3D processing.
             /// </summary>
-            PROCESS_3D = 8,
+            Process3D = 8,
 
             /// <summary>
             /// This audio instance has listener-relative 3D coordinates.
             /// </summary>
-            LISTENER_RELATIVE = 16,
+            ListenerRelative = 16,
 
             /// <summary>
             /// Currently inaudible.
             /// </summary>
-            INAUDIBLE = 32,
+            Inaudible = 32,
 
             /// <summary>
             /// If inaudible, should be killed (default = don't kill).
             /// </summary>
-            INAUDIBLE_KILL = 64,
+            InaudibleKill = 64,
 
             /// <summary>
             /// If inaudible, should still be ticked (default = pause).
             /// </summary>
-            INAUDIBLE_TICK = 128,
+            InaudibleTick = 128,
 
             /// <summary>
             /// Don't auto-stop sound.
             /// </summary>
-            DISABLE_AUTOSTOP = 256
+            DisableAutostop = 256
         }
 
         private bool _isDisposed;
@@ -65,7 +65,7 @@ namespace LoudPizza
             mPan = 0;
             // Default all volumes to 1.0 so sound behind N mix busses isn't super quiet.
             int i;
-            for (i = 0; i < SoLoud.MAX_CHANNELS; i++)
+            for (i = 0; i < SoLoud.MaxChannels; i++)
                 mChannelVolume[i] = 1.0f;
             mSetVolume = 1.0f;
             mBaseSamplerate = 44100.0f;
@@ -103,7 +103,7 @@ namespace LoudPizza
         /// </summary>
         public uint mLoopCount;
 
-        public FLAGS mFlags;
+        public Flags mFlags;
 
         /// <summary>
         /// Pan value, for getPan().
@@ -208,7 +208,7 @@ namespace LoudPizza
         /// <summary>
         /// Filters.
         /// </summary>
-        public FilterInstance?[] mFilter = new FilterInstance[SoLoud.FILTERS_PER_STREAM];
+        public FilterInstance?[] mFilter = new FilterInstance[SoLoud.FiltersPerStream];
 
         /// <summary>
         /// Initialize instance. Mostly internal use.
@@ -223,29 +223,29 @@ namespace LoudPizza
             mStreamPosition = 0;
             mLoopPoint = aSource.mLoopPoint;
 
-            if ((aSource.mFlags & AudioSource.FLAGS.SHOULD_LOOP) != 0)
+            if ((aSource.mFlags & AudioSource.Flags.ShouldLoop) != 0)
             {
-                mFlags |= FLAGS.LOOPING;
+                mFlags |= Flags.Looping;
             }
-            if ((aSource.mFlags & AudioSource.FLAGS.PROCESS_3D) != 0)
+            if ((aSource.mFlags & AudioSource.Flags.Process3D) != 0)
             {
-                mFlags |= FLAGS.PROCESS_3D;
+                mFlags |= Flags.Process3D;
             }
-            if ((aSource.mFlags & AudioSource.FLAGS.LISTENER_RELATIVE) != 0)
+            if ((aSource.mFlags & AudioSource.Flags.ListenerRelative) != 0)
             {
-                mFlags |= FLAGS.LISTENER_RELATIVE;
+                mFlags |= Flags.ListenerRelative;
             }
-            if ((aSource.mFlags & AudioSource.FLAGS.INAUDIBLE_KILL) != 0)
+            if ((aSource.mFlags & AudioSource.Flags.InaudibleKill) != 0)
             {
-                mFlags |= FLAGS.INAUDIBLE_KILL;
+                mFlags |= Flags.InaudibleKill;
             }
-            if ((aSource.mFlags & AudioSource.FLAGS.INAUDIBLE_TICK) != 0)
+            if ((aSource.mFlags & AudioSource.Flags.InaudibleTick) != 0)
             {
-                mFlags |= FLAGS.INAUDIBLE_TICK;
+                mFlags |= Flags.InaudibleTick;
             }
-            if ((aSource.mFlags & AudioSource.FLAGS.DISABLE_AUTOSTOP) != 0)
+            if ((aSource.mFlags & AudioSource.Flags.DisableAutostop) != 0)
             {
-                mFlags |= FLAGS.DISABLE_AUTOSTOP;
+                mFlags |= Flags.DisableAutostop;
             }
         }
 
@@ -296,7 +296,7 @@ namespace LoudPizza
         /// <remarks>
         /// Base implementation is generic "tape" seek (and slow).
         /// </remarks>
-        public abstract SOLOUD_ERRORS seek(ulong aSamplePosition, float* mScratch, uint mScratchSize);
+        public abstract SoLoudStatus seek(ulong aSamplePosition, float* mScratch, uint mScratchSize);
 
         /// <summary>
         /// Get information. Returns 0 by default.

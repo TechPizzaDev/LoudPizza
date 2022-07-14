@@ -11,7 +11,7 @@ namespace LoudPizza
         /// </summary>
         public Handle play(AudioSource aSound, float aVolume = -1.0f, float aPan = 0.0f, bool aPaused = false, Handle aBus = default)
         {
-            if ((aSound.mFlags & AudioSource.FLAGS.SINGLE_INSTANCE) != 0)
+            if ((aSound.mFlags & AudioSource.Flags.SingleInstance) != 0)
             {
                 // Only one instance allowed, stop others
                 aSound.stop();
@@ -28,7 +28,7 @@ namespace LoudPizza
                 if (ch < 0)
                 {
                     instance.Dispose();
-                    return new Handle((uint)SOLOUD_ERRORS.UNKNOWN_ERROR);
+                    return new Handle((uint)SoLoudStatus.UnknownError);
                 }
                 if (aSound.mAudioSourceID == 0)
                 {
@@ -51,7 +51,7 @@ namespace LoudPizza
 
                 if (aPaused)
                 {
-                    instance.mFlags |= AudioSourceInstance.FLAGS.PAUSED;
+                    instance.mFlags |= AudioSourceInstance.Flags.Paused;
                 }
 
                 setVoicePan_internal((uint)ch, aPan);
@@ -66,14 +66,14 @@ namespace LoudPizza
 
                 // Fix initial voice volume ramp up		
                 int i;
-                for (i = 0; i < MAX_CHANNELS; i++)
+                for (i = 0; i < MaxChannels; i++)
                 {
                     instance.mCurrentChannelVolume[i] = instance.mChannelVolume[i] * instance.mOverallVolume;
                 }
 
                 setVoiceRelativePlaySpeed_internal((uint)ch, 1);
 
-                for (i = 0; i < FILTERS_PER_STREAM; i++)
+                for (i = 0; i < FiltersPerStream; i++)
                 {
                     Filter? filter = aSound.mFilter[i];
                     if (filter != null)
@@ -133,17 +133,17 @@ namespace LoudPizza
         /// Some streams can't seek backwards. 
         /// Relative play speed affects time.
         /// </remarks>
-        public SOLOUD_ERRORS seek(Handle aVoiceHandle, ulong aSamplePosition)
+        public SoLoudStatus seek(Handle aVoiceHandle, ulong aSamplePosition)
         {
-            SOLOUD_ERRORS res = SOLOUD_ERRORS.SO_NO_ERROR;
+            SoLoudStatus res = SoLoudStatus.Ok;
 
             void body(Handle h)
             {
                 AudioSourceInstance? ch = getVoiceRefFromHandle_internal(h);
                 if (ch != null)
                 {
-                    SOLOUD_ERRORS singleres = ch.seek(aSamplePosition, mScratch.mData, mScratchSize);
-                    if (singleres != SOLOUD_ERRORS.SO_NO_ERROR)
+                    SoLoudStatus singleres = ch.seek(aSamplePosition, mScratch.mData, mScratchSize);
+                    if (singleres != SoLoudStatus.Ok)
                         res = singleres;
                 }
             }

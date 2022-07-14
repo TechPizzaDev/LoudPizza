@@ -39,7 +39,7 @@ namespace LoudPizza
         /// <summary>
         /// Seek to certain place in the buffer.
         /// </summary>
-        public override SOLOUD_ERRORS seek(ulong aSamplePosition, float* mScratch, uint mScratchSize)
+        public override SoLoudStatus seek(ulong aSamplePosition, float* mScratch, uint mScratchSize)
         {
             long offset = (long)(aSamplePosition - mStreamPosition);
             if (offset <= 0)
@@ -58,12 +58,12 @@ namespace LoudPizza
             mOffset += copylen;
             mStreamPosition += copylen;
 
-            return SOLOUD_ERRORS.SO_NO_ERROR;
+            return SoLoudStatus.Ok;
         }
 
         public override bool hasEnded()
         {
-            return (mFlags & FLAGS.LOOPING) == 0 && mOffset >= mParent.mSampleCount;
+            return (mFlags & Flags.Looping) == 0 && mOffset >= mParent.mSampleCount;
         }
     }
 }

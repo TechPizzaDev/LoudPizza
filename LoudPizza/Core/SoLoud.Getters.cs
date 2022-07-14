@@ -24,7 +24,7 @@ namespace LoudPizza
         /// <summary>
         /// Get the current main resampler.
         /// </summary>
-        public RESAMPLER getMainResampler()
+        public Resampler getMainResampler()
         {
             return mResampler;
         }
@@ -186,7 +186,7 @@ namespace LoudPizza
                 {
                     return false;
                 }
-                AudioSourceInstance.FLAGS v = ch.mFlags & AudioSourceInstance.FLAGS.LOOPING;
+                AudioSourceInstance.Flags v = ch.mFlags & AudioSourceInstance.Flags.Looping;
                 return v != 0;
             }
         }
@@ -203,7 +203,7 @@ namespace LoudPizza
                 {
                     return false;
                 }
-                AudioSourceInstance.FLAGS v = ch.mFlags & AudioSourceInstance.FLAGS.DISABLE_AUTOSTOP;
+                AudioSourceInstance.Flags v = ch.mFlags & AudioSourceInstance.Flags.DisableAutostop;
                 return v == 0;
             }
         }
@@ -374,7 +374,7 @@ namespace LoudPizza
                 {
                     return false;
                 }
-                AudioSourceInstance.FLAGS v = ch.mFlags & AudioSourceInstance.FLAGS.PAUSED;
+                AudioSourceInstance.Flags v = ch.mFlags & AudioSourceInstance.Flags.Paused;
                 return v != 0;
             }
         }
@@ -391,7 +391,7 @@ namespace LoudPizza
                 {
                     return false;
                 }
-                AudioSourceInstance.FLAGS v = ch.mFlags & AudioSourceInstance.FLAGS.PROTECTED;
+                AudioSourceInstance.Flags v = ch.mFlags & AudioSourceInstance.Flags.Protected;
                 return v != 0;
             }
         }
@@ -408,7 +408,7 @@ namespace LoudPizza
             if (mHighestVoice > 0 && mVoice[mHighestVoice - 1] == null)
                 mHighestVoice--;
 
-            for (int i = 0; i < VOICE_COUNT; i++)
+            for (int i = 0; i < MaxVoiceCount; i++)
             {
                 AudioSourceInstance? voice = mVoice[i];
                 if (voice == null)
@@ -419,7 +419,7 @@ namespace LoudPizza
                     }
                     return i;
                 }
-                if (((voice.mFlags & AudioSourceInstance.FLAGS.PROTECTED) == 0) &&
+                if (((voice.mFlags & AudioSourceInstance.Flags.Protected) == 0) &&
                     voice.mPlayIndex < lowest_play_index_value)
                 {
                     lowest_play_index_value = voice.mPlayIndex;
@@ -448,14 +448,6 @@ namespace LoudPizza
                 uint v = ch.mLoopCount;
                 return v;
             }
-        }
-
-        /// <summary>
-        /// Returns current backend ID.
-        /// </summary>
-        public BACKENDS getBackendId()
-        {
-            return mBackendID;
         }
 
         /// <summary>
@@ -493,20 +485,20 @@ namespace LoudPizza
         /// <summary>
         /// Get speaker position in 3D space.
         /// </summary>
-        public SOLOUD_ERRORS getSpeakerPosition(uint aChannel, out float aX, out float aY, out float aZ)
+        public SoLoudStatus getSpeakerPosition(uint aChannel, out float aX, out float aY, out float aZ)
         {
             if (aChannel >= mChannels)
             {
                 aX = 0f;
                 aY = 0f;
                 aZ = 0f;
-                return SOLOUD_ERRORS.INVALID_PARAMETER;
+                return SoLoudStatus.InvalidParameter;
             }
             Vec3 position = m3dSpeakerPosition[aChannel];
             aX = position.X;
             aY = position.Y;
             aZ = position.Z;
-            return SOLOUD_ERRORS.SO_NO_ERROR;
+            return SoLoudStatus.Ok;
         }
     }
 }

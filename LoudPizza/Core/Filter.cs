@@ -1,13 +1,13 @@
-﻿
+
 namespace LoudPizza
 {
     public abstract class Filter
     {
-        public enum PARAMTYPE
+        public enum ParamType
         {
-            FLOAT_PARAM = 0,
-            INT_PARAM,
-            BOOL_PARAM
+            Float = 0,
+            Int,
+            Bool,
         }
 
         public virtual int getParamCount()
@@ -20,9 +20,9 @@ namespace LoudPizza
             return "Wet";
         }
 
-        public virtual PARAMTYPE getParamType(uint aParamIndex)
+        public virtual ParamType getParamType(uint aParamIndex)
         {
-            return PARAMTYPE.FLOAT_PARAM;
+            return ParamType.Float;
         }
 
         public virtual float getParamMax(uint aParamIndex)

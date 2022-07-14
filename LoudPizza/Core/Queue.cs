@@ -32,20 +32,20 @@ namespace LoudPizza
         /// <summary>
         /// Play sound through the queue.
         /// </summary>
-        public SOLOUD_ERRORS play(AudioSource aSound)
+        public SoLoudStatus play(AudioSource aSound)
         {
             if (mSoloud == null)
             {
-                return SOLOUD_ERRORS.INVALID_PARAMETER;
+                return SoLoudStatus.InvalidParameter;
             }
 
             findQueueHandle();
 
             if (mQueueHandle.Value == 0)
-                return SOLOUD_ERRORS.INVALID_PARAMETER;
+                return SoLoudStatus.InvalidParameter;
 
             if (mCount >= mSource.Length)
-                return SOLOUD_ERRORS.OUT_OF_MEMORY;
+                return SoLoudStatus.OutOfMemory;
 
             if (aSound.mAudioSourceID == 0)
             {
@@ -57,7 +57,7 @@ namespace LoudPizza
 
             if (instance == null)
             {
-                return SOLOUD_ERRORS.OUT_OF_MEMORY;
+                return SoLoudStatus.OutOfMemory;
             }
             instance.init(aSound, 0);
             instance.mAudioSourceID = aSound.mAudioSourceID;
@@ -68,7 +68,7 @@ namespace LoudPizza
                 mWriteIndex = (mWriteIndex + 1) % (uint)mSource.Length;
                 mCount++;
             }
-            return SOLOUD_ERRORS.SO_NO_ERROR;
+            return SoLoudStatus.Ok;
         }
 
         /// <summary>
@@ -106,25 +106,25 @@ namespace LoudPizza
         /// <summary>
         /// Set params by reading them from the given audio source.
         /// </summary>
-        public SOLOUD_ERRORS setParamsFromAudioSource(AudioSource aSound)
+        public SoLoudStatus setParamsFromAudioSource(AudioSource aSound)
         {
             mChannels = aSound.mChannels;
             mBaseSamplerate = aSound.mBaseSamplerate;
 
-            return SOLOUD_ERRORS.SO_NO_ERROR;
+            return SoLoudStatus.Ok;
         }
 
         /// <summary>
         /// Set params manually.
         /// </summary>
-        public SOLOUD_ERRORS setParams(float aSamplerate, uint aChannels = 2)
+        public SoLoudStatus setParams(float aSamplerate, uint aChannels = 2)
         {
-            if (aChannels < 1 || aChannels > SoLoud.MAX_CHANNELS)
-                return SOLOUD_ERRORS.INVALID_PARAMETER;
+            if (aChannels < 1 || aChannels > SoLoud.MaxChannels)
+                return SoLoudStatus.InvalidParameter;
 
             mChannels = aChannels;
             mBaseSamplerate = aSamplerate;
-            return SOLOUD_ERRORS.SO_NO_ERROR;
+            return SoLoudStatus.Ok;
         }
 
         /// <summary>

@@ -7,57 +7,57 @@ namespace LoudPizza
     /// </summary>
     public abstract class AudioSource : IDisposable
     {
-        public enum FLAGS
+        public enum Flags
         {
             /// <summary>
             /// The instances from this audio source should loop.
             /// </summary>
-            SHOULD_LOOP = 1,
+            ShouldLoop = 1,
 
             /// <summary>
             /// Only one instance of this audio source should play at the same time.
             /// </summary>
-            SINGLE_INSTANCE = 2,
+            SingleInstance = 2,
 
             /// <summary>
             /// Visualization data gathering enabled. Only for busses.
             /// </summary>
-            VISUALIZATION_DATA = 4,
+            VisualizationData = 4,
 
             /// <summary>
             /// Audio instances created from this source are affected by 3D processing.
             /// </summary>
-            PROCESS_3D = 8,
+            Process3D = 8,
 
             /// <summary>
             /// Audio instances created from this source have listener-relative 3D coordinates.
             /// </summary>
-            LISTENER_RELATIVE = 16,
+            ListenerRelative = 16,
 
             /// <summary>
             /// Delay start of sound by the distance from listener.
             /// </summary>
-            DISTANCE_DELAY = 32,
+            DistanceDelay = 32,
 
             /// <summary>
             /// If inaudible, should be killed (default).
             /// </summary>
-            INAUDIBLE_KILL = 64,
+            InaudibleKill = 64,
 
             /// <summary>
             /// If inaudible, should still be ticked (default = pause).
             /// </summary>
-            INAUDIBLE_TICK = 128,
+            InaudibleTick = 128,
 
             /// <summary>
             /// Disable auto-stop.
             /// </summary>
-            DISABLE_AUTOSTOP = 256
+            DisableAutostop = 256
         }
 
         private bool _isDisposed;
 
-        public FLAGS mFlags;
+        public Flags mFlags;
 
         /// <summary>
         /// Base sample rate, used to initialize instances.
@@ -102,7 +102,7 @@ namespace LoudPizza
         /// <summary>
         /// Filters.
         /// </summary>
-        public Filter?[] mFilter = new Filter?[SoLoud.FILTERS_PER_STREAM];
+        public Filter?[] mFilter = new Filter?[SoLoud.FiltersPerStream];
 
         /// <summary>
         /// Pointer to the <see cref="SoLoud"/> object. Needed to stop all instances on <see cref="Dispose"/>.
@@ -132,7 +132,7 @@ namespace LoudPizza
         public AudioSource()
         {
             int i;
-            for (i = 0; i < SoLoud.FILTERS_PER_STREAM; i++)
+            for (i = 0; i < SoLoud.FiltersPerStream; i++)
             {
                 mFilter[i] = null;
             }
@@ -167,11 +167,11 @@ namespace LoudPizza
         {
             if (aLoop)
             {
-                mFlags |= FLAGS.SHOULD_LOOP;
+                mFlags |= Flags.ShouldLoop;
             }
             else
             {
-                mFlags &= ~FLAGS.SHOULD_LOOP;
+                mFlags &= ~Flags.ShouldLoop;
             }
         }
 
@@ -182,11 +182,11 @@ namespace LoudPizza
         {
             if (aSingleInstance)
             {
-                mFlags |= FLAGS.SINGLE_INSTANCE;
+                mFlags |= Flags.SingleInstance;
             }
             else
             {
-                mFlags &= ~FLAGS.SINGLE_INSTANCE;
+                mFlags &= ~Flags.SingleInstance;
             }
         }
 
@@ -198,11 +198,11 @@ namespace LoudPizza
         {
             if (aAutoStop)
             {
-                mFlags &= ~FLAGS.DISABLE_AUTOSTOP;
+                mFlags &= ~Flags.DisableAutostop;
             }
             else
             {
-                mFlags |= FLAGS.DISABLE_AUTOSTOP;
+                mFlags |= Flags.DisableAutostop;
             }
         }
 
@@ -238,11 +238,11 @@ namespace LoudPizza
         {
             if (aListenerRelative)
             {
-                mFlags |= FLAGS.LISTENER_RELATIVE;
+                mFlags |= Flags.ListenerRelative;
             }
             else
             {
-                mFlags &= ~FLAGS.LISTENER_RELATIVE;
+                mFlags &= ~Flags.ListenerRelative;
             }
         }
 
@@ -253,11 +253,11 @@ namespace LoudPizza
         {
             if (aDistanceDelay)
             {
-                mFlags |= FLAGS.DISTANCE_DELAY;
+                mFlags |= Flags.DistanceDelay;
             }
             else
             {
-                mFlags &= ~FLAGS.DISTANCE_DELAY;
+                mFlags &= ~Flags.DistanceDelay;
             }
         }
 
@@ -283,14 +283,14 @@ namespace LoudPizza
         /// </summary>
         public void setInaudibleBehavior(bool aMustTick, bool aKill)
         {
-            mFlags &= ~(FLAGS.INAUDIBLE_KILL | FLAGS.INAUDIBLE_TICK);
+            mFlags &= ~(Flags.InaudibleKill | Flags.InaudibleTick);
             if (aMustTick)
             {
-                mFlags |= FLAGS.INAUDIBLE_TICK;
+                mFlags |= Flags.InaudibleTick;
             }
             if (aKill)
             {
-                mFlags |= FLAGS.INAUDIBLE_KILL;
+                mFlags |= Flags.InaudibleKill;
             }
         }
 
@@ -315,7 +315,7 @@ namespace LoudPizza
         /// </summary>
         public virtual void setFilter(uint aFilterId, Filter? aFilter)
         {
-            if (aFilterId >= SoLoud.FILTERS_PER_STREAM)
+            if (aFilterId >= SoLoud.FiltersPerStream)
                 return;
             mFilter[aFilterId] = aFilter;
         }

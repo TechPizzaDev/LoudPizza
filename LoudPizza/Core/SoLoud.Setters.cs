@@ -16,9 +16,9 @@ namespace LoudPizza
         /// <summary>
         /// Set the main resampler.
         /// </summary>
-        public void setMainResampler(RESAMPLER aResampler)
+        public void setMainResampler(Resampler aResampler)
         {
-            if (aResampler <= RESAMPLER.RESAMPLER_CATMULLROM)
+            if (aResampler <= Resampler.CatmullRom)
                 mResampler = aResampler;
         }
 
@@ -34,9 +34,9 @@ namespace LoudPizza
         /// <summary>
         /// Set the relative play speed.
         /// </summary>
-        public SOLOUD_ERRORS setRelativePlaySpeed(Handle aVoiceHandle, float aSpeed)
+        public SoLoudStatus setRelativePlaySpeed(Handle aVoiceHandle, float aSpeed)
         {
-            SOLOUD_ERRORS retVal = 0;
+            SoLoudStatus retVal = 0;
 
             void body(Handle h)
             {
@@ -126,10 +126,10 @@ namespace LoudPizza
         /// <summary>
         /// Set current maximum active voice setting.
         /// </summary>
-        public SOLOUD_ERRORS setMaxActiveVoiceCount(uint aVoiceCount)
+        public SoLoudStatus setMaxActiveVoiceCount(uint aVoiceCount)
         {
-            if (aVoiceCount == 0 || aVoiceCount >= VOICE_COUNT)
-                return SOLOUD_ERRORS.INVALID_PARAMETER;
+            if (aVoiceCount == 0 || aVoiceCount >= MaxVoiceCount)
+                return SoLoudStatus.InvalidParameter;
 
             lock (mAudioThreadMutex)
             {
@@ -137,7 +137,7 @@ namespace LoudPizza
                 initResampleData();
                 mActiveVoiceDirty = true;
             }
-            return SOLOUD_ERRORS.SO_NO_ERROR;
+            return SoLoudStatus.Ok;
         }
 
         /// <summary>
@@ -166,11 +166,11 @@ namespace LoudPizza
                 {
                     if (aProtect)
                     {
-                        ch.mFlags |= AudioSourceInstance.FLAGS.PROTECTED;
+                        ch.mFlags |= AudioSourceInstance.Flags.Protected;
                     }
                     else
                     {
-                        ch.mFlags &= ~AudioSourceInstance.FLAGS.PROTECTED;
+                        ch.mFlags &= ~AudioSourceInstance.Flags.Protected;
                     }
                 }
             }
@@ -314,14 +314,14 @@ namespace LoudPizza
                 AudioSourceInstance? ch = getVoiceRefFromHandle_internal(h);
                 if (ch != null)
                 {
-                    ch.mFlags &= ~(AudioSourceInstance.FLAGS.INAUDIBLE_KILL | AudioSourceInstance.FLAGS.INAUDIBLE_TICK);
+                    ch.mFlags &= ~(AudioSourceInstance.Flags.InaudibleKill | AudioSourceInstance.Flags.InaudibleTick);
                     if (aMustTick)
                     {
-                        ch.mFlags |= AudioSourceInstance.FLAGS.INAUDIBLE_TICK;
+                        ch.mFlags |= AudioSourceInstance.Flags.InaudibleTick;
                     }
                     if (aKill)
                     {
-                        ch.mFlags |= AudioSourceInstance.FLAGS.INAUDIBLE_KILL;
+                        ch.mFlags |= AudioSourceInstance.Flags.InaudibleKill;
                     }
                 }
             }
@@ -382,11 +382,11 @@ namespace LoudPizza
                 {
                     if (aLooping)
                     {
-                        ch.mFlags |= AudioSourceInstance.FLAGS.LOOPING;
+                        ch.mFlags |= AudioSourceInstance.Flags.Looping;
                     }
                     else
                     {
-                        ch.mFlags &= ~AudioSourceInstance.FLAGS.LOOPING;
+                        ch.mFlags &= ~AudioSourceInstance.Flags.Looping;
                     }
                 }
             }
@@ -418,11 +418,11 @@ namespace LoudPizza
                 {
                     if (aAutoStop)
                     {
-                        ch.mFlags &= ~AudioSourceInstance.FLAGS.DISABLE_AUTOSTOP;
+                        ch.mFlags &= ~AudioSourceInstance.Flags.DisableAutostop;
                     }
                     else
                     {
-                        ch.mFlags |= AudioSourceInstance.FLAGS.DISABLE_AUTOSTOP;
+                        ch.mFlags |= AudioSourceInstance.Flags.DisableAutostop;
                     }
                 }
             }
@@ -511,24 +511,24 @@ namespace LoudPizza
         {
             if (aEnable)
             {
-                mFlags |= FLAGS.ENABLE_VISUALIZATION;
+                mFlags |= Flags.EnableVisualization;
             }
             else
             {
-                mFlags &= ~FLAGS.ENABLE_VISUALIZATION;
+                mFlags &= ~Flags.EnableVisualization;
             }
         }
 
         /// <summary>
         /// Set speaker position in 3D space.
         /// </summary>
-        public SOLOUD_ERRORS setSpeakerPosition(uint aChannel, float aX, float aY, float aZ)
+        public SoLoudStatus setSpeakerPosition(uint aChannel, float aX, float aY, float aZ)
         {
             if (aChannel >= mChannels)
-                return SOLOUD_ERRORS.INVALID_PARAMETER;
+                return SoLoudStatus.InvalidParameter;
 
             m3dSpeakerPosition[aChannel] = new Vec3(aX, aY, aZ);
-            return SOLOUD_ERRORS.SO_NO_ERROR;
+            return SoLoudStatus.Ok;
         }
     }
 }
