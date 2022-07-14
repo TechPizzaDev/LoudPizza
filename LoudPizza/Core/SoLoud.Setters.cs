@@ -394,12 +394,12 @@ namespace LoudPizza
         /// <summary>
         /// Set speaker position in 3D space.
         /// </summary>
-        public SoLoudStatus setSpeakerPosition(uint aChannel, float aX, float aY, float aZ)
+        public SoLoudStatus setSpeakerPosition(uint aChannel, Vector3 aPosition)
         {
             if (aChannel >= mChannels)
                 return SoLoudStatus.InvalidParameter;
 
-            m3dSpeakerPosition[aChannel] = new Vector3(aX, aY, aZ);
+            m3dSpeakerPosition[aChannel] = aPosition;
             return SoLoudStatus.Ok;
         }
     }

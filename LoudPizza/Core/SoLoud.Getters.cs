@@ -484,19 +484,15 @@ namespace LoudPizza
         /// <summary>
         /// Get speaker position in 3D space.
         /// </summary>
-        public SoLoudStatus getSpeakerPosition(uint aChannel, out float aX, out float aY, out float aZ)
+        public SoLoudStatus getSpeakerPosition(uint aChannel, out Vector3 aPosition)
         {
             if (aChannel >= mChannels)
             {
-                aX = 0f;
-                aY = 0f;
-                aZ = 0f;
+                aPosition = default;
                 return SoLoudStatus.InvalidParameter;
             }
             Vector3 position = m3dSpeakerPosition[aChannel];
-            aX = position.X;
-            aY = position.Y;
-            aZ = position.Z;
+            aPosition = position;
             return SoLoudStatus.Ok;
         }
     }

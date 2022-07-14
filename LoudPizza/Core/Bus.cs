@@ -1,4 +1,5 @@
 using System;
+using System.Numerics;
 using System.Runtime.CompilerServices;
 
 namespace LoudPizza
@@ -98,8 +99,8 @@ namespace LoudPizza
         /// </summary>
         public Handle play3d(
             AudioSource aSound,
-            float aPosX, float aPosY, float aPosZ,
-            float aVelX = 0.0f, float aVelY = 0.0f, float aVelZ = 0.0f,
+            Vector3 aPosition,
+            Vector3 aVelocity = default,
             float aVolume = 1.0f,
             bool aPaused = false)
         {
@@ -114,7 +115,7 @@ namespace LoudPizza
             {
                 return default;
             }
-            return mSoloud.play3d(aSound, aPosX, aPosY, aPosZ, aVelX, aVelY, aVelZ, aVolume, aPaused, mChannelHandle);
+            return mSoloud.play3d(aSound, aPosition, aVelocity, aVolume, aPaused, mChannelHandle);
         }
 
         /// <summary>
@@ -123,8 +124,8 @@ namespace LoudPizza
         public Handle play3dClocked(
             Time aSoundTime,
             AudioSource aSound,
-            float aPosX, float aPosY, float aPosZ,
-            float aVelX = 0.0f, float aVelY = 0.0f, float aVelZ = 0.0f,
+            Vector3 aPosition,
+            Vector3 aVelocity = default,
             float aVolume = 1.0f)
         {
             if (mInstance == null || mSoloud == null)
@@ -138,7 +139,7 @@ namespace LoudPizza
             {
                 return default;
             }
-            return mSoloud.play3dClocked(aSoundTime, aSound, aPosX, aPosY, aPosZ, aVelX, aVelY, aVelZ, aVolume, mChannelHandle);
+            return mSoloud.play3dClocked(aSoundTime, aSound, aPosition, aVelocity, aVolume, mChannelHandle);
         }
 
         /// <summary>

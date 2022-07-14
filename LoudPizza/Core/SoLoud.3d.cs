@@ -204,8 +204,8 @@ namespace LoudPizza
         /// </summary>
         public Handle play3d(
             AudioSource aSound,
-            float aPosX, float aPosY, float aPosZ,
-            float aVelX = 0.0f, float aVelY = 0.0f, float aVelZ = 0.0f,
+            Vector3 aPosition,
+            Vector3 aVelocity = default,
             float aVolume = 1.0f,
             bool aPaused = false,
             Handle aBus = default)
@@ -225,14 +225,11 @@ namespace LoudPizza
                 m3dData[v].mHandle = h;
                 voice = mVoice[v]!;
                 voice.mFlags |= AudioSourceInstance.Flags.Process3D;
-                set3dSourceParameters(h, aPosX, aPosY, aPosZ, aVelX, aVelY, aVelZ);
+                set3dSourceParameters(h, aPosition, aVelocity);
 
                 if ((aSound.mFlags & AudioSource.Flags.DistanceDelay) != 0)
                 {
-                    Vector3 pos;
-                    pos.X = aPosX;
-                    pos.Y = aPosY;
-                    pos.Z = aPosZ;
+                    Vector3 pos = aPosition;
                     if (((uint)voice.mFlags & (uint)AudioSource.Flags.ListenerRelative) == 0)
                     {
                         pos -= m3dPosition;
@@ -285,8 +282,8 @@ namespace LoudPizza
         public Handle play3dClocked(
             Time aSoundTime,
             AudioSource aSound,
-            float aPosX, float aPosY, float aPosZ,
-            float aVelX = 0.0f, float aVelY = 0.0f, float aVelZ = 0.0f,
+            Vector3 aPosition,
+            Vector3 aVelocity = default,
             float aVolume = 1.0f,
             Handle aBus = default)
         {
@@ -305,7 +302,7 @@ namespace LoudPizza
                 m3dData[v].mHandle = h;
                 voice = mVoice[v]!;
                 voice.mFlags |= AudioSourceInstance.Flags.Process3D;
-                set3dSourceParameters(h, aPosX, aPosY, aPosZ, aVelX, aVelY, aVelZ);
+                set3dSourceParameters(h, aPosition, aVelocity);
                 Time lasttime = mLastClockedTime;
                 if (lasttime == 0)
                 {
@@ -320,12 +317,7 @@ namespace LoudPizza
 
                 if ((aSound.mFlags & AudioSource.Flags.DistanceDelay) != 0)
                 {
-                    Vector3 pos;
-                    pos.X = aPosX;
-                    pos.Y = aPosY;
-                    pos.Z = aPosZ;
-
-                    float dist = pos.LengthSquared();
+                    float dist = aPosition.LengthSquared();
                     samples += (int)MathF.Floor((dist / (m3dSoundSpeed * m3dSoundSpeed)) * mSamplerate);
                 }
             }
@@ -390,47 +382,47 @@ namespace LoudPizza
         /// Set 3D listener parameters.
         /// </summary>
         public void set3dListenerParameters(
-            float aPosX, float aPosY, float aPosZ,
-            float aAtX, float aAtY, float aAtZ,
-            float aUpX, float aUpY, float aUpZ,
-            float aVelocityX, float aVelocityY, float aVelocityZ)
+            Vector3 aPosition,
+            Vector3 aAt,
+            Vector3 aUp,
+            Vector3 aVelocity)
         {
-            m3dPosition = new Vector3(aPosX, aPosY, aPosZ);
-            m3dAt = new Vector3(aAtX, aAtY, aAtZ);
-            m3dUp = new Vector3(aUpX, aUpY, aUpZ);
-            m3dVelocity = new Vector3(aVelocityX, aVelocityY, aVelocityZ);
+            m3dPosition = aPosition;
+            m3dAt = aAt;
+            m3dUp = aUp;
+            m3dVelocity = aVelocity;
         }
 
         /// <summary>
         /// Set 3D listener position.
         /// </summary>
-        public void set3dListenerPosition(float aPosX, float aPosY, float aPosZ)
+        public void set3dListenerPosition(Vector3 aPosition)
         {
-            m3dPosition = new Vector3(aPosX, aPosY, aPosZ);
+            m3dPosition = aPosition;
         }
 
         /// <summary>
         /// Set 3D listener "at" vector.
         /// </summary>
-        public void set3dListenerAt(float aAtX, float aAtY, float aAtZ)
+        public void set3dListenerAt(Vector3 aAt)
         {
-            m3dAt = new Vector3(aAtX, aAtY, aAtZ);
+            m3dAt = aAt;
         }
 
         /// <summary>
         /// Set 3D listener "up" vector.
         /// </summary>
-        public void set3dListenerUp(float aUpX, float aUpY, float aUpZ)
+        public void set3dListenerUp(Vector3 aUp)
         {
-            m3dUp = new Vector3(aUpX, aUpY, aUpZ);
+            m3dUp = aUp;
         }
 
         /// <summary>
         /// Set 3D listener velocity.
         /// </summary>
-        public void set3dListenerVelocity(float aVelocityX, float aVelocityY, float aVelocityZ)
+        public void set3dListenerVelocity(Vector3 aVelocity)
         {
-            m3dVelocity = new Vector3(aVelocityX, aVelocityY, aVelocityZ);
+            m3dVelocity = aVelocity;
         }
 
         /// <summary>
@@ -438,8 +430,8 @@ namespace LoudPizza
         /// </summary>
         public void set3dSourceParameters(
             Handle aVoiceHandle,
-            float aPosX, float aPosY, float aPosZ,
-            float aVelocityX, float aVelocityY, float aVelocityZ)
+            Vector3 aPosition,
+            Vector3 aVelocity)
         {
             ReadOnlySpan<Handle> h_ = VoiceGroupHandleToSpan(ref aVoiceHandle);
             foreach (Handle h in h_)
@@ -447,8 +439,8 @@ namespace LoudPizza
                 int ch = (int)(h.Value & 0xfff - 1);
                 if (ch != -1 && m3dData[ch].mHandle == h)
                 {
-                    m3dData[ch].m3dPosition = new Vector3(aPosX, aPosY, aPosZ);
-                    m3dData[ch].m3dVelocity = new Vector3(aVelocityX, aVelocityY, aVelocityZ);
+                    m3dData[ch].m3dPosition = aPosition;
+                    m3dData[ch].m3dVelocity = aVelocity;
                 }
             }
         }
@@ -456,7 +448,7 @@ namespace LoudPizza
         /// <summary>
         /// Set 3D audio source position.
         /// </summary>
-        public void set3dSourcePosition(Handle aVoiceHandle, float aPosX, float aPosY, float aPosZ)
+        public void set3dSourcePosition(Handle aVoiceHandle, Vector3 aPosition)
         {
             ReadOnlySpan<Handle> h_ = VoiceGroupHandleToSpan(ref aVoiceHandle);
             foreach (Handle h in h_)
@@ -464,7 +456,7 @@ namespace LoudPizza
                 int ch = (int)(h.Value & 0xfff - 1);
                 if (ch != -1 && m3dData[ch].mHandle == h)
                 {
-                    m3dData[ch].m3dPosition = new Vector3(aPosX, aPosY, aPosZ);
+                    m3dData[ch].m3dPosition = aPosition;
                 }
             }
         }
@@ -472,7 +464,7 @@ namespace LoudPizza
         /// <summary>
         /// Set 3D audio source velocity.
         /// </summary>
-        public void set3dSourceVelocity(Handle aVoiceHandle, float aVelocityX, float aVelocityY, float aVelocityZ)
+        public void set3dSourceVelocity(Handle aVoiceHandle, Vector3 aVelocity)
         {
             ReadOnlySpan<Handle> h_ = VoiceGroupHandleToSpan(ref aVoiceHandle);
             foreach (Handle h in h_)
@@ -480,7 +472,7 @@ namespace LoudPizza
                 int ch = (int)(h.Value & 0xfff - 1);
                 if (ch != -1 && m3dData[ch].mHandle == h)
                 {
-                    m3dData[ch].m3dVelocity = new Vector3(aVelocityX, aVelocityY, aVelocityZ);
+                    m3dData[ch].m3dVelocity = aVelocity;
                 }
             }
         }

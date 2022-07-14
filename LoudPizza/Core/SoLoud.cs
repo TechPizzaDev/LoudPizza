@@ -1,5 +1,6 @@
 using System;
 using System.Diagnostics;
+using System.Numerics;
 using System.Runtime.CompilerServices;
 #if SSE_INTRINSICS
 using System.Runtime.Intrinsics;
