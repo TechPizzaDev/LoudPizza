@@ -36,32 +36,23 @@ namespace LoudPizza
         /// </summary>
         public SoLoudStatus setRelativePlaySpeed(Handle aVoiceHandle, float aSpeed)
         {
-            SoLoudStatus retVal = 0;
-
-            void body(Handle h)
-            {
-                int ch = getVoiceFromHandle_internal(h);
-                if (ch != -1)
-                {
-                    mVoice[ch]!.mRelativePlaySpeedFader.mActive = 0;
-                    retVal = setVoiceRelativePlaySpeed_internal((uint)ch, aSpeed);
-                }
-            }
-
             lock (mAudioThreadMutex)
             {
-                ArraySegment<Handle> h_ = voiceGroupHandleToArray_internal(aVoiceHandle);
-                if (h_.Array == null)
+                SoLoudStatus retVal = 0;
+
+                ReadOnlySpan<Handle> h_ = VoiceGroupHandleToSpan(ref aVoiceHandle);
+                foreach (Handle h in h_)
                 {
-                    body(aVoiceHandle);
+                    int ch = getVoiceFromHandle_internal(h);
+                    if (ch != -1)
+                    {
+                        mVoice[ch]!.mRelativePlaySpeedFader.mActive = 0;
+                        retVal = setVoiceRelativePlaySpeed_internal((uint)ch, aSpeed);
+                    }
                 }
-                else
-                {
-                    foreach (Handle h in h_.AsSpan())
-                        body(h);
-                }
+
+                return retVal;
             }
-            return retVal;
         }
 
         /// <summary>
@@ -69,27 +60,17 @@ namespace LoudPizza
         /// </summary>
         public void setSamplerate(Handle aVoiceHandle, float aSamplerate)
         {
-            void body(Handle h)
-            {
-                int ch = getVoiceFromHandle_internal(h);
-                if (ch != -1)
-                {
-                    mVoice[ch]!.mBaseSamplerate = aSamplerate;
-                    updateVoiceRelativePlaySpeed_internal((uint)ch);
-                }
-            }
-
             lock (mAudioThreadMutex)
             {
-                ArraySegment<Handle> h_ = voiceGroupHandleToArray_internal(aVoiceHandle);
-                if (h_.Array == null)
+                ReadOnlySpan<Handle> h_ = VoiceGroupHandleToSpan(ref aVoiceHandle);
+                foreach (Handle h in h_)
                 {
-                    body(aVoiceHandle);
-                }
-                else
-                {
-                    foreach (Handle h in h_.AsSpan())
-                        body(h);
+                    int ch = getVoiceFromHandle_internal(h);
+                    if (ch != -1)
+                    {
+                        mVoice[ch]!.mBaseSamplerate = aSamplerate;
+                        updateVoiceRelativePlaySpeed_internal((uint)ch);
+                    }
                 }
             }
         }
@@ -99,26 +80,16 @@ namespace LoudPizza
         /// </summary>
         public void setPause(Handle aVoiceHandle, bool aPause)
         {
-            void body(Handle h)
-            {
-                int ch = getVoiceFromHandle_internal(h);
-                if (ch != -1)
-                {
-                    setVoicePause_internal((uint)ch, aPause);
-                }
-            }
-
             lock (mAudioThreadMutex)
             {
-                ArraySegment<Handle> h_ = voiceGroupHandleToArray_internal(aVoiceHandle);
-                if (h_.Array == null)
+                ReadOnlySpan<Handle> h_ = VoiceGroupHandleToSpan(ref aVoiceHandle);
+                foreach (Handle h in h_)
                 {
-                    body(aVoiceHandle);
-                }
-                else
-                {
-                    foreach (Handle h in h_.AsSpan())
-                        body(h);
+                    int ch = getVoiceFromHandle_internal(h);
+                    if (ch != -1)
+                    {
+                        setVoicePause_internal((uint)ch, aPause);
+                    }
                 }
             }
         }
@@ -159,33 +130,23 @@ namespace LoudPizza
         /// </summary>
         public void setProtectVoice(Handle aVoiceHandle, bool aProtect)
         {
-            void body(Handle h)
-            {
-                AudioSourceInstance? ch = getVoiceRefFromHandle_internal(h);
-                if (ch != null)
-                {
-                    if (aProtect)
-                    {
-                        ch.mFlags |= AudioSourceInstance.Flags.Protected;
-                    }
-                    else
-                    {
-                        ch.mFlags &= ~AudioSourceInstance.Flags.Protected;
-                    }
-                }
-            }
-
             lock (mAudioThreadMutex)
             {
-                ArraySegment<Handle> h_ = voiceGroupHandleToArray_internal(aVoiceHandle);
-                if (h_.Array == null)
+                ReadOnlySpan<Handle> h_ = VoiceGroupHandleToSpan(ref aVoiceHandle);
+                foreach (Handle h in h_)
                 {
-                    body(aVoiceHandle);
-                }
-                else
-                {
-                    foreach (Handle h in h_.AsSpan())
-                        body(h);
+                    AudioSourceInstance? ch = getVoiceRefFromHandle_internal(h);
+                    if (ch != null)
+                    {
+                        if (aProtect)
+                        {
+                            ch.mFlags |= AudioSourceInstance.Flags.Protected;
+                        }
+                        else
+                        {
+                            ch.mFlags &= ~AudioSourceInstance.Flags.Protected;
+                        }
+                    }
                 }
             }
         }
@@ -195,26 +156,16 @@ namespace LoudPizza
         /// </summary>
         public void setPan(Handle aVoiceHandle, float aPan)
         {
-            void body(Handle h)
-            {
-                int ch = getVoiceFromHandle_internal(h);
-                if (ch != -1)
-                {
-                    setVoicePan_internal((uint)ch, aPan);
-                }
-            }
-
             lock (mAudioThreadMutex)
             {
-                ArraySegment<Handle> h_ = voiceGroupHandleToArray_internal(aVoiceHandle);
-                if (h_.Array == null)
+                ReadOnlySpan<Handle> h_ = VoiceGroupHandleToSpan(ref aVoiceHandle);
+                foreach (Handle h in h_)
                 {
-                    body(aVoiceHandle);
-                }
-                else
-                {
-                    foreach (Handle h in h_.AsSpan())
-                        body(h);
+                    int ch = getVoiceFromHandle_internal(h);
+                    if (ch != -1)
+                    {
+                        setVoicePan_internal((uint)ch, aPan);
+                    }
                 }
             }
         }
@@ -224,29 +175,19 @@ namespace LoudPizza
         /// </summary>
         public void setChannelVolume(Handle aVoiceHandle, uint aChannel, float aVolume)
         {
-            void body(Handle h)
-            {
-                AudioSourceInstance? ch = getVoiceRefFromHandle_internal(h);
-                if (ch != null)
-                {
-                    if (ch.mChannels > aChannel)
-                    {
-                        ch.mChannelVolume[aChannel] = aVolume;
-                    }
-                }
-            }
-
             lock (mAudioThreadMutex)
             {
-                ArraySegment<Handle> h_ = voiceGroupHandleToArray_internal(aVoiceHandle);
-                if (h_.Array == null)
+                ReadOnlySpan<Handle> h_ = VoiceGroupHandleToSpan(ref aVoiceHandle);
+                foreach (Handle h in h_)
                 {
-                    body(aVoiceHandle);
-                }
-                else
-                {
-                    foreach (Handle h in h_.AsSpan())
-                        body(h);
+                    AudioSourceInstance? ch = getVoiceRefFromHandle_internal(h);
+                    if (ch != null)
+                    {
+                        if (ch.mChannels > aChannel)
+                        {
+                            ch.mChannelVolume[aChannel] = aVolume;
+                        }
+                    }
                 }
             }
         }
@@ -256,50 +197,40 @@ namespace LoudPizza
         /// </summary>
         public void setPanAbsolute(Handle aVoiceHandle, float aLVolume, float aRVolume)
         {
-            void body(Handle h)
-            {
-                AudioSourceInstance? ch = getVoiceRefFromHandle_internal(h);
-                if (ch != null)
-                {
-                    ch.mPanFader.mActive = 0;
-                    ch.mChannelVolume[0] = aLVolume;
-                    ch.mChannelVolume[1] = aRVolume;
-
-                    if (ch.mChannels == 4)
-                    {
-                        ch.mChannelVolume[2] = aLVolume;
-                        ch.mChannelVolume[3] = aRVolume;
-                    }
-                    else if (ch.mChannels == 6)
-                    {
-                        ch.mChannelVolume[2] = (aLVolume + aRVolume) * 0.5f;
-                        ch.mChannelVolume[3] = (aLVolume + aRVolume) * 0.5f;
-                        ch.mChannelVolume[4] = aLVolume;
-                        ch.mChannelVolume[5] = aRVolume;
-                    }
-                    else if (ch.mChannels == 8)
-                    {
-                        ch.mChannelVolume[2] = (aLVolume + aRVolume) * 0.5f;
-                        ch.mChannelVolume[3] = (aLVolume + aRVolume) * 0.5f;
-                        ch.mChannelVolume[4] = aLVolume;
-                        ch.mChannelVolume[5] = aRVolume;
-                        ch.mChannelVolume[6] = aLVolume;
-                        ch.mChannelVolume[7] = aRVolume;
-                    }
-                }
-            }
-
             lock (mAudioThreadMutex)
             {
-                ArraySegment<Handle> h_ = voiceGroupHandleToArray_internal(aVoiceHandle);
-                if (h_.Array == null)
+                ReadOnlySpan<Handle> h_ = VoiceGroupHandleToSpan(ref aVoiceHandle);
+                foreach (Handle h in h_)
                 {
-                    body(aVoiceHandle);
-                }
-                else
-                {
-                    foreach (Handle h in h_.AsSpan())
-                        body(h);
+                    AudioSourceInstance? ch = getVoiceRefFromHandle_internal(h);
+                    if (ch != null)
+                    {
+                        ch.mPanFader.mActive = 0;
+                        ch.mChannelVolume[0] = aLVolume;
+                        ch.mChannelVolume[1] = aRVolume;
+
+                        if (ch.mChannels == 4)
+                        {
+                            ch.mChannelVolume[2] = aLVolume;
+                            ch.mChannelVolume[3] = aRVolume;
+                        }
+                        else if (ch.mChannels == 6)
+                        {
+                            ch.mChannelVolume[2] = (aLVolume + aRVolume) * 0.5f;
+                            ch.mChannelVolume[3] = (aLVolume + aRVolume) * 0.5f;
+                            ch.mChannelVolume[4] = aLVolume;
+                            ch.mChannelVolume[5] = aRVolume;
+                        }
+                        else if (ch.mChannels == 8)
+                        {
+                            ch.mChannelVolume[2] = (aLVolume + aRVolume) * 0.5f;
+                            ch.mChannelVolume[3] = (aLVolume + aRVolume) * 0.5f;
+                            ch.mChannelVolume[4] = aLVolume;
+                            ch.mChannelVolume[5] = aRVolume;
+                            ch.mChannelVolume[6] = aLVolume;
+                            ch.mChannelVolume[7] = aRVolume;
+                        }
+                    }
                 }
             }
         }
@@ -309,34 +240,24 @@ namespace LoudPizza
         /// </summary>
         public void setInaudibleBehavior(Handle aVoiceHandle, bool aMustTick, bool aKill)
         {
-            void body(Handle h)
-            {
-                AudioSourceInstance? ch = getVoiceRefFromHandle_internal(h);
-                if (ch != null)
-                {
-                    ch.mFlags &= ~(AudioSourceInstance.Flags.InaudibleKill | AudioSourceInstance.Flags.InaudibleTick);
-                    if (aMustTick)
-                    {
-                        ch.mFlags |= AudioSourceInstance.Flags.InaudibleTick;
-                    }
-                    if (aKill)
-                    {
-                        ch.mFlags |= AudioSourceInstance.Flags.InaudibleKill;
-                    }
-                }
-            }
-
             lock (mAudioThreadMutex)
             {
-                ArraySegment<Handle> h_ = voiceGroupHandleToArray_internal(aVoiceHandle);
-                if (h_.Array == null)
+                ReadOnlySpan<Handle> h_ = VoiceGroupHandleToSpan(ref aVoiceHandle);
+                foreach (Handle h in h_)
                 {
-                    body(aVoiceHandle);
-                }
-                else
-                {
-                    foreach (Handle h in h_.AsSpan())
-                        body(h);
+                    AudioSourceInstance? ch = getVoiceRefFromHandle_internal(h);
+                    if (ch != null)
+                    {
+                        ch.mFlags &= ~(AudioSourceInstance.Flags.InaudibleKill | AudioSourceInstance.Flags.InaudibleTick);
+                        if (aMustTick)
+                        {
+                            ch.mFlags |= AudioSourceInstance.Flags.InaudibleTick;
+                        }
+                        if (aKill)
+                        {
+                            ch.mFlags |= AudioSourceInstance.Flags.InaudibleKill;
+                        }
+                    }
                 }
             }
         }
@@ -346,26 +267,16 @@ namespace LoudPizza
         /// </summary>
         public void setLoopPoint(Handle aVoiceHandle, ulong aLoopPoint)
         {
-            void body(Handle h)
-            {
-                AudioSourceInstance? ch = getVoiceRefFromHandle_internal(h);
-                if (ch != null)
-                {
-                    ch.mLoopPoint = aLoopPoint;
-                }
-            }
-
             lock (mAudioThreadMutex)
             {
-                ArraySegment<Handle> h_ = voiceGroupHandleToArray_internal(aVoiceHandle);
-                if (h_.Array == null)
+                ReadOnlySpan<Handle> h_ = VoiceGroupHandleToSpan(ref aVoiceHandle);
+                foreach (Handle h in h_)
                 {
-                    body(aVoiceHandle);
-                }
-                else
-                {
-                    foreach (Handle h in h_.AsSpan())
-                        body(h);
+                    AudioSourceInstance? ch = getVoiceRefFromHandle_internal(h);
+                    if (ch != null)
+                    {
+                        ch.mLoopPoint = aLoopPoint;
+                    }
                 }
             }
         }
@@ -375,33 +286,23 @@ namespace LoudPizza
         /// </summary>
         public void setLooping(Handle aVoiceHandle, bool aLooping)
         {
-            void body(Handle h)
-            {
-                AudioSourceInstance? ch = getVoiceRefFromHandle_internal(h);
-                if (ch != null)
-                {
-                    if (aLooping)
-                    {
-                        ch.mFlags |= AudioSourceInstance.Flags.Looping;
-                    }
-                    else
-                    {
-                        ch.mFlags &= ~AudioSourceInstance.Flags.Looping;
-                    }
-                }
-            }
-
             lock (mAudioThreadMutex)
             {
-                ArraySegment<Handle> h_ = voiceGroupHandleToArray_internal(aVoiceHandle);
-                if (h_.Array == null)
+                ReadOnlySpan<Handle> h_ = VoiceGroupHandleToSpan(ref aVoiceHandle);
+                foreach (Handle h in h_)
                 {
-                    body(aVoiceHandle);
-                }
-                else
-                {
-                    foreach (Handle h in h_.AsSpan())
-                        body(h);
+                    AudioSourceInstance? ch = getVoiceRefFromHandle_internal(h);
+                    if (ch != null)
+                    {
+                        if (aLooping)
+                        {
+                            ch.mFlags |= AudioSourceInstance.Flags.Looping;
+                        }
+                        else
+                        {
+                            ch.mFlags &= ~AudioSourceInstance.Flags.Looping;
+                        }
+                    }
                 }
             }
         }
@@ -411,33 +312,23 @@ namespace LoudPizza
         /// </summary>
         public void setAutoStop(Handle aVoiceHandle, bool aAutoStop)
         {
-            void body(Handle h)
-            {
-                AudioSourceInstance? ch = getVoiceRefFromHandle_internal(h);
-                if (ch != null)
-                {
-                    if (aAutoStop)
-                    {
-                        ch.mFlags &= ~AudioSourceInstance.Flags.DisableAutostop;
-                    }
-                    else
-                    {
-                        ch.mFlags |= AudioSourceInstance.Flags.DisableAutostop;
-                    }
-                }
-            }
-
             lock (mAudioThreadMutex)
             {
-                ArraySegment<Handle> h_ = voiceGroupHandleToArray_internal(aVoiceHandle);
-                if (h_.Array == null)
+                ReadOnlySpan<Handle> h_ = VoiceGroupHandleToSpan(ref aVoiceHandle);
+                foreach (Handle h in h_)
                 {
-                    body(aVoiceHandle);
-                }
-                else
-                {
-                    foreach (Handle h in h_.AsSpan())
-                        body(h);
+                    AudioSourceInstance? ch = getVoiceRefFromHandle_internal(h);
+                    if (ch != null)
+                    {
+                        if (aAutoStop)
+                        {
+                            ch.mFlags &= ~AudioSourceInstance.Flags.DisableAutostop;
+                        }
+                        else
+                        {
+                            ch.mFlags |= AudioSourceInstance.Flags.DisableAutostop;
+                        }
+                    }
                 }
             }
         }
@@ -447,27 +338,17 @@ namespace LoudPizza
         /// </summary>
         public void setVolume(Handle aVoiceHandle, float aVolume)
         {
-            void body(Handle h)
-            {
-                int ch = getVoiceFromHandle_internal(h);
-                if (ch != -1)
-                {
-                    mVoice[ch]!.mVolumeFader.mActive = 0;
-                    setVoiceVolume_internal((uint)ch, aVolume);
-                }
-            }
-
             lock (mAudioThreadMutex)
             {
-                ArraySegment<Handle> h_ = voiceGroupHandleToArray_internal(aVoiceHandle);
-                if (h_.Array == null)
+                ReadOnlySpan<Handle> h_ = VoiceGroupHandleToSpan(ref aVoiceHandle);
+                foreach (Handle h in h_)
                 {
-                    body(aVoiceHandle);
-                }
-                else
-                {
-                    foreach (Handle h in h_.AsSpan())
-                        body(h);
+                    int ch = getVoiceFromHandle_internal(h);
+                    if (ch != -1)
+                    {
+                        mVoice[ch]!.mVolumeFader.mActive = 0;
+                        setVoiceVolume_internal((uint)ch, aVolume);
+                    }
                 }
             }
         }
@@ -480,26 +361,16 @@ namespace LoudPizza
         /// </remarks>
         public void setDelaySamples(Handle aVoiceHandle, uint aSamples)
         {
-            void body(Handle h)
-            {
-                AudioSourceInstance? ch = getVoiceRefFromHandle_internal(h);
-                if (ch != null)
-                {
-                    ch.mDelaySamples = aSamples;
-                }
-            }
-
             lock (mAudioThreadMutex)
             {
-                ArraySegment<Handle> h_ = voiceGroupHandleToArray_internal(aVoiceHandle);
-                if (h_.Array == null)
+                ReadOnlySpan<Handle> h_ = VoiceGroupHandleToSpan(ref aVoiceHandle);
+                foreach (Handle h in h_)
                 {
-                    body(aVoiceHandle);
-                }
-                else
-                {
-                    foreach (Handle h in h_.AsSpan())
-                        body(h);
+                    AudioSourceInstance? ch = getVoiceRefFromHandle_internal(h);
+                    if (ch != null)
+                    {
+                        ch.mDelaySamples = aSamples;
+                    }
                 }
             }
         }

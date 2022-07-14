@@ -175,26 +175,16 @@ namespace LoudPizza
         {
             findBusHandle();
 
-            void body(Handle h)
-            {
-                AudioSourceInstance? ch = mSoloud.getVoiceRefFromHandle_internal(h);
-                if (ch != null)
-                {
-                    ch.mBusHandle = mChannelHandle;
-                }
-            }
-
             lock (mSoloud.mAudioThreadMutex)
             {
-                ArraySegment<Handle> h_ = mSoloud.voiceGroupHandleToArray_internal(aVoiceHandle);
-                if (h_.Array == null)
+                ReadOnlySpan<Handle> h_ = mSoloud.VoiceGroupHandleToSpan(ref aVoiceHandle);
+                foreach (Handle h in h_)
                 {
-                    body(aVoiceHandle);
-                }
-                else
-                {
-                    foreach (Handle h in h_.AsSpan())
-                        body(h);
+                    AudioSourceInstance? ch = mSoloud.getVoiceRefFromHandle_internal(h);
+                    if (ch != null)
+                    {
+                        ch.mBusHandle = mChannelHandle;
+                    }
                 }
             }
         }

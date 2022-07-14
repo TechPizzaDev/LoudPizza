@@ -1,4 +1,5 @@
 using System;
+using System.Runtime.InteropServices;
 
 namespace LoudPizza
 {
@@ -231,17 +232,19 @@ namespace LoudPizza
         }
 
         /// <summary>
-        /// Get pointer to the zero-terminated array of voice handles in a voice group.
+        /// Gets a span to the zero-terminated array of voice handles in a voice group.
         /// </summary>
-        internal ArraySegment<Handle> voiceGroupHandleToArray_internal(Handle aVoiceGroupHandle)
+        internal ReadOnlySpan<Handle> VoiceGroupHandleToSpan(ref Handle aVoiceGroupHandle)
         {
             if ((aVoiceGroupHandle.Value & 0xfffff000) != 0xfffff000)
-                return default;
+                return MemoryMarshal.CreateReadOnlySpan(ref aVoiceGroupHandle, 1);
+
             uint c = aVoiceGroupHandle.Value & 0xfff;
             if (c >= mVoiceGroupCount)
-                return default;
+                return MemoryMarshal.CreateReadOnlySpan(ref aVoiceGroupHandle, 1);
+
             Handle[] group = mVoiceGroup[c];
-            return new ArraySegment<Handle>(group);
+            return group;
         }
     }
 }

@@ -1398,7 +1398,7 @@ namespace LoudPizza
         private AudioSourceInstance3dData[] m3dData = new AudioSourceInstance3dData[MaxVoiceCount];
 
         /// <summary>
-        /// For each voice group, first int is number of ints alocated.
+        /// Array of voice group arrays.
         /// </summary>
         private Handle[][] mVoiceGroup = Array.Empty<Handle[]>();
 

@@ -54,17 +54,16 @@ namespace LoudPizza
         internal int getVoiceFromHandle_internal(Handle aVoiceHandle)
         {
             // If this is a voice group handle, pick the first handle from the group
-            ArraySegment<Handle> h = voiceGroupHandleToArray_internal(aVoiceHandle);
-            if (h.Array != null)
-                aVoiceHandle = h[0];
+            ReadOnlySpan<Handle> h = VoiceGroupHandleToSpan(ref aVoiceHandle);
+            Handle handle = h[0];
 
-            if (aVoiceHandle.Value == 0)
+            if (handle.Value == 0)
             {
                 return -1;
             }
 
-            int ch = (int)(aVoiceHandle.Value & 0xfff - 1);
-            uint idx = aVoiceHandle.Value >> 12;
+            int ch = (int)(handle.Value & 0xfff - 1);
+            uint idx = handle.Value >> 12;
             AudioSourceInstance? voice = mVoice[ch];
             if (voice != null &&
                 (voice.mPlayIndex & 0xfffff) == idx)
@@ -80,17 +79,16 @@ namespace LoudPizza
         internal AudioSourceInstance? getVoiceRefFromHandle_internal(Handle aVoiceHandle)
         {
             // If this is a voice group handle, pick the first handle from the group
-            ArraySegment<Handle> h = voiceGroupHandleToArray_internal(aVoiceHandle);
-            if (h.Array != null)
-                aVoiceHandle = h[0];
+            ReadOnlySpan<Handle> h = VoiceGroupHandleToSpan(ref aVoiceHandle);
+            Handle handle = h[0];
 
-            if (aVoiceHandle.Value == 0)
+            if (handle.Value == 0)
             {
                 return null;
             }
 
-            int ch = (int)(aVoiceHandle.Value & 0xfff - 1);
-            uint idx = aVoiceHandle.Value >> 12;
+            int ch = (int)(handle.Value & 0xfff - 1);
+            uint idx = handle.Value >> 12;
             AudioSourceInstance? voice = mVoice[ch];
             if (voice != null &&
                 (voice.mPlayIndex & 0xfffff) == idx)

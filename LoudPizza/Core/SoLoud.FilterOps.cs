@@ -30,12 +30,12 @@ namespace LoudPizza
         /// </summary>
         public float getFilterParameter(Handle aVoiceHandle, uint aFilterId, uint aAttributeId)
         {
-            float ret = (int)SoLoudStatus.InvalidParameter;
             if (aFilterId >= FiltersPerStream)
-                return ret;
+                return (int)SoLoudStatus.InvalidParameter;
 
             lock (mAudioThreadMutex)
             {
+                float ret = (int)SoLoudStatus.InvalidParameter;
                 if (aVoiceHandle.Value == 0)
                 {
                     FilterInstance? filterInstance = mFilterInstance[aFilterId];
@@ -55,8 +55,8 @@ namespace LoudPizza
                         ret = filterInstance.getFilterParameter(aAttributeId);
                     }
                 }
+                return ret;
             }
-            return ret;
         }
 
         /// <summary>
@@ -79,7 +79,8 @@ namespace LoudPizza
                     return;
                 }
 
-                void body(Handle h)
+                ReadOnlySpan<Handle> h_ = VoiceGroupHandleToSpan(ref aVoiceHandle);
+                foreach (Handle h in h_)
                 {
                     AudioSourceInstance? ch = getVoiceRefFromHandle_internal(h);
                     if (ch != null)
@@ -90,17 +91,6 @@ namespace LoudPizza
                             filterInstance.setFilterParameter(aAttributeId, aValue);
                         }
                     }
-                }
-
-                ArraySegment<Handle> h_ = voiceGroupHandleToArray_internal(aVoiceHandle);
-                if (h_.Array == null)
-                {
-                    body(aVoiceHandle);
-                }
-                else
-                {
-                    foreach (Handle h in h_.AsSpan())
-                        body(h);
                 }
             }
         }
@@ -125,7 +115,8 @@ namespace LoudPizza
                     return;
                 }
 
-                void body(Handle h)
+                ReadOnlySpan<Handle> h_ = VoiceGroupHandleToSpan(ref aVoiceHandle);
+                foreach (Handle h in h_)
                 {
                     AudioSourceInstance? ch = getVoiceRefFromHandle_internal(h);
                     if (ch != null)
@@ -136,17 +127,6 @@ namespace LoudPizza
                             filterInstance.fadeFilterParameter(aAttributeId, aTo, aTime, mStreamTime);
                         }
                     }
-                }
-
-                ArraySegment<Handle> h_ = voiceGroupHandleToArray_internal(aVoiceHandle);
-                if (h_.Array == null)
-                {
-                    body(aVoiceHandle);
-                }
-                else
-                {
-                    foreach (Handle h in h_.AsSpan())
-                        body(h);
                 }
             }
         }
@@ -171,7 +151,8 @@ namespace LoudPizza
                     return;
                 }
 
-                void body(Handle h)
+                ReadOnlySpan<Handle> h_ = VoiceGroupHandleToSpan(ref aVoiceHandle);
+                foreach (Handle h in h_)
                 {
                     AudioSourceInstance? ch = getVoiceRefFromHandle_internal(h);
                     if (ch != null)
@@ -182,17 +163,6 @@ namespace LoudPizza
                             filterInstance.oscillateFilterParameter(aAttributeId, aFrom, aTo, aTime, mStreamTime);
                         }
                     }
-                }
-
-                ArraySegment<Handle> h_ = voiceGroupHandleToArray_internal(aVoiceHandle);
-                if (h_.Array == null)
-                {
-                    body(aVoiceHandle);
-                }
-                else
-                {
-                    foreach (Handle h in h_.AsSpan())
-                        body(h);
                 }
             }
         }

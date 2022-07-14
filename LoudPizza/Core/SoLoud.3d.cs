@@ -442,7 +442,8 @@ namespace LoudPizza
             float aPosX, float aPosY, float aPosZ,
             float aVelocityX, float aVelocityY, float aVelocityZ)
         {
-            void body(Handle h)
+            ReadOnlySpan<Handle> h_ = VoiceGroupHandleToSpan(ref aVoiceHandle);
+            foreach (Handle h in h_)
             {
                 int ch = (int)(h.Value & 0xfff - 1);
                 if (ch != -1 && m3dData[ch].mHandle == h)
@@ -450,17 +451,6 @@ namespace LoudPizza
                     m3dData[ch].m3dPosition = new Vec3(aPosX, aPosY, aPosZ);
                     m3dData[ch].m3dVelocity = new Vec3(aVelocityX, aVelocityY, aVelocityZ);
                 }
-            }
-
-            ArraySegment<Handle> h_ = voiceGroupHandleToArray_internal(aVoiceHandle);
-            if (h_.Array == null)
-            {
-                body(aVoiceHandle);
-            }
-            else
-            {
-                foreach (Handle h in h_.AsSpan())
-                    body(h);
             }
         }
 
@@ -469,24 +459,14 @@ namespace LoudPizza
         /// </summary>
         public void set3dSourcePosition(Handle aVoiceHandle, float aPosX, float aPosY, float aPosZ)
         {
-            void body(Handle h)
+            ReadOnlySpan<Handle> h_ = VoiceGroupHandleToSpan(ref aVoiceHandle);
+            foreach (Handle h in h_)
             {
                 int ch = (int)(h.Value & 0xfff - 1);
                 if (ch != -1 && m3dData[ch].mHandle == h)
                 {
                     m3dData[ch].m3dPosition = new Vec3(aPosX, aPosY, aPosZ);
                 }
-            }
-
-            ArraySegment<Handle> h_ = voiceGroupHandleToArray_internal(aVoiceHandle);
-            if (h_.Array == null)
-            {
-                body(aVoiceHandle);
-            }
-            else
-            {
-                foreach (Handle h in h_.AsSpan())
-                    body(h);
             }
         }
 
@@ -495,24 +475,14 @@ namespace LoudPizza
         /// </summary>
         public void set3dSourceVelocity(Handle aVoiceHandle, float aVelocityX, float aVelocityY, float aVelocityZ)
         {
-            void body(Handle h)
+            ReadOnlySpan<Handle> h_ = VoiceGroupHandleToSpan(ref aVoiceHandle);
+            foreach (Handle h in h_)
             {
                 int ch = (int)(h.Value & 0xfff - 1);
                 if (ch != -1 && m3dData[ch].mHandle == h)
                 {
                     m3dData[ch].m3dVelocity = new Vec3(aVelocityX, aVelocityY, aVelocityZ);
                 }
-            }
-
-            ArraySegment<Handle> h_ = voiceGroupHandleToArray_internal(aVoiceHandle);
-            if (h_.Array == null)
-            {
-                body(aVoiceHandle);
-            }
-            else
-            {
-                foreach (Handle h in h_.AsSpan())
-                    body(h);
             }
         }
 
@@ -521,7 +491,8 @@ namespace LoudPizza
         /// </summary>
         public void set3dSourceMinMaxDistance(Handle aVoiceHandle, float aMinDistance, float aMaxDistance)
         {
-            void body(Handle h)
+            ReadOnlySpan<Handle> h_ = VoiceGroupHandleToSpan(ref aVoiceHandle);
+            foreach (Handle h in h_)
             {
                 int ch = (int)(h.Value & 0xfff - 1);
                 if (ch != -1 && m3dData[ch].mHandle == h)
@@ -530,17 +501,6 @@ namespace LoudPizza
                     m3dData[ch].m3dMaxDistance = aMaxDistance;
                 }
             }
-
-            ArraySegment<Handle> h_ = voiceGroupHandleToArray_internal(aVoiceHandle);
-            if (h_.Array == null)
-            {
-                body(aVoiceHandle);
-            }
-            else
-            {
-                foreach (Handle h in h_.AsSpan())
-                    body(h);
-            }
         }
 
         /// <summary>
@@ -548,7 +508,8 @@ namespace LoudPizza
         /// </summary>
         public void set3dSourceCollider(Handle aVoiceHandle, AudioCollider? aCollider, int aUserData = 0)
         {
-            void body(Handle h)
+            ReadOnlySpan<Handle> h_ = VoiceGroupHandleToSpan(ref aVoiceHandle);
+            foreach (Handle h in h_)
             {
                 int ch = (int)(h.Value & 0xfff - 1);
                 if (ch != -1 && m3dData[ch].mHandle == h)
@@ -557,17 +518,6 @@ namespace LoudPizza
                     m3dData[ch].mColliderData = aUserData;
                 }
             }
-
-            ArraySegment<Handle> h_ = voiceGroupHandleToArray_internal(aVoiceHandle);
-            if (h_.Array == null)
-            {
-                body(aVoiceHandle);
-            }
-            else
-            {
-                foreach (Handle h in h_.AsSpan())
-                    body(h);
-            }
         }
 
         /// <summary>
@@ -575,24 +525,14 @@ namespace LoudPizza
         /// </summary>
         public void set3dSourceAttenuationRolloffFactor(Handle aVoiceHandle, float aAttenuationRolloffFactor)
         {
-            void body(Handle h)
+            ReadOnlySpan<Handle> h_ = VoiceGroupHandleToSpan(ref aVoiceHandle);
+            foreach (Handle h in h_)
             {
                 int ch = (int)(h.Value & 0xfff - 1);
                 if (ch != -1 && m3dData[ch].mHandle == h)
                 {
                     m3dData[ch].m3dAttenuationRolloff = aAttenuationRolloffFactor;
                 }
-            }
-
-            ArraySegment<Handle> h_ = voiceGroupHandleToArray_internal(aVoiceHandle);
-            if (h_.Array == null)
-            {
-                body(aVoiceHandle);
-            }
-            else
-            {
-                foreach (Handle h in h_.AsSpan())
-                    body(h);
             }
         }
 
@@ -601,24 +541,14 @@ namespace LoudPizza
         /// </summary>
         public void set3dSourceAttenuator(Handle aVoiceHandle, AudioAttenuator? aAttenuator)
         {
-            void body(Handle h)
+            ReadOnlySpan<Handle> h_ = VoiceGroupHandleToSpan(ref aVoiceHandle);
+            foreach (Handle h in h_)
             {
                 int ch = (int)(h.Value & 0xfff - 1);
                 if (ch != -1 && m3dData[ch].mHandle == h)
                 {
                     m3dData[ch].mAttenuator = aAttenuator;
                 }
-            }
-
-            ArraySegment<Handle> h_ = voiceGroupHandleToArray_internal(aVoiceHandle);
-            if (h_.Array == null)
-            {
-                body(aVoiceHandle);
-            }
-            else
-            {
-                foreach (Handle h in h_.AsSpan())
-                    body(h);
             }
         }
 
@@ -627,24 +557,14 @@ namespace LoudPizza
         /// </summary>
         public void set3dSourceDopplerFactor(Handle aVoiceHandle, float aDopplerFactor)
         {
-            void body(Handle h)
+            ReadOnlySpan<Handle> h_ = VoiceGroupHandleToSpan(ref aVoiceHandle);
+            foreach (Handle h in h_)
             {
                 int ch = (int)(h.Value & 0xfff - 1);
                 if (ch != -1 && m3dData[ch].mHandle == h)
                 {
                     m3dData[ch].m3dDopplerFactor = aDopplerFactor;
                 }
-            }
-
-            ArraySegment<Handle> h_ = voiceGroupHandleToArray_internal(aVoiceHandle);
-            if (h_.Array == null)
-            {
-                body(aVoiceHandle);
-            }
-            else
-            {
-                foreach (Handle h in h_.AsSpan())
-                    body(h);
             }
         }
     }

@@ -135,33 +135,23 @@ namespace LoudPizza
         /// </remarks>
         public SoLoudStatus seek(Handle aVoiceHandle, ulong aSamplePosition)
         {
-            SoLoudStatus res = SoLoudStatus.Ok;
-
-            void body(Handle h)
-            {
-                AudioSourceInstance? ch = getVoiceRefFromHandle_internal(h);
-                if (ch != null)
-                {
-                    SoLoudStatus singleres = ch.seek(aSamplePosition, mScratch.mData, mScratchSize);
-                    if (singleres != SoLoudStatus.Ok)
-                        res = singleres;
-                }
-            }
-
             lock (mAudioThreadMutex)
             {
-                ArraySegment<Handle> h_ = voiceGroupHandleToArray_internal(aVoiceHandle);
-                if (h_.Array == null)
+                SoLoudStatus res = SoLoudStatus.Ok;
+
+                ReadOnlySpan<Handle> h_ = VoiceGroupHandleToSpan(ref aVoiceHandle);
+                foreach (Handle h in h_)
                 {
-                    body(aVoiceHandle);
+                    AudioSourceInstance? ch = getVoiceRefFromHandle_internal(h);
+                    if (ch != null)
+                    {
+                        SoLoudStatus singleres = ch.seek(aSamplePosition, mScratch.mData, mScratchSize);
+                        if (singleres != SoLoudStatus.Ok)
+                            res = singleres;
+                    }
                 }
-                else
-                {
-                    foreach (Handle h in h_.AsSpan())
-                        body(h);
-                }
+                return res;
             }
-            return res;
         }
 
         /// <summary>
@@ -169,26 +159,16 @@ namespace LoudPizza
         /// </summary>
         public void stop(Handle aVoiceHandle)
         {
-            void body(Handle h)
-            {
-                int ch = getVoiceFromHandle_internal(h);
-                if (ch != -1)
-                {
-                    stopVoice_internal((uint)ch);
-                }
-            }
-
             lock (mAudioThreadMutex)
             {
-                ArraySegment<Handle> h_ = voiceGroupHandleToArray_internal(aVoiceHandle);
-                if (h_.Array == null)
+                ReadOnlySpan<Handle> h_ = VoiceGroupHandleToSpan(ref aVoiceHandle);
+                foreach (Handle h in h_)
                 {
-                    body(aVoiceHandle);
-                }
-                else
-                {
-                    foreach (Handle h in h_.AsSpan())
-                        body(h);
+                    int ch = getVoiceFromHandle_internal(h);
+                    if (ch != -1)
+                    {
+                        stopVoice_internal((uint)ch);
+                    }
                 }
             }
         }
