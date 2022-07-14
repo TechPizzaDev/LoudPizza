@@ -1,4 +1,5 @@
-﻿
+using System;
+
 namespace LoudPizza
 {
     public unsafe class AudioBuffer : AudioSource
@@ -20,55 +21,58 @@ namespace LoudPizza
         //SOLOUD_ERRORS loadMem(const unsigned char* aMem, uint aLength, bool aCopy = false, bool aTakeOwnership = true);
         //SOLOUD_ERRORS loadFile(File* aFile);
 
-        public SoLoudStatus loadRawWave8(byte* aMem, uint aLength, float aSamplerate , uint aChannels)
+        public SoLoudStatus loadRawWave8(ReadOnlySpan<byte> aMem, float aSamplerate, uint aChannels)
         {
-            if (aMem == null || aLength == 0 || aSamplerate <= 0 || aChannels < 1)
+            if (aMem.Length == 0 || aSamplerate <= 0 || aChannels < 1)
                 return SoLoudStatus.InvalidParameter;
 
             deleteData();
-            float[] data = new float[aLength];
+            float[] data = new float[aMem.Length];
             mData = data;
-            mSampleCount = aLength / aChannels;
+            mSampleCount = (uint)aMem.Length / aChannels;
             mChannels = aChannels;
             mBaseSamplerate = aSamplerate;
-            for (uint i = 0; i < data.Length; i++)
+            for (int i = 0; i < data.Length; i++)
+            {
                 data[i] = (aMem[i] - 128) / (float)0x80;
+            }
             return SoLoudStatus.Ok;
         }
 
-        public SoLoudStatus loadRawWave16(short* aMem, uint aLength, float aSamplerate, uint aChannels)
+        public SoLoudStatus loadRawWave16(ReadOnlySpan<short> aMem, float aSamplerate, uint aChannels)
         {
-            if (aMem == null || aLength == 0 || aSamplerate <= 0 || aChannels < 1)
+            if (aMem.Length == 0 || aSamplerate <= 0 || aChannels < 1)
                 return SoLoudStatus.InvalidParameter;
 
             deleteData();
-            float[] data = new float[aLength];
+            float[] data = new float[aMem.Length];
             mData = data;
-            mSampleCount = aLength / aChannels;
+            mSampleCount = (uint)aMem.Length / aChannels;
             mChannels = aChannels;
             mBaseSamplerate = aSamplerate;
-            for (uint i = 0; i < data.Length; i++)
+            for (int i = 0; i < data.Length; i++)
+            {
                 data[i] = aMem[i] / (float)0x8000;
+            }
             return SoLoudStatus.Ok;
         }
 
-        public SoLoudStatus loadRawWave(float* aMem, uint aLength, float aSamplerate, uint aChannels, bool aTakeOwnership)
+        public SoLoudStatus loadRawWave(ReadOnlySpan<float> aMem, float aSamplerate, uint aChannels, bool aTakeOwnership)
         {
-            if (aMem == null || aLength == 0 || aSamplerate <= 0 || aChannels < 1)
+            if (aMem.Length == 0 || aSamplerate <= 0 || aChannels < 1)
                 return SoLoudStatus.InvalidParameter;
 
             deleteData();
             if (aTakeOwnership == false)
             {
-                mData = new float[aLength];
-                CRuntime.memcpy(mData, 0, aMem, sizeof(float) * aLength);
+                mData = aMem.ToArray();
             }
             else
             {
-                throw new System.NotImplementedException();
+                throw new NotImplementedException();
                 //mData = aMem;
             }
-            mSampleCount = aLength / aChannels;
+            mSampleCount = (uint)aMem.Length / aChannels;
             mChannels = aChannels;
             mBaseSamplerate = aSamplerate;
             return SoLoudStatus.Ok;

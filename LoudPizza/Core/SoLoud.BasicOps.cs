@@ -145,7 +145,7 @@ namespace LoudPizza
                     AudioSourceInstance? ch = getVoiceRefFromHandle_internal(h);
                     if (ch != null)
                     {
-                        SoLoudStatus singleres = ch.seek(aSamplePosition, mScratch.mData, mScratchSize);
+                        SoLoudStatus singleres = ch.seek(aSamplePosition, mScratch.AsSpan());
                         if (singleres != SoLoudStatus.Ok)
                             res = singleres;
                     }

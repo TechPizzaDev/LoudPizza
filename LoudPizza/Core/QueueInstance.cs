@@ -1,4 +1,5 @@
-﻿
+using System;
+
 namespace LoudPizza
 {
     public unsafe class QueueInstance : AudioSourceInstance
@@ -11,7 +12,7 @@ namespace LoudPizza
             mFlags |= Flags.Protected;
         }
 
-        public override uint getAudio(float* aBuffer, uint aSamplesToRead, uint aBufferSize)
+        public override uint getAudio(Span<float> aBuffer, uint aSamplesToRead, uint aBufferSize)
         {
             Queue parent = mParent;
             if (parent.mCount == 0)
@@ -24,7 +25,7 @@ namespace LoudPizza
             while (copycount != 0 && parent.mCount != 0)
             {
                 AudioSourceInstance source = parent.mSource[parent.mReadIndex]!;
-                uint readcount = source.getAudio(aBuffer + copyofs, copycount, aBufferSize);
+                uint readcount = source.getAudio(aBuffer.Slice((int)copyofs), copycount, aBufferSize);
                 copyofs += readcount;
                 copycount -= readcount;
                 if (source.hasEnded())
@@ -39,7 +40,7 @@ namespace LoudPizza
             return copyofs;
         }
 
-        public override unsafe SoLoudStatus seek(ulong aSamplePosition, float* mScratch, uint mScratchSize)
+        public override unsafe SoLoudStatus seek(ulong aSamplePosition, Span<float> mScratch)
         {
             return SoLoudStatus.NotImplemented;
         }

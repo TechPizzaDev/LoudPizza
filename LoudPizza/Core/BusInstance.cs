@@ -30,63 +30,66 @@ namespace LoudPizza
             mScratch.init(mScratchSize * SoLoud.MaxChannels);
         }
 
-        public override uint getAudio(float* aBuffer, uint aSamplesToRead, uint aBufferSize)
+        public override uint getAudio(Span<float> aBuffer, uint aSamplesToRead, uint aBufferSize)
         {
-            nuint i;
+            uint i;
 
             Handle handle = mParent.mChannelHandle;
             if (handle.Value == 0)
             {
                 // Avoid reuse of scratch data if this bus hasn't played anything yet
-                for (i = 0; i < aBufferSize * mChannels; i++)
-                    aBuffer[i] = 0;
+                Span<float> slice = aBuffer.Slice(0, (int)(aBufferSize * mChannels));
+                slice.Clear();
+
                 return aSamplesToRead;
             }
 
-            SoLoud s = mParent.mSoloud;
-            s.mixBus_internal(aBuffer, aSamplesToRead, aBufferSize, mScratch.mData, handle, mSamplerate, mChannels, mParent.mResampler);
-
-            if ((mParent.mFlags & AudioSource.Flags.VisualizationData) != 0)
+            fixed (float* aBufferPtr = aBuffer.Slice(0, (int)(aBufferSize * mChannels)))
             {
-                for (i = 0; i < SoLoud.MaxChannels; i++)
-                    mVisualizationChannelVolume[i] = 0;
+                SoLoud s = mParent.mSoloud;
+                s.mixBus_internal(aBufferPtr, aSamplesToRead, aBufferSize, mScratch.mData, handle, mSamplerate, mChannels, mParent.mResampler);
 
-                if (aSamplesToRead > 255)
+                if ((mParent.mFlags & AudioSource.Flags.VisualizationData) != 0)
                 {
-                    for (i = 0; i < 256; i++)
+                    for (i = 0; i < SoLoud.MaxChannels; i++)
+                        mVisualizationChannelVolume[i] = 0;
+
+                    if (aSamplesToRead > 255)
                     {
-                        mVisualizationWaveData[i] = 0;
-                        for (nuint j = 0; j < mChannels; j++)
+                        for (i = 0; i < 256; i++)
                         {
-                            float sample = aBuffer[i + aBufferSize * j];
-                            float absvol = MathF.Abs(sample);
-                            if (absvol > mVisualizationChannelVolume[j])
-                                mVisualizationChannelVolume[j] = absvol;
-                            mVisualizationWaveData[i] += sample;
+                            mVisualizationWaveData[i] = 0;
+                            for (uint j = 0; j < mChannels; j++)
+                            {
+                                float sample = aBufferPtr[i + aBufferSize * j]; float absvol = MathF.Abs(sample);
+                                if (absvol > mVisualizationChannelVolume[j])
+                                    mVisualizationChannelVolume[j] = absvol;
+                                mVisualizationWaveData[i] += sample;
+                            }
+                        }
+                    }
+                    else
+                    {
+                        // Very unlikely failsafe branch
+                        for (i = 0; i < 256; i++)
+                        {
+                            mVisualizationWaveData[i] = 0;
+                            for (uint j = 0; j < mChannels; j++)
+                            {
+                                float sample = aBufferPtr[(i % aSamplesToRead) + aBufferSize * j];
+                                float absvol = MathF.Abs(sample);
+                                if (absvol > mVisualizationChannelVolume[j])
+                                    mVisualizationChannelVolume[j] = absvol;
+                                mVisualizationWaveData[i] += sample;
+                            }
                         }
                     }
                 }
-                else
-                {
-                    // Very unlikely failsafe branch
-                    for (i = 0; i < 256; i++)
-                    {
-                        mVisualizationWaveData[i] = 0;
-                        for (nuint j = 0; j < mChannels; j++)
-                        {
-                            float sample = aBuffer[(i % aSamplesToRead) + aBufferSize * j];
-                            float absvol = MathF.Abs(sample);
-                            if (absvol > mVisualizationChannelVolume[j])
-                                mVisualizationChannelVolume[j] = absvol;
-                            mVisualizationWaveData[i] += sample;
-                        }
-                    }
-                }
+                return aSamplesToRead;
             }
-            return aSamplesToRead;
         }
 
-        public override SoLoudStatus seek(ulong aSamplePosition, float* mScratch, uint mScratchSize)
+        public override SoLoudStatus seek(ulong aSamplePosition, Span<float> mScratch)
         {
             return SoLoudStatus.NotImplemented;
         }

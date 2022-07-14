@@ -8,7 +8,7 @@ namespace LoudPizza
         /// Get samples from the stream to the buffer.
         /// </summary>
         /// <returns>The amount of samples written.</returns>
-        uint getAudio(float* aBuffer, uint aSamplesToRead, uint aBufferSize);
+        uint getAudio(Span<float> aBuffer, uint aSamplesToRead, uint aBufferSize);
 
         /// <summary>
         /// Get whether the has stream ended.
@@ -21,6 +21,6 @@ namespace LoudPizza
         /// <remarks>
         /// Base implementation is generic "tape" seek (and slow).
         /// </remarks>
-        SoLoudStatus seek(ulong aSamplePosition, float* mScratch, uint mScratchSize);
+        SoLoudStatus seek(ulong aSamplePosition, Span<float> mScratch);
     }
 }

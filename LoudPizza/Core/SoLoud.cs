@@ -117,7 +117,6 @@ namespace LoudPizza
 
             mResampler = DefaultResampler;
             mInsideAudioThreadMutex = false;
-            mScratchSize = 0;
             mSamplerate = 0;
             mBufferSize = 0;
             mFlags = 0;
@@ -456,7 +455,7 @@ namespace LoudPizza
             mChannels = aChannels;
             mSamplerate = aSamplerate;
             mBufferSize = aBufferSize;
-            mScratchSize = (aBufferSize + 15) & (~0xfu); // round to the next div by 16
+            uint mScratchSize = (aBufferSize + 15) & (~0xfu); // round to the next div by 16
             if (mScratchSize < SampleGranularity * 2)
                 mScratchSize = SampleGranularity * 2;
             if (mScratchSize < 4096)
@@ -630,7 +629,8 @@ namespace LoudPizza
         {
             Debug.Assert(mMaxActiveVoices < 256);
             byte* live = stackalloc byte[256];
-            CRuntime.memset(live, 0, mMaxActiveVoices);
+            new Span<byte>(live, (int)mMaxActiveVoices).Clear();
+
             uint i, j;
             for (i = 0; i < mMaxActiveVoices; i++)
             {
@@ -675,8 +675,8 @@ namespace LoudPizza
                         mResampleDataOwner[found] = foundInstance;
                         foundInstance.mResampleData0 = mResampleData[found * 2 + 0];
                         foundInstance.mResampleData1 = mResampleData[found * 2 + 1];
-                        foundInstance.mResampleData0.clear();
-                        foundInstance.mResampleData1.clear();
+                        foundInstance.mResampleData0.AsSpan().Clear();
+                        foundInstance.mResampleData1.AsSpan().Clear();
                         latestfree = found + 1;
                     }
                 }
@@ -692,13 +692,7 @@ namespace LoudPizza
         {
             nuint i, j;
             // Clear accumulation buffer
-            for (i = 0; i < aSamplesToRead; i++)
-            {
-                for (j = 0; j < aChannels; j++)
-                {
-                    aBuffer[i + j * aBufferSize] = 0;
-                }
-            }
+            new Span<float>(aBuffer, (int)(aSamplesToRead * aChannels)).Clear();
 
             // Accumulate sound sources		
             for (i = 0; i < mActiveVoiceCount; i++)
@@ -733,7 +727,7 @@ namespace LoudPizza
                         uint k;
                         for (k = 0; k < voice.mChannels; k++)
                         {
-                            CRuntime.memset(aScratch + k * aBufferSize, 0, sizeof(float) * outofs);
+                            new Span<float>(aScratch + k * aBufferSize, (int)outofs).Clear();
                         }
                     }
 
@@ -751,18 +745,18 @@ namespace LoudPizza
                             uint readcount = 0;
                             if (!voice.hasEnded() || (voice.mFlags & AudioSourceInstance.Flags.Looping) != 0)
                             {
-                                readcount = voice.getAudio(voice.mResampleData0.mData, SampleGranularity, SampleGranularity);
+                                readcount = voice.getAudio(voice.mResampleData0.AsSpan(), SampleGranularity, SampleGranularity);
                                 if (readcount < SampleGranularity)
                                 {
                                     if ((voice.mFlags & AudioSourceInstance.Flags.Looping) != 0)
                                     {
                                         while (
                                             readcount < SampleGranularity &&
-                                            voice.seek(voice.mLoopPoint, mScratch.mData, mScratchSize) == SoLoudStatus.Ok)
+                                            voice.seek(voice.mLoopPoint, mScratch.AsSpan()) == SoLoudStatus.Ok)
                                         {
                                             voice.mLoopCount++;
                                             uint inc = voice.getAudio(
-                                                voice.mResampleData0.mData + readcount,
+                                                voice.mResampleData0.AsSpan((int)readcount),
                                                 SampleGranularity - readcount,
                                                 SampleGranularity);
 
@@ -779,10 +773,11 @@ namespace LoudPizza
                             {
                                 uint k;
                                 for (k = 0; k < voice.mChannels; k++)
-                                    CRuntime.memset(
-                                        voice.mResampleData0.mData + readcount + SampleGranularity * k,
-                                        0,
-                                        sizeof(float) * (SampleGranularity - readcount));
+                                {
+                                    voice.mResampleData0.AsSpan(
+                                        (int)(readcount + SampleGranularity * k),
+                                        (int)(SampleGranularity - readcount)).Clear();
+                                }
                             }
 
                             // If we go past zero, crop to zero (a bit of a kludge)
@@ -942,21 +937,20 @@ namespace LoudPizza
 
                             // Get a block of source data
 
-                            uint readcount = 0;
                             if (!voice.hasEnded() || (voice.mFlags & AudioSourceInstance.Flags.Looping) != 0)
                             {
-                                readcount = voice.getAudio(voice.mResampleData0.mData, SampleGranularity, SampleGranularity);
+                                uint readcount = voice.getAudio(voice.mResampleData0.AsSpan(), SampleGranularity, SampleGranularity);
                                 if (readcount < SampleGranularity)
                                 {
                                     if ((voice.mFlags & AudioSourceInstance.Flags.Looping) != 0)
                                     {
                                         while (
                                             readcount < SampleGranularity &&
-                                            voice.seek(voice.mLoopPoint, mScratch.mData, mScratchSize) == SoLoudStatus.Ok)
+                                            voice.seek(voice.mLoopPoint, mScratch.AsSpan()) == SoLoudStatus.Ok)
                                         {
                                             voice.mLoopCount++;
                                             readcount += voice.getAudio(
-                                                voice.mResampleData0.mData + readcount,
+                                                voice.mResampleData0.AsSpan((int)readcount),
                                                 SampleGranularity - readcount,
                                                 SampleGranularity);
                                         }
@@ -1246,11 +1240,6 @@ namespace LoudPizza
         /// Scratch buffer, used for resampling.
         /// </summary>
         private AlignedFloatBuffer mScratch;
-
-        /// <summary>
-        /// Current size of the scratch, in samples.
-        /// </summary>
-        private uint mScratchSize;
 
         /// <summary>
         /// Output scratch buffer, used in mix_().

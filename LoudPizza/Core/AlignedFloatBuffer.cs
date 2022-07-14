@@ -46,12 +46,19 @@ namespace LoudPizza
             return SoLoudStatus.Ok;
         }
 
-        /// <summary>
-        /// Clear data to zero.
-        /// </summary>
-        public void clear()
+        public Span<float> AsSpan()
         {
-            CRuntime.memset(mData, 0, sizeof(float) * mFloats);
+            return new Span<float>(mData, (int)mFloats);
+        }
+
+        public Span<float> AsSpan(int start)
+        {
+            return AsSpan().Slice(start);
+        }
+
+        public Span<float> AsSpan(int start, int length)
+        {
+            return AsSpan().Slice(start, length);
         }
 
         public void destroy()

@@ -1,4 +1,5 @@
-﻿
+using System;
+
 namespace LoudPizza
 {
     public unsafe class AudioStreamInstance : AudioSourceInstance
@@ -213,7 +214,7 @@ namespace LoudPizza
         //    return samples;
         //}
 
-        public override uint getAudio(float* aBuffer, uint aSamplesToRead, uint aBufferSize)
+        public override uint getAudio(Span<float> aBuffer, uint aSamplesToRead, uint aBufferSize)
         {
             //uint offset = 0;
             //if (mFile == null)
@@ -319,9 +320,9 @@ namespace LoudPizza
             return mStream.getAudio(aBuffer, aSamplesToRead, aBufferSize);
         }
 
-        public override unsafe SoLoudStatus seek(ulong aSamplePosition, float* mScratch, uint mScratchSize)
+        public override unsafe SoLoudStatus seek(ulong aSamplePosition, Span<float> mScratch)
         {
-            return mStream.seek(aSamplePosition, mScratch, mScratchSize);
+            return mStream.seek(aSamplePosition, mScratch);
         }
 
         public override bool hasEnded()

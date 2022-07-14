@@ -13,7 +13,7 @@ namespace LoudPizza
             mOffset = 0;
         }
 
-        public override uint getAudio(float* aBuffer, uint aSamplesToRead, uint aBufferSize)
+        public override uint getAudio(Span<float> aBuffer, uint aSamplesToRead, uint aBufferSize)
         {
             if (mParent.mData == null)
                 return 0;
@@ -25,11 +25,11 @@ namespace LoudPizza
 
             for (uint i = 0; i < mChannels; i++)
             {
-                CRuntime.memcpy(
-                    aBuffer + i * aBufferSize,
-                    mParent.mData,
-                    sizeof(float) * (mOffset + i * mParent.mSampleCount),
-                    sizeof(float) * copylen);
+                int length = (int)(sizeof(float) * copylen);
+                Span<float> destination = aBuffer.Slice((int)(i * aBufferSize), length);
+                Span<float> source = mParent.mData.AsSpan((int)(mOffset + i * mParent.mSampleCount), length);
+
+                source.CopyTo(destination);
             }
 
             mOffset += copylen;
@@ -39,7 +39,7 @@ namespace LoudPizza
         /// <summary>
         /// Seek to certain place in the buffer.
         /// </summary>
-        public override SoLoudStatus seek(ulong aSamplePosition, float* mScratch, uint mScratchSize)
+        public override SoLoudStatus seek(ulong aSamplePosition, Span<float> mScratch)
         {
             long offset = (long)(aSamplePosition - mStreamPosition);
             if (offset <= 0)
