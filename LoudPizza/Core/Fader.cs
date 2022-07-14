@@ -42,14 +42,14 @@ namespace LoudPizza
         /// <summary>
         /// Active flag.
         /// </summary>
-        public ActiveFlags mActive;
+        public State mActive;
 
         /// <summary>
         /// Set up LFO.
         /// </summary>
         public void setLFO(float aFrom, float aTo, Time aTime, Time aStartTime)
         {
-            mActive = ActiveFlags.LFO;
+            mActive = State.LFO;
             mCurrent = 0;
             mFrom = aFrom;
             mTo = aTo;
@@ -73,7 +73,7 @@ namespace LoudPizza
             mStartTime = aStartTime;
             mDelta = aTo - aFrom;
             mEndTime = mStartTime + mTime;
-            mActive = ActiveFlags.Active;
+            mActive = State.Active;
         }
 
         /// <summary>
@@ -81,7 +81,7 @@ namespace LoudPizza
         /// </summary>
         public float get(Time aCurrentTime)
         {
-            if (mActive == ActiveFlags.LFO)
+            if (mActive == State.LFO)
             {
                 // LFO mode
                 if (mStartTime > aCurrentTime)
@@ -106,14 +106,14 @@ namespace LoudPizza
             }
             if (aCurrentTime > mEndTime)
             {
-                mActive = ActiveFlags.Inactive;
+                mActive = State.Inactive;
                 return mTo;
             }
             mCurrent = (float)(mFrom + mDelta * ((aCurrentTime - mStartTime) / mTime));
             return mCurrent;
         }
 
-        public enum ActiveFlags
+        public enum State
         {
             Inactive = -1,
             Disabled = 0,

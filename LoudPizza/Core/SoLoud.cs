@@ -338,22 +338,22 @@ namespace LoudPizza
                             voice.mActiveFader = 1;
                         }
 
-                        if (voice.mPauseScheduler.mActive != Fader.ActiveFlags.Disabled)
+                        if (voice.mPauseScheduler.mActive != Fader.State.Disabled)
                         {
                             voice.mPauseScheduler.get(voice.mStreamTime);
-                            if (voice.mPauseScheduler.mActive == Fader.ActiveFlags.Inactive)
+                            if (voice.mPauseScheduler.mActive == Fader.State.Inactive)
                             {
-                                voice.mPauseScheduler.mActive = Fader.ActiveFlags.Disabled;
+                                voice.mPauseScheduler.mActive = Fader.State.Disabled;
                                 setVoicePause_internal(i, true);
                             }
                         }
 
-                        if (voice.mStopScheduler.mActive != Fader.ActiveFlags.Disabled)
+                        if (voice.mStopScheduler.mActive != Fader.State.Disabled)
                         {
                             voice.mStopScheduler.get(voice.mStreamTime);
-                            if (voice.mStopScheduler.mActive == Fader.ActiveFlags.Inactive)
+                            if (voice.mStopScheduler.mActive == Fader.State.Inactive)
                             {
-                                voice.mStopScheduler.mActive = Fader.ActiveFlags.Disabled;
+                                voice.mStopScheduler.mActive = Fader.State.Disabled;
                                 stopVoice_internal(i);
                             }
                         }
