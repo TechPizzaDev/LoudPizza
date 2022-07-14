@@ -1046,7 +1046,7 @@ namespace LoudPizza
                     float pw = 0.9862875f;
                     Vector128<float> poswall = Vector128.Create(pw);
                     Vector128<float> postscale = Vector128.Create(mPostClipScaler);
-                    CRuntime.SkipInit(out TinyAlignedFloatBuffer volumes);
+                    Unsafe.SkipInit(out TinyAlignedFloatBuffer volumes);
                     float* volumeData = TinyAlignedFloatBuffer.align(volumes.mData);
                     volumeData[0] = v;
                     volumeData[1] = v + vd;
@@ -1105,7 +1105,7 @@ namespace LoudPizza
                     float pb = 1.0f;
                     Vector128<float> posbound = Vector128.Create(pb);
                     Vector128<float> postscale = Vector128.Create(mPostClipScaler);
-                    CRuntime.SkipInit(out TinyAlignedFloatBuffer volumes);
+                    Unsafe.SkipInit(out TinyAlignedFloatBuffer volumes);
                     float* volumeData = TinyAlignedFloatBuffer.align(volumes.mData);
                     volumeData[0] = v;
                     volumeData[1] = v + vd;
@@ -1642,13 +1642,13 @@ namespace LoudPizza
                                 //if ((aBufferSize & 3) == 0)
                                 {
                                     uint samplequads = aSamplesToRead / 4; // rounded down
-                                    CRuntime.SkipInit(out TinyAlignedFloatBuffer pan0);
+                                    Unsafe.SkipInit(out TinyAlignedFloatBuffer pan0);
                                     float* pan0Data = TinyAlignedFloatBuffer.align(pan0.mData);
                                     pan0Data[0] = pan[0] + pani[0];
                                     pan0Data[1] = pan[0] + pani[0] * 2;
                                     pan0Data[2] = pan[0] + pani[0] * 3;
                                     pan0Data[3] = pan[0] + pani[0] * 4;
-                                    CRuntime.SkipInit(out TinyAlignedFloatBuffer pan1);
+                                    Unsafe.SkipInit(out TinyAlignedFloatBuffer pan1);
                                     float* pan1Data = TinyAlignedFloatBuffer.align(pan1.mData);
                                     pan1Data[0] = pan[1] + pani[1];
                                     pan1Data[1] = pan[1] + pani[1] * 2;
@@ -1713,13 +1713,13 @@ namespace LoudPizza
                                 //if ((aBufferSize & 3) == 0)
                                 {
                                     uint samplequads = aSamplesToRead / 4; // rounded down
-                                    CRuntime.SkipInit(out TinyAlignedFloatBuffer pan0);
+                                    Unsafe.SkipInit(out TinyAlignedFloatBuffer pan0);
                                     float* pan0Data = TinyAlignedFloatBuffer.align(pan0.mData);
                                     pan0Data[0] = pan[0] + pani[0];
                                     pan0Data[1] = pan[0] + pani[0] * 2;
                                     pan0Data[2] = pan[0] + pani[0] * 3;
                                     pan0Data[3] = pan[0] + pani[0] * 4;
-                                    CRuntime.SkipInit(out TinyAlignedFloatBuffer pan1);
+                                    Unsafe.SkipInit(out TinyAlignedFloatBuffer pan1);
                                     float* pan1Data = TinyAlignedFloatBuffer.align(pan1.mData);
                                     pan1Data[0] = pan[1] + pani[1];
                                     pan1Data[1] = pan[1] + pani[1] * 2;

@@ -63,7 +63,7 @@ namespace LoudPizza
             Vector3 at = m3dAt;
             Vector3 up = m3dUp;
 
-            CRuntime.SkipInit(out Mat3 m);
+            Unsafe.SkipInit(out Mat3 m);
             if ((mFlags & Flags.LeftHanded3D) != 0)
             {
                 m.lookatLH(at, up);
