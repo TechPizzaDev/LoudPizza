@@ -159,7 +159,7 @@ namespace LoudPizza.Core
         /// <summary>
         /// Get voice loop point value.
         /// </summary>
-        public Time getLoopPoint(Handle aVoiceHandle)
+        public ulong getLoopPoint(Handle aVoiceHandle)
         {
             lock (mAudioThreadMutex)
             {
@@ -168,7 +168,7 @@ namespace LoudPizza.Core
                 {
                     return 0;
                 }
-                Time v = ch.mLoopPoint;
+                ulong v = ch.mLoopPoint;
                 return v;
             }
         }
