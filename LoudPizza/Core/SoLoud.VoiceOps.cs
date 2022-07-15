@@ -124,9 +124,9 @@ namespace LoudPizza.Core
 
                 for (uint i = 0; i < mMaxActiveVoices; i++)
                 {
-                    if (mResampleDataOwner[i] == v)
+                    if (mResampleDataOwners[i] == v)
                     {
-                        mResampleDataOwner[i] = null;
+                        mResampleDataOwners[i] = null;
                     }
                 }
 

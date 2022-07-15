@@ -67,7 +67,7 @@ namespace LoudPizza.Core
         //// DTor
         //~Soloud();
 
-        public enum Flags
+        private enum Flags
         {
             /// <summary>
             /// Use round-off clipper.
@@ -98,7 +98,7 @@ namespace LoudPizza.Core
         /// <summary>
         /// Initialize <see cref="SoLoud"/>. Must be called before <see cref="SoLoud"/> can be used.
         /// </summary>
-        public SoLoud(Flags aFlags = Flags.ClipRoundoff)
+        public SoLoud()
         {
             mAudioThreadMutex = new object();
 
@@ -151,7 +151,7 @@ namespace LoudPizza.Core
             mMaxActiveVoices = 16;
             mHighestVoice = 0;
             mResampleData = null!;
-            mResampleDataOwner = null!;
+            mResampleDataOwners = null!;
             for (i = 0; i < MaxChannels; i++)
                 m3dSpeakerPosition[i] = default;
         }
@@ -412,7 +412,7 @@ namespace LoudPizza.Core
             }
         }
 
-        public void initResampleData()
+        internal void initResampleData()
         {
             if (mResampleData != null)
             {
@@ -420,27 +420,27 @@ namespace LoudPizza.Core
                     mResampleData[i].destroy();
             }
 
-            if (mResampleDataOwner != null)
+            if (mResampleDataOwners != null)
             {
-                for (uint i = 0; i < mResampleDataOwner.Length; i++)
-                    mResampleDataOwner[i]?.Dispose();
+                for (uint i = 0; i < mResampleDataOwners.Length; i++)
+                    mResampleDataOwners[i]?.Dispose();
             }
 
             mResampleData = new AlignedFloatBuffer[mMaxActiveVoices * 2];
-            mResampleDataOwner = new AudioSourceInstance[mMaxActiveVoices];
+            mResampleDataOwners = new AudioSourceInstance[mMaxActiveVoices];
 
             //mResampleDataBuffer.init(mMaxActiveVoices * 2 * SAMPLE_GRANULARITY * MAX_CHANNELS);
 
             for (uint i = 0; i < mMaxActiveVoices * 2; i++)
                 mResampleData[i].init(SampleGranularity * MaxChannels);
             for (uint i = 0; i < mMaxActiveVoices; i++)
-                mResampleDataOwner[i] = null;
+                mResampleDataOwners[i] = null;
         }
 
         /// <summary>
         /// Handle rest of initialization (called from backend).
         /// </summary>
-        public void postinit_internal(uint aSamplerate, uint aBufferSize, Flags aFlags, uint aChannels)
+        public void postinit_internal(uint aSamplerate, uint aBufferSize, uint aChannels)
         {
             mGlobalVolume = 1;
             mChannels = aChannels;
@@ -454,7 +454,6 @@ namespace LoudPizza.Core
             mScratch.init(mScratchSize * MaxChannels);
             mOutputScratch.init(mScratchSize * MaxChannels);
             initResampleData();
-            mFlags = aFlags;
             mPostClipScaler = 0.95f;
             switch (mChannels)
             {
@@ -627,7 +626,7 @@ namespace LoudPizza.Core
             {
                 for (j = 0; j < mMaxActiveVoices; j++)
                 {
-                    if (mResampleDataOwner[i] != null && mResampleDataOwner[i] == mVoice[mActiveVoice[j]])
+                    if (mResampleDataOwners[i] != null && mResampleDataOwners[i] == mVoice[mActiveVoice[j]])
                     {
                         live[i] |= 1; // Live channel
                         live[j] |= 2; // Live voice
@@ -637,12 +636,12 @@ namespace LoudPizza.Core
 
             for (i = 0; i < mMaxActiveVoices; i++)
             {
-                AudioSourceInstance? owner = mResampleDataOwner[i];
+                AudioSourceInstance? owner = mResampleDataOwners[i];
                 if ((live[i] & 1) == 0 && owner != null) // For all dead channels with owners..
                 {
                     owner.mResampleData0.destroy();
                     owner.mResampleData1.destroy();
-                    mResampleDataOwner[i] = null;
+                    mResampleDataOwners[i] = null;
                 }
             }
 
@@ -657,13 +656,13 @@ namespace LoudPizza.Core
                         int found = -1;
                         for (j = (uint)latestfree; found == -1 && j < mMaxActiveVoices; j++)
                         {
-                            if (mResampleDataOwner[j] == null)
+                            if (mResampleDataOwners[j] == null)
                             {
                                 found = (int)j;
                             }
                         }
                         Debug.Assert(found != -1);
-                        mResampleDataOwner[found] = foundInstance;
+                        mResampleDataOwners[found] = foundInstance;
                         foundInstance.mResampleData0 = mResampleData[found * 2 + 0];
                         foundInstance.mResampleData1 = mResampleData[found * 2 + 1];
                         foundInstance.mResampleData0.AsSpan().Clear();
@@ -980,7 +979,7 @@ namespace LoudPizza.Core
         /// <summary>
         /// Clip the samples in the buffer.
         /// </summary>
-        public void clip_internal(
+        private void clip_internal(
             AlignedFloatBuffer aBuffer, AlignedFloatBuffer aDestBuffer, uint aSamples, float aVolume0, float aVolume1)
         {
 #if SSE_INTRINSICS
@@ -1195,7 +1194,7 @@ namespace LoudPizza.Core
         /// <summary>
         /// Highest voice in use so far.
         /// </summary>
-        public uint mHighestVoice;
+        internal uint mHighestVoice;
 
         /// <summary>
         /// Scratch buffer, used for resampling.
@@ -1218,12 +1217,12 @@ namespace LoudPizza.Core
         /// <summary>
         /// Owners of the resample data.
         /// </summary>
-        private AudioSourceInstance?[] mResampleDataOwner;
+        private AudioSourceInstance?[] mResampleDataOwners;
 
         /// <summary>
         /// Audio voices.
         /// </summary>
-        public AudioSourceInstance?[] mVoice = new AudioSourceInstance[MaxVoiceCount];
+        internal AudioSourceInstance?[] mVoice = new AudioSourceInstance[MaxVoiceCount];
 
         /// <summary>
         /// Resampler for the main bus.
@@ -1250,7 +1249,7 @@ namespace LoudPizza.Core
         /// </summary>
         private uint mBufferSize;
 
-        public Flags mFlags;
+        private Flags mFlags;
 
         /// <summary>
         /// Global volume. Applied before clipping.
@@ -1270,7 +1269,7 @@ namespace LoudPizza.Core
         /// <summary>
         /// Current sound source index. Used to create sound source IDs.
         /// </summary>
-        public uint mAudioSourceID;
+        internal uint mAudioSourceID;
 
         /// <summary>
         /// Fader for the global volume.
