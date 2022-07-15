@@ -305,7 +305,10 @@ namespace LoudPizza.Core
                         if (voice.mRelativePlaySpeedFader.mActive > 0)
                         {
                             float speed = voice.mRelativePlaySpeedFader.get(voice.mStreamTime);
-                            setVoiceRelativePlaySpeed_internal(i, speed);
+                            if (speed > 0)
+                            {
+                                setVoiceRelativePlaySpeed_internal(i, speed);
+                            }
                         }
 
                         float volume0, volume1;

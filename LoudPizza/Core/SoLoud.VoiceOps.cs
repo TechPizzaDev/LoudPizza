@@ -10,15 +10,11 @@ namespace LoudPizza.Core
         /// <summary>
         /// Set voice (not handle) relative play speed.
         /// </summary>
-        internal SoLoudStatus setVoiceRelativePlaySpeed_internal(uint aVoice, float aSpeed)
+        internal void setVoiceRelativePlaySpeed_internal(uint aVoice, float aSpeed)
         {
             Debug.Assert(aVoice < MaxVoiceCount);
+            Debug.Assert(aSpeed > 0);
             Debug.Assert(Monitor.IsEntered(mAudioThreadMutex));
-
-            if (aSpeed <= 0.0f)
-            {
-                return SoLoudStatus.InvalidParameter;
-            }
 
             AudioSourceInstance? voice = mVoice[aVoice];
             if (voice != null)
@@ -26,8 +22,6 @@ namespace LoudPizza.Core
                 voice.mSetRelativePlaySpeed = aSpeed;
                 updateVoiceRelativePlaySpeed_internal(aVoice);
             }
-
-            return SoLoudStatus.Ok;
         }
 
         /// <summary>

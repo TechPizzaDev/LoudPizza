@@ -36,10 +36,13 @@ namespace LoudPizza.Core
         /// </summary>
         public SoLoudStatus setRelativePlaySpeed(Handle aVoiceHandle, float aSpeed)
         {
+            if (!(aSpeed > 0))
+            {
+                return SoLoudStatus.InvalidParameter;
+            }
+
             lock (mAudioThreadMutex)
             {
-                SoLoudStatus retVal = 0;
-
                 ReadOnlySpan<Handle> h_ = VoiceGroupHandleToSpan(ref aVoiceHandle);
                 foreach (Handle h in h_)
                 {
@@ -47,11 +50,11 @@ namespace LoudPizza.Core
                     if (ch != -1)
                     {
                         mVoice[ch]!.mRelativePlaySpeedFader.mActive = 0;
-                        retVal = setVoiceRelativePlaySpeed_internal((uint)ch, aSpeed);
+                        setVoiceRelativePlaySpeed_internal((uint)ch, aSpeed);
                     }
                 }
 
-                return retVal;
+                return SoLoudStatus.Ok;
             }
         }
 
@@ -97,10 +100,15 @@ namespace LoudPizza.Core
         /// <summary>
         /// Set current maximum active voice setting.
         /// </summary>
-        public SoLoudStatus setMaxActiveVoiceCount(uint aVoiceCount)
+        /// <exception cref="ArgumentOutOfRangeException">
+        /// <paramref name="aVoiceCount"/> exceeds the technical maximum amount.
+        /// </exception>
+        public void setMaxActiveVoiceCount(uint aVoiceCount)
         {
             if (aVoiceCount == 0 || aVoiceCount >= MaxVoiceCount)
-                return SoLoudStatus.InvalidParameter;
+            {
+                throw new ArgumentOutOfRangeException(nameof(aVoiceCount));
+            }
 
             lock (mAudioThreadMutex)
             {
@@ -108,7 +116,6 @@ namespace LoudPizza.Core
                 initResampleData();
                 mActiveVoiceDirty = true;
             }
-            return SoLoudStatus.Ok;
         }
 
         /// <summary>
@@ -393,13 +400,15 @@ namespace LoudPizza.Core
         /// <summary>
         /// Set speaker position in 3D space.
         /// </summary>
-        public SoLoudStatus setSpeakerPosition(uint aChannel, Vector3 aPosition)
+        /// <exception cref="ArgumentOutOfRangeException"><paramref name="aChannel"/> exceeds the amount of channels.</exception>
+        public void setSpeakerPosition(uint aChannel, Vector3 aPosition)
         {
             if (aChannel >= mChannels)
-                return SoLoudStatus.InvalidParameter;
+            {
+                throw new ArgumentOutOfRangeException(nameof(aChannel));
+            }
 
             m3dSpeakerPosition[aChannel] = aPosition;
-            return SoLoudStatus.Ok;
         }
     }
 }

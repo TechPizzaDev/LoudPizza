@@ -59,13 +59,6 @@ namespace LoudPizza.Core
         /// </summary>
         public void fadeVolume(Handle aVoiceHandle, float aTo, Time aTime)
         {
-            float from = getVolume(aVoiceHandle);
-            if (aTime <= 0 || aTo == from)
-            {
-                setVolume(aVoiceHandle, aTo);
-                return;
-            }
-
             lock (mAudioThreadMutex)
             {
                 ReadOnlySpan<Handle> h_ = VoiceGroupHandleToSpan(ref aVoiceHandle);
@@ -74,7 +67,7 @@ namespace LoudPizza.Core
                     AudioSourceInstance? ch = getVoiceRefFromHandle_internal(h);
                     if (ch != null)
                     {
-                        ch.mVolumeFader.set(from, aTo, aTime, ch.mStreamTime);
+                        ch.mVolumeFader.set(ch.mSetVolume, aTo, aTime, ch.mStreamTime);
                     }
                 }
             }
@@ -85,13 +78,6 @@ namespace LoudPizza.Core
         /// </summary>
         public void fadePan(Handle aVoiceHandle, float aTo, Time aTime)
         {
-            float from = getPan(aVoiceHandle);
-            if (aTime <= 0 || aTo == from)
-            {
-                setPan(aVoiceHandle, aTo);
-                return;
-            }
-
             lock (mAudioThreadMutex)
             {
                 ReadOnlySpan<Handle> h_ = VoiceGroupHandleToSpan(ref aVoiceHandle);
@@ -100,7 +86,7 @@ namespace LoudPizza.Core
                     AudioSourceInstance? ch = getVoiceRefFromHandle_internal(h);
                     if (ch != null)
                     {
-                        ch.mPanFader.set(from, aTo, aTime, ch.mStreamTime);
+                        ch.mPanFader.set(ch.mPan, aTo, aTime, ch.mStreamTime);
                     }
                 }
             }
@@ -111,13 +97,6 @@ namespace LoudPizza.Core
         /// </summary>
         public void fadeRelativePlaySpeed(Handle aVoiceHandle, float aTo, Time aTime)
         {
-            float from = getRelativePlaySpeed(aVoiceHandle);
-            if (aTime <= 0 || aTo == from)
-            {
-                setRelativePlaySpeed(aVoiceHandle, aTo);
-                return;
-            }
-
             lock (mAudioThreadMutex)
             {
                 ReadOnlySpan<Handle> h_ = VoiceGroupHandleToSpan(ref aVoiceHandle);
@@ -126,7 +105,7 @@ namespace LoudPizza.Core
                     AudioSourceInstance? ch = getVoiceRefFromHandle_internal(h);
                     if (ch != null)
                     {
-                        ch.mRelativePlaySpeedFader.set(from, aTo, aTime, ch.mStreamTime);
+                        ch.mRelativePlaySpeedFader.set(ch.mSetRelativePlaySpeed, aTo, aTime, ch.mStreamTime);
                     }
                 }
             }

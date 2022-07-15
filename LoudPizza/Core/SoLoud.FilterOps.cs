@@ -7,10 +7,13 @@ namespace LoudPizza.Core
         /// <summary>
         /// Set global filters. Set to <see langword="null"/> to clear the filter.
         /// </summary>
+        /// <exception cref="ArgumentOutOfRangeException"><paramref name="aFilterId"/> is invalid.</exception>
         public void setGlobalFilter(uint aFilterId, Filter? aFilter)
         {
             if (aFilterId >= FiltersPerStream)
-                return;
+            {
+                throw new ArgumentOutOfRangeException(nameof(aFilterId));
+            }
 
             lock (mAudioThreadMutex)
             {
@@ -28,10 +31,13 @@ namespace LoudPizza.Core
         /// <summary>
         /// Get a live filter parameter. Use 0 for the global filters.
         /// </summary>
+        /// <exception cref="ArgumentOutOfRangeException"><paramref name="aFilterId"/> is invalid.</exception>
         public float getFilterParameter(Handle aVoiceHandle, uint aFilterId, uint aAttributeId)
         {
             if (aFilterId >= FiltersPerStream)
-                return (int)SoLoudStatus.InvalidParameter;
+            {
+                throw new ArgumentOutOfRangeException(nameof(aFilterId));
+            }
 
             lock (mAudioThreadMutex)
             {
@@ -62,10 +68,13 @@ namespace LoudPizza.Core
         /// <summary>
         /// Set a live filter parameter. Use 0 for the global filters.
         /// </summary>
+        /// <exception cref="ArgumentOutOfRangeException"><paramref name="aFilterId"/> is invalid.</exception>
         public void setFilterParameter(Handle aVoiceHandle, uint aFilterId, uint aAttributeId, float aValue)
         {
             if (aFilterId >= FiltersPerStream)
-                return;
+            {
+                throw new ArgumentOutOfRangeException(nameof(aFilterId));
+            }
 
             lock (mAudioThreadMutex)
             {
@@ -98,10 +107,14 @@ namespace LoudPizza.Core
         /// <summary>
         /// Fade a live filter parameter. Use 0 for the global filters.
         /// </summary>
-        public void fadeFilterParameter(Handle aVoiceHandle, uint aFilterId, uint aAttributeId, float aTo, double aTime)
+        /// <exception cref="ArgumentOutOfRangeException"><paramref name="aFilterId"/> is invalid.</exception>
+        public void fadeFilterParameter(
+            Handle aVoiceHandle, uint aFilterId, uint aAttributeId, float aTo, Time aTime)
         {
             if (aFilterId >= FiltersPerStream)
-                return;
+            {
+                throw new ArgumentOutOfRangeException(nameof(aFilterId));
+            }
 
             lock (mAudioThreadMutex)
             {
@@ -124,7 +137,7 @@ namespace LoudPizza.Core
                         FilterInstance? filterInstance = ch.mFilter[aFilterId];
                         if (filterInstance != null)
                         {
-                            filterInstance.fadeFilterParameter(aAttributeId, aTo, aTime, mStreamTime);
+                            filterInstance.fadeFilterParameter(aAttributeId, aTo, aTime, ch.mStreamTime);
                         }
                     }
                 }
@@ -134,10 +147,14 @@ namespace LoudPizza.Core
         /// <summary>
         /// Oscillate a live filter parameter. Use 0 for the global filters.
         /// </summary>
-        public void oscillateFilterParameter(Handle aVoiceHandle, uint aFilterId, uint aAttributeId, float aFrom, float aTo, double aTime)
+        /// <exception cref="ArgumentOutOfRangeException"><paramref name="aFilterId"/> is invalid.</exception>
+        public void oscillateFilterParameter(
+            Handle aVoiceHandle, uint aFilterId, uint aAttributeId, float aFrom, float aTo, Time aTime)
         {
             if (aFilterId >= FiltersPerStream)
-                return;
+            {
+                throw new ArgumentOutOfRangeException(nameof(aFilterId));
+            }
 
             lock (mAudioThreadMutex)
             {
@@ -160,7 +177,7 @@ namespace LoudPizza.Core
                         FilterInstance? filterInstance = ch.mFilter[aFilterId];
                         if (filterInstance != null)
                         {
-                            filterInstance.oscillateFilterParameter(aAttributeId, aFrom, aTo, aTime, mStreamTime);
+                            filterInstance.oscillateFilterParameter(aAttributeId, aFrom, aTo, aTime, ch.mStreamTime);
                         }
                     }
                 }

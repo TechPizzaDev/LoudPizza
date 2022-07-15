@@ -75,7 +75,7 @@ namespace LoudPizza.Core
         }
 
         /// <summary>
-        /// Converts handle to voice, if the handle is valid. Returns -1 if not.
+        /// Converts handle to voice, if the handle is valid. Returns <see langword="null"/> if not.
         /// </summary>
         internal AudioSourceInstance? getVoiceRefFromHandle_internal(Handle aVoiceHandle)
         {
@@ -484,16 +484,16 @@ namespace LoudPizza.Core
         /// <summary>
         /// Get speaker position in 3D space.
         /// </summary>
-        public SoLoudStatus getSpeakerPosition(uint aChannel, out Vector3 aPosition)
+        /// <exception cref="ArgumentOutOfRangeException"><paramref name="aChannel"/> exceeds the amount of channels.</exception>
+        public void getSpeakerPosition(uint aChannel, out Vector3 aPosition)
         {
             if (aChannel >= mChannels)
             {
-                aPosition = default;
-                return SoLoudStatus.InvalidParameter;
+                throw new ArgumentOutOfRangeException(nameof(aChannel));
             }
+
             Vector3 position = m3dSpeakerPosition[aChannel];
             aPosition = position;
-            return SoLoudStatus.Ok;
         }
     }
 }
