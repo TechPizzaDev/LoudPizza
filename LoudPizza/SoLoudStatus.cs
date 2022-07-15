@@ -1,5 +1,5 @@
 
-namespace LoudPizza.Core
+namespace LoudPizza
 {
     public enum SoLoudStatus
     {
