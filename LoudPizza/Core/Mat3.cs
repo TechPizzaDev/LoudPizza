@@ -22,8 +22,8 @@ namespace LoudPizza
 
         public void lookatRH(Vector3 at, Vector3 up)
         {
-            Vector3 z = Vector3.Normalize(at);
-            Vector3 x = Vector3.Normalize(Vector3.Cross(up, z));
+            Vector3 z = Vector3Extensions.SafeNormalize(at);
+            Vector3 x = Vector3Extensions.SafeNormalize(Vector3.Cross(up, z));
             Vector3 y = Vector3.Cross(z, x);
             M0 = x;
             M1 = y;
@@ -32,8 +32,8 @@ namespace LoudPizza
 
         public void lookatLH(Vector3 at, Vector3 up)
         {
-            Vector3 z = Vector3.Normalize(at);
-            Vector3 x = Vector3.Normalize(Vector3.Cross(up, z));
+            Vector3 z = Vector3Extensions.SafeNormalize(at);
+            Vector3 x = Vector3Extensions.SafeNormalize(Vector3.Cross(up, z));
             Vector3 y = Vector3.Cross(z, x);
             x = Vector3.Negate(x); // flip x
             M0 = x;

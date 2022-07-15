@@ -51,7 +51,7 @@ namespace LoudPizza
             int i;
             for (i = 0; i < mChannels; i++)
             {
-                speaker[i] = Vector3.Normalize(m3dSpeakerPosition[i]);
+                speaker[i] = Vector3Extensions.SafeNormalize(m3dSpeakerPosition[i]);
             }
             for (; i < MaxChannels; i++)
             {
@@ -108,7 +108,7 @@ namespace LoudPizza
                 v.mDopplerValue = doppler(pos, vel, lvel, v.m3dDopplerFactor, m3dSoundSpeed);
 
                 // panning
-                pos = Vector3.Normalize(m.mul(pos));
+                pos = Vector3Extensions.SafeNormalize(m.mul(pos));
 
                 // Apply volume to channels based on speaker vectors
                 int j;
