@@ -40,7 +40,7 @@ namespace LoudPizza
 
         public override string ToString()
         {
-            return Value.ToString("x");
+            return $"0x{Value:x}";
         }
 
         private string GetDebuggerDisplay()

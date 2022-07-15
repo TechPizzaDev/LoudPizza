@@ -2,6 +2,7 @@ using System;
 using System.Diagnostics;
 using System.Numerics;
 using System.Runtime.CompilerServices;
+using System.Threading;
 #if SSE_INTRINSICS
 using System.Runtime.Intrinsics;
 using System.Runtime.Intrinsics.X86;
@@ -54,11 +55,6 @@ namespace LoudPizza
         /// Pointer for the audio thread mutex.
         /// </summary>
         internal readonly object mAudioThreadMutex = new();
-
-        /// <summary>
-        /// Flag for when we're inside the mutex, used for debugging.
-        /// </summary>
-        private bool mInsideAudioThreadMutex;
 
         /// <summary>
         /// Called by <see cref="SoLoud"/> to shut down the back-end. 
@@ -116,7 +112,6 @@ namespace LoudPizza
             mBackendString = null;
 
             mResampler = DefaultResampler;
-            mInsideAudioThreadMutex = false;
             mSamplerate = 0;
             mBufferSize = 0;
             mFlags = 0;
@@ -173,7 +168,7 @@ namespace LoudPizza
         /// </summary>
         public void deinit()
         {
-            Debug.Assert(!mInsideAudioThreadMutex);
+            Debug.Assert(!Monitor.IsEntered(mAudioThreadMutex));
 
             stopAll();
 

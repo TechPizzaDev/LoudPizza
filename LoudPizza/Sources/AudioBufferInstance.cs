@@ -22,10 +22,10 @@ namespace LoudPizza
             uint copylen = dataleft;
             if (copylen > aSamplesToRead)
                 copylen = aSamplesToRead;
+            int length = (int)copylen;
 
             for (uint i = 0; i < mChannels; i++)
             {
-                int length = (int)(sizeof(float) * copylen);
                 Span<float> destination = aBuffer.Slice((int)(i * aBufferSize), length);
                 Span<float> source = mParent.mData.AsSpan((int)(mOffset + i * mParent.mSampleCount), length);
 
