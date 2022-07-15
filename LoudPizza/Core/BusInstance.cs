@@ -47,7 +47,8 @@ namespace LoudPizza.Core
             fixed (float* aBufferPtr = aBuffer.Slice(0, (int)(aBufferSize * mChannels)))
             {
                 SoLoud s = mParent.mSoloud;
-                s.mixBus_internal(aBufferPtr, aSamplesToRead, aBufferSize, mScratch.mData, handle, mSamplerate, mChannels, mParent.mResampler);
+                s.mixBus_internal(
+                    aBufferPtr, aSamplesToRead, aBufferSize, mScratch.mData, handle, mSamplerate, mChannels, mParent.getResampler());
 
                 if ((mParent.mFlags & AudioSource.Flags.VisualizationData) != 0)
                 {

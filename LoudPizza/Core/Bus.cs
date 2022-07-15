@@ -8,7 +8,7 @@ namespace LoudPizza.Core
     {
         public BusInstance? mInstance;
         public Handle mChannelHandle;
-        public SoLoud.Resampler mResampler;
+        private AudioResampler mResampler;
 
         public Bus()
         {
@@ -297,7 +297,7 @@ namespace LoudPizza.Core
         /// <summary>
         /// Get current the resampler for this bus.
         /// </summary>
-        public SoLoud.Resampler getResampler()
+        public AudioResampler getResampler()
         {
             return mResampler;
         }
@@ -305,11 +305,9 @@ namespace LoudPizza.Core
         /// <summary>
         /// Set the resampler for this bus.
         /// </summary>
-        /// <param name="aResampler"></param>
-        public void setResampler(SoLoud.Resampler aResampler)
+        public void setResampler(AudioResampler aResampler)
         {
-            if (aResampler <= SoLoud.Resampler.CatmullRom)
-                mResampler = aResampler;
+            mResampler = aResampler ?? throw new ArgumentNullException(nameof(aResampler));
         }
 
         // FFT output data

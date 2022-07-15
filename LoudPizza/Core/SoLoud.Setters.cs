@@ -17,10 +17,9 @@ namespace LoudPizza.Core
         /// <summary>
         /// Set the main resampler.
         /// </summary>
-        public void setMainResampler(Resampler aResampler)
+        public void setMainResampler(AudioResampler aResampler)
         {
-            if (aResampler <= Resampler.CatmullRom)
-                mResampler = aResampler;
+            mResampler = aResampler ?? throw new ArgumentNullException(nameof(aResampler));
         }
 
         /// <summary>

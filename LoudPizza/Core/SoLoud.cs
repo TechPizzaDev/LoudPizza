@@ -44,7 +44,7 @@ namespace LoudPizza.Core
         /// <summary>
         /// Default resampler for both main and bus mixers.
         /// </summary>
-        public const Resampler DefaultResampler = Resampler.Linear;
+        public static AudioResampler DefaultResampler { get; } = LinearAudioResampler.Instance;
 
         /// <summary>
         /// Back-end data; content is up to the back-end implementation.
@@ -93,13 +93,6 @@ namespace LoudPizza.Core
             Humps,
             FSquare,
             FSaw,
-        }
-
-        public enum Resampler
-        {
-            Point,
-            Linear,
-            CatmullRom,
         }
 
         /// <summary>
@@ -683,7 +676,7 @@ namespace LoudPizza.Core
         /// </summary>
         internal void mixBus_internal(
             float* aBuffer, uint aSamplesToRead, uint aBufferSize, float* aScratch,
-            Handle aBus, float aSamplerate, uint aChannels, Resampler aResampler)
+            Handle aBus, float aSamplerate, uint aChannels, AudioResampler aResampler)
         {
             nuint i, j;
             // Clear accumulation buffer
@@ -836,45 +829,15 @@ namespace LoudPizza.Core
                         {
                             for (j = 0; j < voice.mChannels; j++)
                             {
-                                switch (aResampler)
-                                {
-                                    case Resampler.Point:
-                                        resample_point(
-                                            voice.mResampleData0.mData + SampleGranularity * j,
-                                            voice.mResampleData1.mData + SampleGranularity * j,
-                                            aScratch + aBufferSize * j + outofs,
-                                            (int)voice.mSrcOffset,
-                                            (int)writesamples,
-                                            /*voice.mSamplerate,
-                                            aSamplerate,*/
-                                            (int)step_fixed);
-                                        break;
-
-                                    case Resampler.CatmullRom:
-                                        resample_catmullrom(
-                                            voice.mResampleData0.mData + SampleGranularity * j,
-                                            voice.mResampleData1.mData + SampleGranularity * j,
-                                            aScratch + aBufferSize * j + outofs,
-                                            (int)voice.mSrcOffset,
-                                            (int)writesamples,
-                                            /*voice.mSamplerate,
-                                            aSamplerate,*/
-                                            (int)step_fixed);
-                                        break;
-
-                                    default:
-                                        //case RESAMPLER.RESAMPLER_LINEAR:
-                                        resample_linear(
-                                            voice.mResampleData0.mData + SampleGranularity * j,
-                                            voice.mResampleData1.mData + SampleGranularity * j,
-                                            aScratch + aBufferSize * j + outofs,
-                                            (int)voice.mSrcOffset,
-                                            (int)writesamples,
-                                            /*voice.mSamplerate,
-                                            aSamplerate,*/
-                                            (int)step_fixed);
-                                        break;
-                                }
+                                aResampler.resample(
+                                    voice.mResampleData0.mData + SampleGranularity * j,
+                                    voice.mResampleData1.mData + SampleGranularity * j,
+                                    aScratch + aBufferSize * j + outofs,
+                                    (int)voice.mSrcOffset,
+                                    (int)writesamples,
+                                    /*voice.mSamplerate,
+                                    aSamplerate,*/
+                                    (int)step_fixed);
                             }
                         }
 
@@ -1262,7 +1225,7 @@ namespace LoudPizza.Core
         /// <summary>
         /// Resampler for the main bus.
         /// </summary>
-        private Resampler mResampler;
+        private AudioResampler mResampler;
 
         /// <summary>
         /// Output sample rate (not float).
@@ -1446,7 +1409,7 @@ namespace LoudPizza.Core
                 );
         }
 
-        private static void resample_catmullrom(float* aSrc,
+        internal static void resample_catmullrom(float* aSrc,
             float* aSrc1,
             float* aDst,
             int aSrcOffset,
@@ -1496,7 +1459,7 @@ namespace LoudPizza.Core
             }
         }
 
-        private static void resample_linear(float* aSrc,
+        internal static void resample_linear(float* aSrc,
             float* aSrc1,
             float* aDst,
             int aSrcOffset,
@@ -1527,7 +1490,7 @@ namespace LoudPizza.Core
             }
         }
 
-        private static void resample_point(float* aSrc,
+        internal static void resample_point(float* aSrc,
             float* aSrc1,
             float* aDst,
             int aSrcOffset,

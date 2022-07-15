@@ -25,7 +25,7 @@ namespace LoudPizza.Core
         /// <summary>
         /// Get the current main resampler.
         /// </summary>
-        public Resampler getMainResampler()
+        public AudioResampler getMainResampler()
         {
             return mResampler;
         }
