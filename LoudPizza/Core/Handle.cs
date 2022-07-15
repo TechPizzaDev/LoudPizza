@@ -1,7 +1,7 @@
 using System;
 using System.Diagnostics;
 
-namespace LoudPizza
+namespace LoudPizza.Core
 {
     [DebuggerDisplay("{" + nameof(GetDebuggerDisplay) + "(),nq}")]
     public readonly struct Handle : IEquatable<Handle>

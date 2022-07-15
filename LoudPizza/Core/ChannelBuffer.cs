@@ -1,6 +1,6 @@
 using System.Runtime.CompilerServices;
 
-namespace LoudPizza
+namespace LoudPizza.Core
 {
     public unsafe struct ChannelBuffer
     {

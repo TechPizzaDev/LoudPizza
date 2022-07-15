@@ -1,4 +1,4 @@
-namespace LoudPizza
+namespace LoudPizza.Core
 {
     /// <summary>
     /// Handles small aligned buffer to support vectorized operations.
@@ -11,7 +11,7 @@ namespace LoudPizza
 
         public static float* align(byte* basePtr)
         {
-            return (float*)(((long)basePtr + 15) & ~15);
+            return (float*)((long)basePtr + 15 & ~15);
         }
     }
 }

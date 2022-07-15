@@ -1,6 +1,7 @@
 using System;
+using LoudPizza.Core;
 
-namespace LoudPizza
+namespace LoudPizza.Sources
 {
     public unsafe class AudioStreamInstance : AudioSourceInstance
     {

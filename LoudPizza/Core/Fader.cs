@@ -1,6 +1,6 @@
 using System;
 
-namespace LoudPizza
+namespace LoudPizza.Core
 {
     public struct Fader
     {
@@ -85,10 +85,8 @@ namespace LoudPizza
             {
                 // LFO mode
                 if (mStartTime > aCurrentTime)
-                {
                     // Time rolled over.
                     mStartTime = aCurrentTime;
-                }
                 double t = aCurrentTime - mStartTime;
                 return (float)(Math.Sin(t * mEndTime) * mDelta + (mFrom + mDelta));
 

@@ -1,7 +1,7 @@
 using System;
 using System.Runtime.InteropServices;
 
-namespace LoudPizza
+namespace LoudPizza.Core
 {
     /// <summary>
     /// Handles aligned allocations to support vectorized operations.

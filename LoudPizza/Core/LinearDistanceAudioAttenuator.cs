@@ -1,5 +1,5 @@
 
-namespace LoudPizza
+namespace LoudPizza.Core
 {
     /// <summary>
     /// Linear distance attenuation model.

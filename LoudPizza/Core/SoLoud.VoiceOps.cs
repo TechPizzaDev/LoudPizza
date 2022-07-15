@@ -2,7 +2,7 @@ using System;
 using System.Diagnostics;
 using System.Threading;
 
-namespace LoudPizza
+namespace LoudPizza.Core
 {
     // Direct voice operations (no mutexes - called from other functions)
     public unsafe partial class SoLoud

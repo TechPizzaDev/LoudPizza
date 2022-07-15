@@ -5,7 +5,7 @@
 
 using System;
 
-namespace LoudPizza
+namespace LoudPizza.Core
 {
     /// <summary>
     /// Based on <see href="http://www.kurims.kyoto-u.ac.jp/~ooura/fft.html"/>.

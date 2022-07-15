@@ -1,6 +1,6 @@
-﻿using System;
+using System;
 
-namespace LoudPizza
+namespace LoudPizza.Core
 {
     public abstract unsafe class FilterInstance : IDisposable
     {
@@ -45,7 +45,7 @@ namespace LoudPizza
         }
 
         public abstract void filterChannel(float* aBuffer, uint aSamples, float aSamplerate, Time aTime, uint aChannel, uint aChannels);
-        
+
         public virtual float getFilterParameter(uint aAttributeId)
         {
             if (aAttributeId >= mNumParams)
@@ -53,7 +53,7 @@ namespace LoudPizza
 
             return mParam[aAttributeId];
         }
-        
+
         public virtual void setFilterParameter(uint aAttributeId, float aValue)
         {
             if (aAttributeId >= mNumParams)
@@ -63,7 +63,7 @@ namespace LoudPizza
             mParam[aAttributeId] = aValue;
             mParamChanged |= 1u << (int)aAttributeId;
         }
-        
+
         public virtual void fadeFilterParameter(uint aAttributeId, float aTo, Time aTime, Time aStartTime)
         {
             if (aAttributeId >= mNumParams || aTime <= 0 || aTo == mParam[aAttributeId])

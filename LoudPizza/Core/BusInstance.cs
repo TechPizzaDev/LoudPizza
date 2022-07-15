@@ -1,6 +1,6 @@
 using System;
 
-namespace LoudPizza
+namespace LoudPizza.Core
 {
     public unsafe class BusInstance : AudioSourceInstance
     {

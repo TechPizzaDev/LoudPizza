@@ -1,7 +1,7 @@
 using System;
 using System.Numerics;
 
-namespace LoudPizza
+namespace LoudPizza.Core
 {
     // Getters - return information about SoLoud state
     public unsafe partial class SoLoud

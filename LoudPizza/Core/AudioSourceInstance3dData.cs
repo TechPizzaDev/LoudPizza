@@ -1,6 +1,6 @@
 using System.Numerics;
 
-namespace LoudPizza
+namespace LoudPizza.Core
 {
     public struct AudioSourceInstance3dData
     {

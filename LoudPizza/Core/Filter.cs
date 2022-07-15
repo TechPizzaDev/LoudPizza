@@ -1,5 +1,5 @@
 
-namespace LoudPizza
+namespace LoudPizza.Core
 {
     public abstract class Filter
     {

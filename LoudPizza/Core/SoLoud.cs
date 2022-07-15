@@ -8,7 +8,7 @@ using System.Runtime.Intrinsics;
 using System.Runtime.Intrinsics.X86;
 #endif
 
-namespace LoudPizza
+namespace LoudPizza.Core
 {
     public delegate void mutexCallFunction(object aMutexPtr);
     public delegate void soloudCallFunction(SoLoud aSoloud);

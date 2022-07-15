@@ -1,6 +1,7 @@
 using System;
+using LoudPizza.Core;
 
-namespace LoudPizza
+namespace LoudPizza.Sources
 {
     public unsafe class AudioBuffer : AudioSource
     {
@@ -64,9 +65,7 @@ namespace LoudPizza
 
             deleteData();
             if (aTakeOwnership == false)
-            {
                 mData = aMem.ToArray();
-            }
             else
             {
                 throw new NotImplementedException();

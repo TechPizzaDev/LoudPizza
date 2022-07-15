@@ -1,5 +1,5 @@
 
-namespace LoudPizza
+namespace LoudPizza.Core
 {
     public class Queue : AudioSource
     {

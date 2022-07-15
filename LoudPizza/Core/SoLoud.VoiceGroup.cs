@@ -1,7 +1,7 @@
 using System;
 using System.Runtime.InteropServices;
 
-namespace LoudPizza
+namespace LoudPizza.Core
 {
     // Voice group operations
     public unsafe partial class SoLoud

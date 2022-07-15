@@ -1,7 +1,7 @@
 using System;
 using System.Numerics;
 
-namespace LoudPizza
+namespace LoudPizza.Core
 {
     // Setters - set various bits of SoLoud state
     public unsafe partial class SoLoud

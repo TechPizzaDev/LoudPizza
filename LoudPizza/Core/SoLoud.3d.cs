@@ -2,7 +2,7 @@ using System;
 using System.Numerics;
 using System.Runtime.CompilerServices;
 
-namespace LoudPizza
+namespace LoudPizza.Core
 {
     public unsafe partial class SoLoud
     {
