@@ -127,16 +127,8 @@ namespace LoudPizza.Core
                 mFilter[i] = null;
                 mFilterInstance[i] = null;
             }
-            for (i = 0; i < 256; i++)
-            {
-                //mFFTData[i] = 0;
-                mVisualizationWaveData[i] = 0;
-                //mWaveData[i] = 0;
-            }
-            for (i = 0; i < MaxChannels; i++)
-            {
-                mVisualizationChannelVolume[i] = 0;
-            }
+            mVisualizationWaveData = default;
+            mVisualizationChannelVolume = default;
             for (i = 0; i < MaxVoiceCount; i++)
             {
                 mVoice[i] = null;
@@ -169,7 +161,9 @@ namespace LoudPizza.Core
             mBackendCleanupFunc = null;
         }
 
-        // Translate error number to an asciiz string
+        /// <summary>
+        /// Translate error number to an asciiz string
+        /// </summary>
         public string getErrorString(SoLoudStatus aErrorCode)
         {
             switch (aErrorCode)
@@ -194,7 +188,12 @@ namespace LoudPizza.Core
             }
         }
 
-        // Calculate and get 256 floats of FFT data for visualization. Visualization has to be enabled before use.
+        /// <summary>
+        /// Calculate and get 256 floats of FFT data for visualization.
+        /// </summary>
+        /// <remarks>
+        /// Visualization has to be enabled before use.
+        /// </remarks>
         [SkipLocalsInit]
         public void calcFFT(out Buffer256 buffer)
         {
@@ -221,7 +220,12 @@ namespace LoudPizza.Core
             }
         }
 
-        // Get 256 floats of wave data for visualization. Visualization has to be enabled before use.
+        /// <summary>
+        /// Get 256 floats of wave data for visualization.
+        /// </summary>
+        /// <remarks>
+        /// Visualization has to be enabled before use.
+        /// </remarks>
         public void getWave(out Buffer256 buffer)
         {
             lock (mAudioThreadMutex)
@@ -230,7 +234,12 @@ namespace LoudPizza.Core
             }
         }
 
-        // Get approximate output volume for a channel for visualization. Visualization has to be enabled before use.
+        /// <summary>
+        /// Get approximate output volume for a channel for visualization.
+        /// </summary>
+        /// <remarks>
+        /// Visualization has to be enabled before use.
+        /// </remarks>
         public float getApproximateVolume(uint aChannel)
         {
             if (aChannel > mChannels)
@@ -243,9 +252,23 @@ namespace LoudPizza.Core
             }
         }
 
+        /// <summary>
+        /// Get approximate volumes for all output channels for visualization. Visualization has to be enabled before use.
+        /// </summary>
+        public void getApproximateVolumes(out ChannelBuffer buffer)
+        {
+            lock (mAudioThreadMutex)
+            {
+                buffer = mVisualizationChannelVolume;
+            }
+        }
+
+
         // Rest of the stuff is used internally.
 
-        // Returns mixed float samples in buffer. Called by the back-end, or user with null driver.
+        /// <summary>
+        /// Returns mixed float samples in buffer. Called by the back-end, or user with null driver.
+        /// </summary>
         public void mix(float* aBuffer, uint aSamples)
         {
             uint stride = (aSamples + 15) & ~0xfu;
@@ -253,7 +276,9 @@ namespace LoudPizza.Core
             interlace_samples_float(mScratch.mData, aBuffer, aSamples, mChannels, stride);
         }
 
-        // Returns mixed 16-bit signed integer samples in buffer. Called by the back-end, or user with null driver.
+        /// <summary>
+        /// Returns mixed 16-bit signed integer samples in buffer. Called by the back-end, or user with null driver.
+        /// </summary>
         public void mixSigned16(short* aBuffer, uint aSamples)
         {
             uint stride = (aSamples + 15) & ~0xfu;
@@ -372,10 +397,7 @@ namespace LoudPizza.Core
 
             if ((mFlags & Flags.EnableVisualization) != 0)
             {
-                for (nuint i = 0; i < MaxChannels; i++)
-                {
-                    mVisualizationChannelVolume[i] = 0;
-                }
+                mVisualizationChannelVolume = default;
 
                 float* scratch = mScratch.mData;
                 if (aSamples > 255)
@@ -1305,12 +1327,6 @@ namespace LoudPizza.Core
         /// Mono-mixed wave data for visualization and for visualization FFT input.
         /// </summary>
         private Buffer256 mVisualizationWaveData;
-
-        // FFT output data
-        //Buffer256 mFFTData;
-
-        // Snapshot of wave data for visualization
-        //Buffer256 mWaveData;
 
         /// <summary>
         /// 3D listener position.

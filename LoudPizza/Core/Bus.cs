@@ -261,17 +261,18 @@ namespace LoudPizza.Core
         /// <summary>
         /// Get approximate volumes for all output channels for visualization. Visualization has to be enabled before use.
         /// </summary>
-        public ChannelBuffer getApproximateVolumes()
+        public void getApproximateVolumes(out ChannelBuffer buffer)
         {
-            ChannelBuffer buffer = default;
             if (mInstance != null && mSoloud != null)
             {
                 lock (mSoloud.mAudioThreadMutex)
                 {
                     buffer = mInstance.mVisualizationChannelVolume;
+                    return;
                 }
             }
-            return buffer;
+
+            buffer = default;
         }
 
         /// <summary>

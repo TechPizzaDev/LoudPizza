@@ -22,10 +22,8 @@ namespace LoudPizza.Core
         {
             mParent = aParent;
             mFlags |= Flags.Protected | Flags.InaudibleTick;
-            for (nuint i = 0; i < SoLoud.MaxChannels; i++)
-                mVisualizationChannelVolume[i] = 0;
-            for (nuint i = 0; i < 256; i++)
-                mVisualizationWaveData[i] = 0;
+            mVisualizationChannelVolume = default;
+            mVisualizationWaveData = default;
             mScratchSize = SoLoud.SampleGranularity;
             mScratch.init(mScratchSize * SoLoud.MaxChannels);
         }
@@ -52,8 +50,7 @@ namespace LoudPizza.Core
 
                 if ((mParent.mFlags & AudioSource.Flags.VisualizationData) != 0)
                 {
-                    for (i = 0; i < SoLoud.MaxChannels; i++)
-                        mVisualizationChannelVolume[i] = 0;
+                    mVisualizationChannelVolume = default;
 
                     if (aSamplesToRead > 255)
                     {
