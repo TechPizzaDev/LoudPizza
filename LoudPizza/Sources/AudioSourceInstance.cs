@@ -1,11 +1,12 @@
 using System;
+using LoudPizza.Core;
 
-namespace LoudPizza.Core
+namespace LoudPizza.Sources
 {
     /// <summary>
     /// Base class for audio instances.
     /// </summary>
-    public abstract unsafe class AudioSourceInstance : IAudioStream, IDisposable
+    public abstract class AudioSourceInstance : IAudioStream, IDisposable
     {
         [Flags]
         public enum Flags

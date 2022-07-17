@@ -2,7 +2,7 @@ using System;
 
 namespace LoudPizza.Core
 {
-    public abstract unsafe class FilterInstance : IDisposable
+    public unsafe abstract class FilterInstance : IDisposable
     {
         protected uint mNumParams;
         protected uint mParamChanged;

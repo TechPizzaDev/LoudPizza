@@ -1,6 +1,6 @@
 using System;
 
-namespace LoudPizza.Core
+namespace LoudPizza.Sources
 {
     public interface IAudioStream : IDisposable
     {

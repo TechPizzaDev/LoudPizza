@@ -1,7 +1,7 @@
 using System.Numerics;
 using LoudPizza.Core;
 
-namespace LoudPizza
+namespace LoudPizza.Sources
 {
     public interface IAudioBus
     {
@@ -75,7 +75,7 @@ namespace LoudPizza
         /// Visualization has to be enabled before use.
         /// </remarks>
         void CalcFFT(out Buffer256 data);
-    
+
         /// <summary>
         /// Get 256 floats of wave data for visualization.
         /// </summary>

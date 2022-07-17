@@ -1,7 +1,7 @@
 using System;
 using System.Runtime.CompilerServices;
 
-namespace LoudPizza.Core
+namespace LoudPizza.Sources
 {
     public class QueueInstance : AudioSourceInstance
     {

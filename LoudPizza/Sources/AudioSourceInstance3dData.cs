@@ -1,7 +1,8 @@
 using System;
 using System.Numerics;
+using LoudPizza.Core;
 
-namespace LoudPizza.Core
+namespace LoudPizza.Sources
 {
     public struct AudioSourceInstance3dData
     {

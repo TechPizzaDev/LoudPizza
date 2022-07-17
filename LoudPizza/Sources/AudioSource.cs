@@ -1,6 +1,7 @@
 using System;
+using LoudPizza.Core;
 
-namespace LoudPizza.Core
+namespace LoudPizza.Sources
 {
     /// <summary>
     /// Base class for audio sources. 
