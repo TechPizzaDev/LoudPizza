@@ -275,7 +275,7 @@ namespace LoudPizza.Sources
         }
         */
 
-        public Time getLength()
+        public Time GetLength()
         {
             if (mBaseSamplerate == 0)
                 return 0;

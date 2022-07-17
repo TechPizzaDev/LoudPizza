@@ -51,7 +51,7 @@ namespace LoudPizza.Core
             {
                 return SoLoudStatus.OutOfMemory;
             }
-            instance.init(0);
+            instance.Initialize(0);
 
             lock (SoLoud.mAudioThreadMutex)
             {

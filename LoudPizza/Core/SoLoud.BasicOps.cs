@@ -39,7 +39,7 @@ namespace LoudPizza.Core
                 }
                 mVoice[ch] = instance;
                 instance.mBusHandle = aBus;
-                instance.init(mPlayIndex);
+                instance.Initialize(mPlayIndex);
                 m3dData[ch].init(aSound);
 
                 mPlayIndex++;

@@ -211,7 +211,7 @@ namespace LoudPizza.Core
         /// <summary>
         /// Initialize instance. Mostly internal use.
         /// </summary>
-        public void init(uint aPlayIndex)
+        public void Initialize(uint aPlayIndex)
         {
             mPlayIndex = aPlayIndex;
             mBaseSamplerate = Source.mBaseSamplerate;

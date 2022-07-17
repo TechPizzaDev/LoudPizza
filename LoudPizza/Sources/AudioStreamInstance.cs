@@ -216,7 +216,7 @@ namespace LoudPizza.Sources
         //    return samples;
         //}
 
-        public override uint GetAudio(Span<float> aBuffer, uint aSamplesToRead, uint aBufferSize)
+        public override uint GetAudio(Span<float> buffer, uint samplesToRead, uint bufferSize)
         {
             //uint offset = 0;
             //if (mFile == null)
@@ -319,12 +319,12 @@ namespace LoudPizza.Sources
             //    }
             //}
             //return aSamplesToRead;
-            return mStream.GetAudio(aBuffer, aSamplesToRead, aBufferSize);
+            return mStream.GetAudio(buffer, samplesToRead, bufferSize);
         }
 
-        public override unsafe SoLoudStatus Seek(ulong aSamplePosition, Span<float> mScratch)
+        public override unsafe SoLoudStatus Seek(ulong samplePosition, Span<float> scratch)
         {
-            return mStream.Seek(aSamplePosition, mScratch);
+            return mStream.Seek(samplePosition, scratch);
         }
 
         public override bool HasEnded()

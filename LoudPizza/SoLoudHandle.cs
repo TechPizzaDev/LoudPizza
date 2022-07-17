@@ -1,3 +1,4 @@
+using System;
 using LoudPizza.Core;
 
 namespace LoudPizza
@@ -15,6 +16,47 @@ namespace LoudPizza
         public SoLoudHandle(SoLoud soLoud)
         {
             SoLoud = soLoud;
+        }
+
+        /// <inheritdoc cref="SoLoud.postinit_internal(uint, uint, uint)"/>
+        public void InitializeFromBackend(uint sampleRate, uint bufferSize, uint channels)
+        {
+            SoLoud.postinit_internal(sampleRate, bufferSize, channels);
+        }
+
+        /// <inheritdoc cref="SoLoud.deinit"/>
+        public void Shutdown()
+        {
+            SoLoud.deinit();
+        }
+
+        /// <inheritdoc cref="SoLoud.mix(float*, uint)"/>
+        /// <exception cref="ArgumentException">
+        /// <paramref name="buffer"/> length is not a multiple of <paramref name="samples"/>.
+        /// </exception>
+        public unsafe void Mix(Span<float> buffer, uint samples)
+        {
+            fixed (float* bufferPtr = buffer)
+            {
+                SoLoud.mix(bufferPtr, samples);
+            }
+        }
+
+        /// <inheritdoc cref="SoLoud.mixSigned16(short*, uint)"/>
+        /// <exception cref="ArgumentException">
+        /// <paramref name="buffer"/> length is not a multiple of <paramref name="samples"/>.
+        /// </exception>
+        public unsafe void MixSigned16(Span<short> buffer, uint samples)
+        {
+            if (buffer.Length % samples != 0)
+            {
+                throw new ArgumentException();
+            }
+
+            fixed (short* bufferPtr = buffer)
+            {
+                SoLoud.mixSigned16(bufferPtr, samples);
+            }
         }
 
         /// <inheritdoc/>

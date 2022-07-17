@@ -22,58 +22,53 @@ namespace LoudPizza.Sources
         //SOLOUD_ERRORS loadMem(const unsigned char* aMem, uint aLength, bool aCopy = false, bool aTakeOwnership = true);
         //SOLOUD_ERRORS loadFile(File* aFile);
 
-        public SoLoudStatus loadRawWave8(ReadOnlySpan<byte> aMem, float aSamplerate, uint aChannels)
+        public SoLoudStatus LoadRawWave8(ReadOnlySpan<byte> memory, float sampleRate, uint channels)
         {
-            if (aMem.Length == 0 || aSamplerate <= 0 || aChannels < 1)
+            if (memory.Length == 0 || sampleRate <= 0 || channels < 1)
                 return SoLoudStatus.InvalidParameter;
 
-            deleteData();
-            float[] data = new float[aMem.Length];
+            DeleteData();
+            float[] data = new float[memory.Length];
             mData = data;
-            mSampleCount = (uint)aMem.Length / aChannels;
-            mChannels = aChannels;
-            mBaseSamplerate = aSamplerate;
+            mSampleCount = (uint)memory.Length / channels;
+            mChannels = channels;
+            mBaseSamplerate = sampleRate;
             for (int i = 0; i < data.Length; i++)
             {
-                data[i] = (aMem[i] - 128) / (float)0x80;
+                data[i] = (memory[i] - 128) / (float)0x80;
             }
             return SoLoudStatus.Ok;
         }
 
-        public SoLoudStatus loadRawWave16(ReadOnlySpan<short> aMem, float aSamplerate, uint aChannels)
+        public SoLoudStatus LoadRawWave16(ReadOnlySpan<short> memory, float sampleRate, uint channels)
         {
-            if (aMem.Length == 0 || aSamplerate <= 0 || aChannels < 1)
+            if (memory.Length == 0 || sampleRate <= 0 || channels < 1)
                 return SoLoudStatus.InvalidParameter;
 
-            deleteData();
-            float[] data = new float[aMem.Length];
+            DeleteData();
+            float[] data = new float[memory.Length];
             mData = data;
-            mSampleCount = (uint)aMem.Length / aChannels;
-            mChannels = aChannels;
-            mBaseSamplerate = aSamplerate;
+            mSampleCount = (uint)memory.Length / channels;
+            mChannels = channels;
+            mBaseSamplerate = sampleRate;
             for (int i = 0; i < data.Length; i++)
             {
-                data[i] = aMem[i] / (float)0x8000;
+                data[i] = memory[i] / (float)0x8000;
             }
             return SoLoudStatus.Ok;
         }
 
-        public SoLoudStatus loadRawWave(ReadOnlySpan<float> aMem, float aSamplerate, uint aChannels, bool aTakeOwnership)
+        public SoLoudStatus LoadRawWave(ReadOnlySpan<float> memory, float sampleRate, uint channels)
         {
-            if (aMem.Length == 0 || aSamplerate <= 0 || aChannels < 1)
+            if (memory.Length == 0 || sampleRate <= 0 || channels < 1)
                 return SoLoudStatus.InvalidParameter;
 
-            deleteData();
-            if (aTakeOwnership == false)
-                mData = aMem.ToArray();
-            else
-            {
-                throw new NotImplementedException();
-                //mData = aMem;
-            }
-            mSampleCount = (uint)aMem.Length / aChannels;
-            mChannels = aChannels;
-            mBaseSamplerate = aSamplerate;
+            DeleteData();
+            mData = memory.ToArray();
+
+            mSampleCount = (uint)memory.Length / channels;
+            mChannels = channels;
+            mBaseSamplerate = sampleRate;
             return SoLoudStatus.Ok;
         }
 
@@ -82,14 +77,14 @@ namespace LoudPizza.Sources
             return new AudioBufferInstance(this);
         }
 
-        public Time getLength()
+        public Time GetLength()
         {
             if (mBaseSamplerate == 0)
                 return 0;
             return mSampleCount / (double)mBaseSamplerate;
         }
 
-        private void deleteData()
+        private void DeleteData()
         {
             Stop();
             //delete[] mData; 
@@ -97,7 +92,7 @@ namespace LoudPizza.Sources
 
         protected override void Dispose(bool disposing)
         {
-            deleteData();
+            DeleteData();
 
             base.Dispose(disposing);
         }

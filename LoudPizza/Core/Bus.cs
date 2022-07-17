@@ -143,9 +143,9 @@ namespace LoudPizza.Core
         }
 
         /// <inheritdoc/>
-        public void SetVisualizationEnabled(bool aEnable)
+        public void SetVisualizationEnabled(bool enable)
         {
-            if (aEnable)
+            if (enable)
             {
                 mFlags |= Flags.VisualizationData;
             }
@@ -216,16 +216,16 @@ namespace LoudPizza.Core
         }
 
         /// <inheritdoc/>
-        public float GetApproximateVolume(uint aChannel)
+        public float GetApproximateVolume(uint channel)
         {
-            if (aChannel > mChannels)
+            if (channel > mChannels)
                 return 0;
             float vol = 0;
             if (mInstance != null && SoLoud != null)
             {
                 lock (SoLoud.mAudioThreadMutex)
                 {
-                    vol = mInstance.mVisualizationChannelVolume[aChannel];
+                    vol = mInstance.mVisualizationChannelVolume[channel];
                 }
             }
             return vol;
@@ -271,9 +271,9 @@ namespace LoudPizza.Core
         }
 
         /// <inheritdoc/>
-        public void SetResampler(AudioResampler aResampler)
+        public void SetResampler(AudioResampler resampler)
         {
-            mResampler = aResampler ?? throw new ArgumentNullException(nameof(aResampler));
+            mResampler = resampler ?? throw new ArgumentNullException(nameof(resampler));
         }
 
         /// <inheritdoc/>
