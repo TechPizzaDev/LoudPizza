@@ -4,6 +4,7 @@ using System.Numerics;
 using System.Runtime.CompilerServices;
 using System.Threading;
 using LoudPizza.Sources;
+using LoudPizza.Modifiers;
 #if SSE_INTRINSICS
 using System.Runtime.Intrinsics;
 using System.Runtime.Intrinsics.X86;

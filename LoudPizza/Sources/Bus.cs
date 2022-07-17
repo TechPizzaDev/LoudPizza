@@ -2,6 +2,7 @@ using System;
 using System.Numerics;
 using System.Runtime.CompilerServices;
 using LoudPizza.Core;
+using LoudPizza.Modifiers;
 
 namespace LoudPizza.Sources
 {

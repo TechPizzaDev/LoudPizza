@@ -1,6 +1,7 @@
 using System;
+using LoudPizza.Core;
 
-namespace LoudPizza.Core
+namespace LoudPizza.Modifiers
 {
     public unsafe abstract class FilterInstance : IDisposable
     {

@@ -1,6 +1,7 @@
+using LoudPizza.Core;
 using LoudPizza.Sources;
 
-namespace LoudPizza.Core
+namespace LoudPizza.Modifiers
 {
     public abstract class AudioCollider
     {

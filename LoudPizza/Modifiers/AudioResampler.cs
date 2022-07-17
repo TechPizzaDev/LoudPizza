@@ -1,5 +1,5 @@
 
-namespace LoudPizza.Core
+namespace LoudPizza.Modifiers
 {
     public unsafe abstract class AudioResampler
     {

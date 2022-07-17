@@ -1,5 +1,6 @@
+using LoudPizza.Core;
 
-namespace LoudPizza.Core
+namespace LoudPizza.Modifiers
 {
     public class LinearAudioResampler : AudioResampler
     {
