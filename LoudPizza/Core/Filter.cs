@@ -10,31 +10,31 @@ namespace LoudPizza.Core
             Bool,
         }
 
-        public virtual int getParamCount()
+        public virtual int GetParamCount()
         {
             return 1; // there's always WET
         }
 
-        public virtual string getParamName(uint aParamIndex)
+        public virtual string GetParamName(uint paramIndex)
         {
             return "Wet";
         }
 
-        public virtual ParamType getParamType(uint aParamIndex)
+        public virtual ParamType GetParamType(uint paramIndex)
         {
             return ParamType.Float;
         }
 
-        public virtual float getParamMax(uint aParamIndex)
+        public virtual float GetParamMax(uint paramIndex)
         {
             return 1;
         }
 
-        public virtual float getParamMin(uint aParamIndex)
+        public virtual float GetParamMin(uint paramIndex)
         {
             return 0;
         }
 
-        public abstract FilterInstance createInstance();
+        public abstract FilterInstance CreateInstance();
     }
 }

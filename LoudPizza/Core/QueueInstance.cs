@@ -1,34 +1,34 @@
 using System;
+using System.Runtime.CompilerServices;
 
 namespace LoudPizza.Core
 {
     public unsafe class QueueInstance : AudioSourceInstance
     {
-        protected Queue mParent;
+        public new Queue Source => Unsafe.As<Queue>(base.Source);
 
-        public QueueInstance(Queue aParent)
+        public QueueInstance(Queue source) : base(source)
         {
-            mParent = aParent;
             mFlags |= Flags.Protected;
         }
 
-        public override uint getAudio(Span<float> aBuffer, uint aSamplesToRead, uint aBufferSize)
+        public override uint GetAudio(Span<float> buffer, uint samplesToRead, uint bufferSize)
         {
-            Queue parent = mParent;
+            Queue parent = Source;
             if (parent.mCount == 0)
             {
                 return 0;
             }
 
-            uint copycount = aSamplesToRead;
+            uint copycount = samplesToRead;
             uint copyofs = 0;
             while (copycount != 0 && parent.mCount != 0)
             {
                 AudioSourceInstance source = parent.mSource[parent.mReadIndex]!;
-                uint readcount = source.getAudio(aBuffer.Slice((int)copyofs), copycount, aBufferSize);
+                uint readcount = source.GetAudio(buffer.Slice((int)copyofs), copycount, bufferSize);
                 copyofs += readcount;
                 copycount -= readcount;
-                if (source.hasEnded())
+                if (source.HasEnded())
                 {
                     source.Dispose();
                     parent.mSource[parent.mReadIndex] = null;
@@ -40,14 +40,14 @@ namespace LoudPizza.Core
             return copyofs;
         }
 
-        public override unsafe SoLoudStatus seek(ulong aSamplePosition, Span<float> mScratch)
+        public override unsafe SoLoudStatus Seek(ulong aSamplePosition, Span<float> mScratch)
         {
             return SoLoudStatus.NotImplemented;
         }
 
-        public override bool hasEnded()
+        public override bool HasEnded()
         {
-            return mLoopCount != 0 && mParent.mCount == 0;
+            return mLoopCount != 0 && Source.mCount == 0;
         }
     }
 }

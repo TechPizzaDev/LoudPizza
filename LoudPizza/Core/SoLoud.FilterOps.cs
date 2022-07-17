@@ -23,7 +23,7 @@ namespace LoudPizza.Core
                 mFilter[aFilterId] = aFilter;
                 if (aFilter != null)
                 {
-                    mFilterInstance[aFilterId] = aFilter.createInstance();
+                    mFilterInstance[aFilterId] = aFilter.CreateInstance();
                 }
             }
         }
@@ -47,7 +47,7 @@ namespace LoudPizza.Core
                     FilterInstance? filterInstance = mFilterInstance[aFilterId];
                     if (filterInstance != null)
                     {
-                        ret = filterInstance.getFilterParameter(aAttributeId);
+                        ret = filterInstance.GetFilterParameter(aAttributeId);
                     }
                     return ret;
                 }
@@ -58,7 +58,7 @@ namespace LoudPizza.Core
                     FilterInstance? filterInstance = ch.mFilter[aFilterId];
                     if (filterInstance != null)
                     {
-                        ret = filterInstance.getFilterParameter(aAttributeId);
+                        ret = filterInstance.GetFilterParameter(aAttributeId);
                     }
                 }
                 return ret;
@@ -83,7 +83,7 @@ namespace LoudPizza.Core
                     FilterInstance? filterInstance = mFilterInstance[aFilterId];
                     if (filterInstance != null)
                     {
-                        filterInstance.setFilterParameter(aAttributeId, aValue);
+                        filterInstance.SetFilterParameter(aAttributeId, aValue);
                     }
                     return;
                 }
@@ -97,7 +97,7 @@ namespace LoudPizza.Core
                         FilterInstance? filterInstance = ch.mFilter[aFilterId];
                         if (filterInstance != null)
                         {
-                            filterInstance.setFilterParameter(aAttributeId, aValue);
+                            filterInstance.SetFilterParameter(aAttributeId, aValue);
                         }
                     }
                 }
@@ -123,7 +123,7 @@ namespace LoudPizza.Core
                     FilterInstance? filterInstance = mFilterInstance[aFilterId];
                     if (filterInstance != null)
                     {
-                        filterInstance.fadeFilterParameter(aAttributeId, aTo, aTime, mStreamTime);
+                        filterInstance.FadeFilterParameter(aAttributeId, aTo, aTime, mStreamTime);
                     }
                     return;
                 }
@@ -137,7 +137,7 @@ namespace LoudPizza.Core
                         FilterInstance? filterInstance = ch.mFilter[aFilterId];
                         if (filterInstance != null)
                         {
-                            filterInstance.fadeFilterParameter(aAttributeId, aTo, aTime, ch.mStreamTime);
+                            filterInstance.FadeFilterParameter(aAttributeId, aTo, aTime, ch.mStreamTime);
                         }
                     }
                 }
@@ -163,7 +163,7 @@ namespace LoudPizza.Core
                     FilterInstance? filterInstance = mFilterInstance[aFilterId];
                     if (filterInstance != null)
                     {
-                        filterInstance.oscillateFilterParameter(aAttributeId, aFrom, aTo, aTime, mStreamTime);
+                        filterInstance.OscillateFilterParameter(aAttributeId, aFrom, aTo, aTime, mStreamTime);
                     }
                     return;
                 }
@@ -177,7 +177,7 @@ namespace LoudPizza.Core
                         FilterInstance? filterInstance = ch.mFilter[aFilterId];
                         if (filterInstance != null)
                         {
-                            filterInstance.oscillateFilterParameter(aAttributeId, aFrom, aTo, aTime, ch.mStreamTime);
+                            filterInstance.OscillateFilterParameter(aAttributeId, aFrom, aTo, aTime, ch.mStreamTime);
                         }
                     }
                 }

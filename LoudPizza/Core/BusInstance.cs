@@ -1,26 +1,27 @@
 using System;
+using System.Runtime.CompilerServices;
 
 namespace LoudPizza.Core
 {
     public unsafe class BusInstance : AudioSourceInstance
     {
-        protected Bus mParent;
+        public new Bus Source => Unsafe.As<Bus>(base.Source);
+
         protected uint mScratchSize;
         protected AlignedFloatBuffer mScratch;
 
         /// <summary>
         /// Approximate volume for channels.
         /// </summary>
-        public ChannelBuffer mVisualizationChannelVolume;
+        internal ChannelBuffer mVisualizationChannelVolume;
 
         /// <summary>
         /// Mono-mixed wave data for visualization and for visualization FFT input.
         /// </summary>
-        public Buffer256 mVisualizationWaveData;
+        internal Buffer256 mVisualizationWaveData;
 
-        public BusInstance(Bus aParent)
+        public BusInstance(Bus source) : base(source)
         {
-            mParent = aParent;
             mFlags |= Flags.Protected | Flags.InaudibleTick;
             mVisualizationChannelVolume = default;
             mVisualizationWaveData = default;
@@ -28,9 +29,9 @@ namespace LoudPizza.Core
             mScratch.init(mScratchSize * SoLoud.MaxChannels);
         }
 
-        public override uint getAudio(Span<float> aBuffer, uint aSamplesToRead, uint aBufferSize)
+        public override uint GetAudio(Span<float> aBuffer, uint aSamplesToRead, uint aBufferSize)
         {
-            uint i;
+            Bus mParent = Source;
 
             Handle handle = mParent.mChannelHandle;
             if (handle.Value == 0)
@@ -44,9 +45,9 @@ namespace LoudPizza.Core
 
             fixed (float* aBufferPtr = aBuffer.Slice(0, (int)(aBufferSize * mChannels)))
             {
-                SoLoud s = mParent.mSoloud;
+                SoLoud s = mParent.SoLoud;
                 s.mixBus_internal(
-                    aBufferPtr, aSamplesToRead, aBufferSize, mScratch.mData, handle, mSamplerate, mChannels, mParent.getResampler());
+                    aBufferPtr, aSamplesToRead, aBufferSize, mScratch.mData, handle, mSamplerate, mChannels, mParent.GetResampler());
 
                 if ((mParent.mFlags & AudioSource.Flags.VisualizationData) != 0)
                 {
@@ -54,7 +55,7 @@ namespace LoudPizza.Core
 
                     if (aSamplesToRead > 255)
                     {
-                        for (i = 0; i < 256; i++)
+                        for (uint i = 0; i < 256; i++)
                         {
                             mVisualizationWaveData[i] = 0;
                             for (uint j = 0; j < mChannels; j++)
@@ -69,7 +70,7 @@ namespace LoudPizza.Core
                     else
                     {
                         // Very unlikely failsafe branch
-                        for (i = 0; i < 256; i++)
+                        for (uint i = 0; i < 256; i++)
                         {
                             mVisualizationWaveData[i] = 0;
                             for (uint j = 0; j < mChannels; j++)
@@ -87,7 +88,7 @@ namespace LoudPizza.Core
             }
         }
 
-        public override SoLoudStatus seek(ulong aSamplePosition, Span<float> mScratch)
+        public override SoLoudStatus Seek(ulong aSamplePosition, Span<float> mScratch)
         {
             return SoLoudStatus.NotImplemented;
         }
@@ -95,14 +96,15 @@ namespace LoudPizza.Core
         /// <summary>
         /// Busses never stop for fear of going under 50mph.
         /// </summary>
-        public override bool hasEnded()
+        public override bool HasEnded()
         {
             return false;
         }
 
         protected override void Dispose(bool disposing)
         {
-            SoLoud s = mParent.mSoloud;
+            Bus mParent = Source;
+            SoLoud s = mParent.SoLoud;
 
             for (uint i = 0; i < s.mHighestVoice; i++)
             {

@@ -4,13 +4,13 @@ using System.Runtime.CompilerServices;
 
 namespace LoudPizza.Core
 {
-    public unsafe class Bus : AudioSource
+    public unsafe class Bus : AudioSource, IAudioBus
     {
-        public BusInstance? mInstance;
-        public Handle mChannelHandle;
+        private BusInstance? mInstance;
+        internal Handle mChannelHandle;
         private AudioResampler mResampler;
 
-        public Bus()
+        public Bus(SoLoud soLoud) : base(soLoud)
         {
             mChannelHandle = default;
             mInstance = null;
@@ -18,11 +18,11 @@ namespace LoudPizza.Core
             mResampler = SoLoud.DefaultResampler;
         }
 
-        public override BusInstance createInstance()
+        public override BusInstance CreateInstance()
         {
             if (mChannelHandle.Value != 0)
             {
-                stop();
+                Stop();
                 mChannelHandle = default;
                 mInstance = null;
             }
@@ -33,131 +33,117 @@ namespace LoudPizza.Core
         /// <summary>
         /// Set filter. Set to <see langword="null"/> to clear the filter.
         /// </summary>
-        public override void setFilter(uint aFilterId, Filter? aFilter)
+        public override void SetFilter(uint filterId, Filter? filter)
         {
-            if (aFilterId >= SoLoud.FiltersPerStream)
+            if (filterId >= SoLoud.FiltersPerStream)
                 return;
 
-            mFilter[aFilterId] = aFilter;
+            mFilter[filterId] = filter;
 
             if (mInstance != null)
             {
-                lock (mSoloud.mAudioThreadMutex)
+                lock (SoLoud.mAudioThreadMutex)
                 {
-                    mInstance.mFilter[aFilterId]?.Dispose();
-                    mInstance.mFilter[aFilterId] = null;
+                    mInstance.mFilter[filterId]?.Dispose();
+                    mInstance.mFilter[filterId] = null;
 
-                    if (aFilter != null)
+                    if (filter != null)
                     {
-                        mInstance.mFilter[aFilterId] = aFilter.createInstance();
+                        mInstance.mFilter[filterId] = filter.CreateInstance();
                     }
                 }
             }
         }
 
-        /// <summary>
-        /// Play sound through the bus.
-        /// </summary>
-        public Handle play(AudioSource aSound, float aVolume = 1.0f, float aPan = 0.0f, bool aPaused = false)
+        /// <inheritdoc/>
+        public VoiceHandle Play(AudioSource source, float volume = -1.0f, float pan = 0.0f, bool paused = false)
         {
-            if (mInstance == null || mSoloud == null)
+            Handle busHandle = GetBusHandle();
+            if (busHandle.Value == 0)
             {
                 return default;
             }
 
-            findBusHandle();
-
-            if (mChannelHandle.Value == 0)
-            {
-                return default;
-            }
-            return mSoloud.play(aSound, aVolume, aPan, aPaused, mChannelHandle);
+            Handle handle = SoLoud.play(source, volume, pan, paused, busHandle);
+            return new VoiceHandle(SoLoud, handle);
         }
 
-        /// <summary>
-        /// Play sound through the bus, delayed in relation to other sounds called via this function.
-        /// </summary>
-        public Handle playClocked(Time aSoundTime, AudioSource aSound, float aVolume = 1.0f, float aPan = 0.0f)
+        /// <inheritdoc/>
+        public VoiceHandle PlayClocked(AudioSource source, Time soundTime, float volume = -1.0f, float pan = 0.0f)
         {
-            if (mInstance == null || mSoloud == null)
+            Handle busHandle = GetBusHandle();
+            if (busHandle.Value == 0)
             {
                 return default;
             }
 
-            findBusHandle();
-
-            if (mChannelHandle.Value == 0)
-            {
-                return default;
-            }
-
-            return mSoloud.playClocked(aSoundTime, aSound, aVolume, aPan, mChannelHandle);
+            Handle handle = SoLoud.playClocked(soundTime, source, volume, pan, busHandle);
+            return new VoiceHandle(SoLoud, handle);
         }
 
-        /// <summary>
-        /// Start playing a 3D audio source through the bus.
-        /// </summary>
-        public Handle play3d(
-            AudioSource aSound,
-            Vector3 aPosition,
-            Vector3 aVelocity = default,
-            float aVolume = 1.0f,
-            bool aPaused = false)
+        /// <inheritdoc/>
+        public VoiceHandle Play3D(
+            AudioSource source,
+            Vector3 position,
+            Vector3 velocity = default,
+            float volume = -1.0f,
+            bool paused = false)
         {
-            if (mInstance == null || mSoloud == null)
+            Handle busHandle = GetBusHandle();
+            if (busHandle.Value == 0)
             {
                 return default;
             }
 
-            findBusHandle();
-
-            if (mChannelHandle.Value == 0)
-            {
-                return default;
-            }
-            return mSoloud.play3d(aSound, aPosition, aVelocity, aVolume, aPaused, mChannelHandle);
+            Handle handle = SoLoud.play3d(source, position, velocity, volume, paused, busHandle);
+            return new VoiceHandle(SoLoud, handle);
         }
 
-        /// <summary>
-        /// Start playing a 3D audio source through the bus, delayed in relation to other sounds called via this function.
-        /// </summary>
-        public Handle play3dClocked(
-            Time aSoundTime,
-            AudioSource aSound,
-            Vector3 aPosition,
-            Vector3 aVelocity = default,
-            float aVolume = 1.0f)
+        /// <inheritdoc/>
+        public VoiceHandle PlayClocked3D(
+            AudioSource source,
+            Time soundTime,
+            Vector3 position,
+            Vector3 velocity = default,
+            float volume = -1.0f)
         {
-            if (mInstance == null || mSoloud == null)
+            Handle busHandle = GetBusHandle();
+            if (busHandle.Value == 0)
             {
                 return default;
             }
 
-            findBusHandle();
+            Handle handle = SoLoud.play3dClocked(soundTime, source, position, velocity, volume, busHandle);
+            return new VoiceHandle(SoLoud, handle);
+        }
 
-            if (mChannelHandle.Value == 0)
+        /// <inheritdoc/>
+        public VoiceHandle PlayBackground(AudioSource source, float volume = 1.0f, bool paused = false)
+        {
+            Handle busHandle = GetBusHandle();
+            if (busHandle.Value == 0)
             {
                 return default;
             }
-            return mSoloud.play3dClocked(aSoundTime, aSound, aPosition, aVelocity, aVolume, mChannelHandle);
+
+            Handle handle = SoLoud.playBackground(source, volume, paused, busHandle);
+            return new VoiceHandle(SoLoud, handle);
         }
 
         /// <summary>
         /// Set number of channels for the bus (default 2).
         /// </summary>
-        public SoLoudStatus setChannels(uint aChannels)
+        public SoLoudStatus SetChannels(uint channels)
         {
-            if (aChannels == 0 || aChannels == 3 || aChannels == 5 || aChannels == 7 || aChannels > SoLoud.MaxChannels)
+            if (channels == 0 || channels == 3 || channels == 5 || channels == 7 || channels > SoLoud.MaxChannels)
                 return SoLoudStatus.InvalidParameter;
 
-            mChannels = aChannels;
+            mChannels = channels;
             return SoLoudStatus.Ok;
         }
 
-        /// <summary>
-        /// Enable or disable visualization data gathering.
-        /// </summary>
-        public void setVisualizationEnable(bool aEnable)
+        /// <inheritdoc/>
+        public void SetVisualizationEnable(bool aEnable)
         {
             if (aEnable)
             {
@@ -169,38 +155,29 @@ namespace LoudPizza.Core
             }
         }
 
-        /// <summary>
-        /// Move a live sound to this bus.
-        /// </summary>
-        public void annexSound(Handle aVoiceHandle)
+        /// <inheritdoc/>
+        public bool GetVisualizationEnable()
         {
-            findBusHandle();
-
-            lock (mSoloud.mAudioThreadMutex)
-            {
-                ReadOnlySpan<Handle> h_ = mSoloud.VoiceGroupHandleToSpan(ref aVoiceHandle);
-                foreach (Handle h in h_)
-                {
-                    AudioSourceInstance? ch = mSoloud.getVoiceRefFromHandle_internal(h);
-                    if (ch != null)
-                    {
-                        ch.mBusHandle = mChannelHandle;
-                    }
-                }
-            }
+            return (mFlags & Flags.VisualizationData) != 0;
         }
 
-        /// <summary>
-        /// Calculate and get 256 floats of FFT data for visualization. Visualization has to be enabled before use.
-        /// </summary>
+        /// <inheritdoc/>
+        public void AnnexSound(Handle voiceHandle)
+        {
+            Handle busHandle = GetBusHandle();
+
+            SoLoud.AnnexSound(voiceHandle, busHandle);
+        }
+
+        /// <inheritdoc/>
         [SkipLocalsInit]
-        public void calcFFT(out Buffer256 data)
+        public void CalcFFT(out Buffer256 data)
         {
             float* temp = stackalloc float[1024];
 
-            if (mInstance != null && mSoloud != null)
+            if (mInstance != null && SoLoud != null)
             {
-                lock (mSoloud.mAudioThreadMutex)
+                lock (SoLoud.mAudioThreadMutex)
                 {
                     for (int i = 0; i < 256; i++)
                     {
@@ -222,14 +199,12 @@ namespace LoudPizza.Core
             }
         }
 
-        /// <summary>
-        /// Get 256 floats of wave data for visualization. Visualization has to be enabled before use.
-        /// </summary>
-        public void getWave(out Buffer256 data)
+        /// <inheritdoc/>
+        public void GetWave(out Buffer256 data)
         {
-            if (mInstance != null && mSoloud != null)
+            if (mInstance != null && SoLoud != null)
             {
-                lock (mSoloud.mAudioThreadMutex)
+                lock (SoLoud.mAudioThreadMutex)
                 {
                     data = mInstance.mVisualizationWaveData;
                 }
@@ -240,17 +215,15 @@ namespace LoudPizza.Core
             }
         }
 
-        /// <summary>
-        /// Get approximate volume for output channel for visualization. Visualization has to be enabled before use.
-        /// </summary>
-        public float getApproximateVolume(uint aChannel)
+        /// <inheritdoc/>
+        public float GetApproximateVolume(uint aChannel)
         {
             if (aChannel > mChannels)
                 return 0;
             float vol = 0;
-            if (mInstance != null && mSoloud != null)
+            if (mInstance != null && SoLoud != null)
             {
-                lock (mSoloud.mAudioThreadMutex)
+                lock (SoLoud.mAudioThreadMutex)
                 {
                     vol = mInstance.mVisualizationChannelVolume[aChannel];
                 }
@@ -258,14 +231,12 @@ namespace LoudPizza.Core
             return vol;
         }
 
-        /// <summary>
-        /// Get approximate volumes for all output channels for visualization. Visualization has to be enabled before use.
-        /// </summary>
-        public void getApproximateVolumes(out ChannelBuffer buffer)
+        /// <inheritdoc/>
+        public void GetApproximateVolumes(out ChannelBuffer buffer)
         {
-            if (mInstance != null && mSoloud != null)
+            if (mInstance != null && SoLoud != null)
             {
-                lock (mSoloud.mAudioThreadMutex)
+                lock (SoLoud.mAudioThreadMutex)
                 {
                     buffer = mInstance.mVisualizationChannelVolume;
                     return;
@@ -275,61 +246,54 @@ namespace LoudPizza.Core
             buffer = default;
         }
 
-        /// <summary>
-        /// Get number of immediate child voices to this bus.
-        /// </summary>
-        public uint getActiveVoiceCount()
+        /// <inheritdoc/>
+        public uint GetActiveVoiceCount()
         {
             int i;
             uint count = 0;
-            findBusHandle();
-            lock (mSoloud.mAudioThreadMutex)
+            Handle busHandle = GetBusHandle();
+            lock (SoLoud.mAudioThreadMutex)
             {
                 for (i = 0; i < SoLoud.MaxVoiceCount; i++)
                 {
-                    AudioSourceInstance? voice = mSoloud.mVoice[i];
-                    if (voice != null && voice.mBusHandle == mChannelHandle)
+                    AudioSourceInstance? voice = SoLoud.mVoice[i];
+                    if (voice != null && voice.mBusHandle == busHandle)
                         count++;
                 }
             }
             return count;
         }
 
-        /// <summary>
-        /// Get current the resampler for this bus.
-        /// </summary>
-        public AudioResampler getResampler()
+        /// <inheritdoc/>
+        public AudioResampler GetResampler()
         {
             return mResampler;
         }
 
-        /// <summary>
-        /// Set the resampler for this bus.
-        /// </summary>
-        public void setResampler(AudioResampler aResampler)
+        /// <inheritdoc/>
+        public void SetResampler(AudioResampler aResampler)
         {
             mResampler = aResampler ?? throw new ArgumentNullException(nameof(aResampler));
         }
 
-        // FFT output data
-        //public float mFFTData[256];
-
-        // Snapshot of wave data for visualization
-        //public float mWaveData[256];
-
-        /// <summary>
-        /// Find the bus' channel.
-        /// </summary>
-        internal void findBusHandle()
+        /// <inheritdoc/>
+        public Handle GetBusHandle()
         {
-            // Find the channel the bus is playing on to calculate handle..
-            for (uint i = 0; mChannelHandle.Value == 0 && i < mSoloud.mHighestVoice; i++)
+            if (mInstance == null || SoLoud == null)
             {
-                if (mSoloud.mVoice[i] == mInstance)
+                return default;
+            }
+
+            // Find the channel the bus is playing on to calculate handle..
+            for (uint i = 0; mChannelHandle.Value == 0 && i < SoLoud.mHighestVoice; i++)
+            {
+                if (SoLoud.mVoice[i] == mInstance)
                 {
-                    mChannelHandle = mSoloud.getHandleFromVoice_internal(i);
+                    mChannelHandle = SoLoud.getHandleFromVoice_internal(i);
                 }
             }
+
+            return mChannelHandle;
         }
     }
 }

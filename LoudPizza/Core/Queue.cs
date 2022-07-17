@@ -3,12 +3,14 @@ namespace LoudPizza.Core
 {
     public class Queue : AudioSource
     {
-        public uint mReadIndex, mWriteIndex, mCount;
-        public AudioSourceInstance?[] mSource;
-        public QueueInstance? mInstance;
-        public Handle mQueueHandle;
+        internal uint mReadIndex;
+        internal uint mWriteIndex;
+        internal uint mCount;
+        internal AudioSourceInstance?[] mSource;
+        internal QueueInstance? mInstance;
+        internal Handle mQueueHandle;
 
-        public Queue(int capacity)
+        public Queue(SoLoud soLoud, int capacity) : base(soLoud)
         {
             mQueueHandle = default;
             mInstance = null;
@@ -18,11 +20,11 @@ namespace LoudPizza.Core
             mSource = new AudioSourceInstance[capacity];
         }
 
-        public override QueueInstance createInstance()
+        public override QueueInstance CreateInstance()
         {
             if (mInstance != null)
             {
-                stop();
+                Stop();
                 mInstance = null;
             }
             mInstance = new QueueInstance(this);
@@ -30,39 +32,28 @@ namespace LoudPizza.Core
         }
 
         /// <summary>
-        /// Play sound through the queue.
+        /// Play the audio source through the queue.
         /// </summary>
-        public SoLoudStatus play(AudioSource aSound)
+        public SoLoudStatus Play(AudioSource source)
         {
-            if (mSoloud == null)
-            {
+            if (SoLoud == null)
                 return SoLoudStatus.InvalidParameter;
-            }
-
-            findQueueHandle();
-
-            if (mQueueHandle.Value == 0)
+            
+            Handle queueHandle = FindQueueHandle();
+            if (queueHandle.Value == 0)
                 return SoLoudStatus.InvalidParameter;
 
             if (mCount >= mSource.Length)
                 return SoLoudStatus.OutOfMemory;
 
-            if (aSound.mAudioSourceID == 0)
-            {
-                aSound.mAudioSourceID = mSoloud.mAudioSourceID;
-                mSoloud.mAudioSourceID++;
-            }
-
-            AudioSourceInstance instance = aSound.createInstance();
-
+            AudioSourceInstance instance = source.CreateInstance();
             if (instance == null)
             {
                 return SoLoudStatus.OutOfMemory;
             }
-            instance.init(aSound, 0);
-            instance.mAudioSourceID = aSound.mAudioSourceID;
+            instance.init(0);
 
-            lock (mSoloud.mAudioThreadMutex)
+            lock (SoLoud.mAudioThreadMutex)
             {
                 mSource[mWriteIndex] = instance;
                 mWriteIndex = (mWriteIndex + 1) % (uint)mSource.Length;
@@ -74,14 +65,14 @@ namespace LoudPizza.Core
         /// <summary>
         /// Get the number of audio sources queued for replay.
         /// </summary>
-        public uint getQueueCount()
+        public uint GetQueueCount()
         {
-            if (mSoloud == null)
+            if (SoLoud == null)
             {
                 return 0;
             }
 
-            lock (mSoloud.mAudioThreadMutex)
+            lock (SoLoud.mAudioThreadMutex)
             {
                 uint count = mCount;
                 return count;
@@ -91,14 +82,14 @@ namespace LoudPizza.Core
         /// <summary>
         /// Get whether the given audio source currently playing.
         /// </summary>
-        public bool isCurrentlyPlaying(AudioSource aSound)
+        public bool IsCurrentlyPlaying(AudioSource source)
         {
-            if (mSoloud == null || mCount == 0 || aSound.mAudioSourceID == 0)
+            if (SoLoud == null || mCount == 0)
                 return false;
 
-            lock (mSoloud.mAudioThreadMutex)
+            lock (SoLoud.mAudioThreadMutex)
             {
-                bool res = mSource[mReadIndex]!.mAudioSourceID == aSound.mAudioSourceID;
+                bool res = mSource[mReadIndex]!.Source == source;
                 return res;
             }
         }
@@ -106,10 +97,10 @@ namespace LoudPizza.Core
         /// <summary>
         /// Set params by reading them from the given audio source.
         /// </summary>
-        public SoLoudStatus setParamsFromAudioSource(AudioSource aSound)
+        public SoLoudStatus SetParamsFromAudioSource(AudioSource source)
         {
-            mChannels = aSound.mChannels;
-            mBaseSamplerate = aSound.mBaseSamplerate;
+            mChannels = source.mChannels;
+            mBaseSamplerate = source.mBaseSamplerate;
 
             return SoLoudStatus.Ok;
         }
@@ -117,28 +108,29 @@ namespace LoudPizza.Core
         /// <summary>
         /// Set params manually.
         /// </summary>
-        public SoLoudStatus setParams(float aSamplerate, uint aChannels = 2)
+        public SoLoudStatus SetParams(float sampleRate, uint channels = 2)
         {
-            if (aChannels < 1 || aChannels > SoLoud.MaxChannels)
+            if (channels < 1 || channels > SoLoud.MaxChannels)
                 return SoLoudStatus.InvalidParameter;
 
-            mChannels = aChannels;
-            mBaseSamplerate = aSamplerate;
+            mChannels = channels;
+            mBaseSamplerate = sampleRate;
             return SoLoudStatus.Ok;
         }
 
         /// <summary>
         /// Find the channel the queue is playing on to calculate handle.
         /// </summary>
-        internal void findQueueHandle()
+        internal Handle FindQueueHandle()
         {
-            for (uint i = 0; mQueueHandle.Value == 0 && i < mSoloud.mHighestVoice; i++)
+            for (uint i = 0; mQueueHandle.Value == 0 && i < SoLoud.mHighestVoice; i++)
             {
-                if (mSoloud.mVoice[i] == mInstance)
+                if (SoLoud.mVoice[i] == mInstance)
                 {
-                    mQueueHandle = mSoloud.getHandleFromVoice_internal(i);
+                    mQueueHandle = SoLoud.getHandleFromVoice_internal(i);
                 }
             }
+            return mQueueHandle;
         }
     }
 }

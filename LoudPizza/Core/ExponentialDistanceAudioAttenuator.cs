@@ -8,9 +8,9 @@ namespace LoudPizza.Core
     {
         public static ExponentialDistanceAudioAttenuator Instance { get; } = new ExponentialDistanceAudioAttenuator();
 
-        public override float attenuate(float aDistance, float aMinDistance, float aMaxDistance, float aRolloffFactor)
+        public override float Attenuate(float distance, float minDistance, float maxDistance, float rolloffFactor)
         {
-            return SoLoud.attenuateExponentialDistance(aDistance, aMinDistance, aMaxDistance, aRolloffFactor);
+            return SoLoud.attenuateExponentialDistance(distance, minDistance, maxDistance, rolloffFactor);
         }
     }
 }

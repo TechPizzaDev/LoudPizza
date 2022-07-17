@@ -67,7 +67,7 @@ namespace LoudPizza.Core
         //// DTor
         //~Soloud();
 
-        private enum Flags
+        public enum Flags
         {
             /// <summary>
             /// Use round-off clipper.
@@ -162,7 +162,7 @@ namespace LoudPizza.Core
         }
 
         /// <summary>
-        /// Translate error number to an asciiz string
+        /// Translate error number to a string.
         /// </summary>
         public string getErrorString(SoLoudStatus aErrorCode)
         {
@@ -188,14 +188,9 @@ namespace LoudPizza.Core
             }
         }
 
-        /// <summary>
-        /// Calculate and get 256 floats of FFT data for visualization.
-        /// </summary>
-        /// <remarks>
-        /// Visualization has to be enabled before use.
-        /// </remarks>
+        /// <inheritdoc/>
         [SkipLocalsInit]
-        public void calcFFT(out Buffer256 buffer)
+        public void CalcFFT(out Buffer256 buffer)
         {
             float* temp = stackalloc float[1024];
 
@@ -220,13 +215,8 @@ namespace LoudPizza.Core
             }
         }
 
-        /// <summary>
-        /// Get 256 floats of wave data for visualization.
-        /// </summary>
-        /// <remarks>
-        /// Visualization has to be enabled before use.
-        /// </remarks>
-        public void getWave(out Buffer256 buffer)
+        /// <inheritdoc/>
+        public void GetWave(out Buffer256 buffer)
         {
             lock (mAudioThreadMutex)
             {
@@ -234,13 +224,8 @@ namespace LoudPizza.Core
             }
         }
 
-        /// <summary>
-        /// Get approximate output volume for a channel for visualization.
-        /// </summary>
-        /// <remarks>
-        /// Visualization has to be enabled before use.
-        /// </remarks>
-        public float getApproximateVolume(uint aChannel)
+        /// <inheritdoc/>
+        public float GetApproximateVolume(uint aChannel)
         {
             if (aChannel > mChannels)
                 return 0;
@@ -252,10 +237,8 @@ namespace LoudPizza.Core
             }
         }
 
-        /// <summary>
-        /// Get approximate volumes for all output channels for visualization. Visualization has to be enabled before use.
-        /// </summary>
-        public void getApproximateVolumes(out ChannelBuffer buffer)
+        /// <inheritdoc/>
+        public void GetApproximateVolumes(out ChannelBuffer buffer)
         {
             lock (mAudioThreadMutex)
             {
@@ -386,7 +369,7 @@ namespace LoudPizza.Core
                     FilterInstance? filterInstance = mFilterInstance[i];
                     if (filterInstance != null)
                     {
-                        filterInstance.filter(mOutputScratch.mData, aSamples, aStride, mChannels, mSamplerate, mStreamTime);
+                        filterInstance.Filter(mOutputScratch.mData, aSamples, aStride, mChannels, mSamplerate, mStreamTime);
                     }
                 }
             }
@@ -755,19 +738,19 @@ namespace LoudPizza.Core
                             // Get a block of source data
 
                             uint readcount = 0;
-                            if (!voice.hasEnded() || (voice.mFlags & AudioSourceInstance.Flags.Looping) != 0)
+                            if (!voice.HasEnded() || (voice.mFlags & AudioSourceInstance.Flags.Looping) != 0)
                             {
-                                readcount = voice.getAudio(voice.mResampleData0.AsSpan(), SampleGranularity, SampleGranularity);
+                                readcount = voice.GetAudio(voice.mResampleData0.AsSpan(), SampleGranularity, SampleGranularity);
                                 if (readcount < SampleGranularity)
                                 {
                                     if ((voice.mFlags & AudioSourceInstance.Flags.Looping) != 0)
                                     {
                                         while (
                                             readcount < SampleGranularity &&
-                                            voice.seek(voice.mLoopPoint, mScratch.AsSpan()) == SoLoudStatus.Ok)
+                                            voice.Seek(voice.mLoopPoint, mScratch.AsSpan()) == SoLoudStatus.Ok)
                                         {
                                             voice.mLoopCount++;
-                                            uint inc = voice.getAudio(
+                                            uint inc = voice.GetAudio(
                                                 voice.mResampleData0.AsSpan((int)readcount),
                                                 SampleGranularity - readcount,
                                                 SampleGranularity);
@@ -811,7 +794,7 @@ namespace LoudPizza.Core
                                 FilterInstance? instance = voice.mFilter[j];
                                 if (instance != null)
                                 {
-                                    instance.filter(
+                                    instance.Filter(
                                         voice.mResampleData0.mData,
                                         SampleGranularity,
                                         SampleGranularity,
@@ -853,7 +836,7 @@ namespace LoudPizza.Core
                         {
                             for (j = 0; j < voice.mChannels; j++)
                             {
-                                aResampler.resample(
+                                aResampler.Resample(
                                     voice.mResampleData0.mData + SampleGranularity * j,
                                     voice.mResampleData1.mData + SampleGranularity * j,
                                     aScratch + aBufferSize * j + outofs,
@@ -877,7 +860,7 @@ namespace LoudPizza.Core
 
                     // clear voice if the sound is over
                     if ((voice.mFlags & (AudioSourceInstance.Flags.Looping | AudioSourceInstance.Flags.DisableAutostop)) == 0 &&
-                        voice.hasEnded())
+                        voice.HasEnded())
                     {
                         stopVoice_internal(mActiveVoice[i]);
                     }
@@ -919,19 +902,19 @@ namespace LoudPizza.Core
 
                             // Get a block of source data
 
-                            if (!voice.hasEnded() || (voice.mFlags & AudioSourceInstance.Flags.Looping) != 0)
+                            if (!voice.HasEnded() || (voice.mFlags & AudioSourceInstance.Flags.Looping) != 0)
                             {
-                                uint readcount = voice.getAudio(voice.mResampleData0.AsSpan(), SampleGranularity, SampleGranularity);
+                                uint readcount = voice.GetAudio(voice.mResampleData0.AsSpan(), SampleGranularity, SampleGranularity);
                                 if (readcount < SampleGranularity)
                                 {
                                     if ((voice.mFlags & AudioSourceInstance.Flags.Looping) != 0)
                                     {
                                         while (
                                             readcount < SampleGranularity &&
-                                            voice.seek(voice.mLoopPoint, mScratch.AsSpan()) == SoLoudStatus.Ok)
+                                            voice.Seek(voice.mLoopPoint, mScratch.AsSpan()) == SoLoudStatus.Ok)
                                         {
                                             voice.mLoopCount++;
-                                            readcount += voice.getAudio(
+                                            readcount += voice.GetAudio(
                                                 voice.mResampleData0.AsSpan((int)readcount),
                                                 SampleGranularity - readcount,
                                                 SampleGranularity);
@@ -990,7 +973,7 @@ namespace LoudPizza.Core
 
                     // clear voice if the sound is over
                     if ((voice.mFlags & (AudioSourceInstance.Flags.Looping | AudioSourceInstance.Flags.DisableAutostop)) == 0 &&
-                        voice.hasEnded())
+                        voice.HasEnded())
                     {
                         stopVoice_internal(mActiveVoice[i]);
                     }
@@ -1289,7 +1272,7 @@ namespace LoudPizza.Core
         private uint mPlayIndex;
 
         /// <summary>
-        /// Current sound source index. Used to create sound source IDs.
+        /// Current audio source index. Used to create audio source IDs.
         /// </summary>
         internal uint mAudioSourceID;
 

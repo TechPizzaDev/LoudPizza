@@ -14,12 +14,10 @@ namespace LoudPizza.Core
             mPostClipScaler = aScaler;
         }
 
-        /// <summary>
-        /// Set the main resampler.
-        /// </summary>
-        public void setMainResampler(AudioResampler aResampler)
+        /// <inheritdoc/>
+        public void SetResampler(AudioResampler resampler)
         {
-            mResampler = aResampler ?? throw new ArgumentNullException(nameof(aResampler));
+            mResampler = resampler ?? throw new ArgumentNullException(nameof(resampler));
         }
 
         /// <summary>
@@ -382,10 +380,8 @@ namespace LoudPizza.Core
             }
         }
 
-        /// <summary>
-        /// Enable or disable visualization data gathering.
-        /// </summary>
-        public void setVisualizationEnable(bool aEnable)
+        /// <inheritdoc/>
+        public void SetVisualizationEnable(bool aEnable)
         {
             if (aEnable)
             {
@@ -395,6 +391,12 @@ namespace LoudPizza.Core
             {
                 mFlags &= ~Flags.EnableVisualization;
             }
+        }
+
+        /// <inheritdoc/>
+        public bool GetVisualizationEnable()
+        {
+            return (mFlags & Flags.EnableVisualization) != 0;
         }
 
         /// <summary>

@@ -5,9 +5,9 @@ namespace LoudPizza.Core
     {
         public static PointAudioResampler Instance { get; } = new();
 
-        public override unsafe void resample(float* aSrc, float* aSrc1, float* aDst, int aSrcOffset, int aDstSampleCount, int aStepFixed)
+        public override unsafe void Resample(float* src0, float* src1, float* dst, int srcOffset, int dstSampleCount, int stepFixed)
         {
-            SoLoud.resample_point(aSrc, aSrc1, aDst, aSrcOffset, aDstSampleCount, aStepFixed);
+            SoLoud.resample_point(src0, src1, dst, srcOffset, dstSampleCount, stepFixed);
         }
     }
 }

@@ -57,89 +57,80 @@ namespace LoudPizza.Core
 
         private bool _isDisposed;
 
-        public Flags mFlags;
+        internal Flags mFlags;
 
         /// <summary>
         /// Base sample rate, used to initialize instances.
         /// </summary>
-        public float mBaseSamplerate;
+        internal float mBaseSamplerate;
 
         /// <summary>
         /// Default volume for created instances.
         /// </summary>
-        public float mVolume;
+        internal float mVolume;
 
         /// <summary>
         /// Number of channels this audio source produces.
         /// </summary>
-        public uint mChannels;
-
-        /// <summary>
-        /// Sound source ID. Assigned by SoLoud the first time it's played.
-        /// </summary>
-        public uint mAudioSourceID;
+        internal uint mChannels;
 
         /// <summary>
         /// 3D min distance.
         /// </summary>
-        public float m3dMinDistance;
+        internal float m3dMinDistance;
 
         /// <summary>
         /// 3D max distance.
         /// </summary>
-        public float m3dMaxDistance;
+        internal float m3dMaxDistance;
 
         /// <summary>
         /// 3D attenuation rolloff factor.
         /// </summary>
-        public float m3dAttenuationRolloff;
+        internal float m3dAttenuationRolloff;
 
         /// <summary>
         /// 3D doppler factor.
         /// </summary>
-        public float m3dDopplerFactor;
+        internal float m3dDopplerFactor;
 
         /// <summary>
         /// Filters.
         /// </summary>
-        public Filter?[] mFilter = new Filter?[SoLoud.FiltersPerStream];
+        internal Filter?[] mFilter = new Filter?[SoLoud.FiltersPerStream];
 
         /// <summary>
-        /// Pointer to the <see cref="SoLoud"/> object. Needed to stop all instances on <see cref="Dispose"/>.
+        /// Pointer to the <see cref="Core.SoLoud"/> object. Needed to stop all instances on <see cref="Dispose"/>.
         /// </summary>
-        public SoLoud mSoloud;
+        public SoLoud SoLoud { get; }
 
         /// <summary>
         /// Custom audio collider object.
         /// </summary>
-        public AudioCollider? mCollider;
+        internal AudioCollider? mCollider;
 
         /// <summary>
         /// Custom attenuator object.
         /// </summary>
-        public AudioAttenuator? mAttenuator;
+        internal AudioAttenuator? mAttenuator;
 
         /// <summary>
         /// User data related to audio collider.
         /// </summary>
-        public int mColliderData;
+        internal IntPtr mColliderData;
 
         /// <summary>
         /// When looping, start playing from this time.
         /// </summary>
         internal ulong mLoopPoint;
 
-        public AudioSource()
+        public AudioSource(SoLoud soLoud)
         {
-            int i;
-            for (i = 0; i < SoLoud.FiltersPerStream; i++)
-            {
-                mFilter[i] = null;
-            }
+            SoLoud = soLoud ?? throw new ArgumentNullException(nameof(soLoud));
+
+            mFilter.AsSpan().Clear();
             mFlags = 0;
             mBaseSamplerate = 44100;
-            mAudioSourceID = 0;
-            mSoloud = null!;
             mChannels = 1;
             m3dMinDistance = 1;
             m3dMaxDistance = 1000000.0f;
@@ -147,7 +138,7 @@ namespace LoudPizza.Core
             m3dDopplerFactor = 1.0f;
             mCollider = null;
             mAttenuator = null;
-            mColliderData = 0;
+            mColliderData = default;
             mVolume = 1;
             mLoopPoint = 0;
         }
@@ -155,17 +146,25 @@ namespace LoudPizza.Core
         /// <summary>
         /// Set default volume for instances.
         /// </summary>
-        public void setVolume(float aVolume)
+        public void SetVolume(float volume)
         {
-            mVolume = aVolume;
+            mVolume = volume;
         }
 
         /// <summary>
-        /// Set the looping of the instances created from this audio source.
+        /// Get default volume for instances.
         /// </summary>
-        public void setLooping(bool aLoop)
+        public float GetVolume()
         {
-            if (aLoop)
+            return mVolume;
+        }
+
+        /// <summary>
+        /// Set the default looping value for instances.
+        /// </summary>
+        public void SetLooping(bool loop)
+        {
+            if (loop)
             {
                 mFlags |= Flags.ShouldLoop;
             }
@@ -176,11 +175,19 @@ namespace LoudPizza.Core
         }
 
         /// <summary>
+        /// Gets the default looping value for instances.
+        /// </summary>
+        public bool GetLooping()
+        {
+            return (mFlags & Flags.ShouldLoop) != 0;
+        }
+
+        /// <summary>
         /// Set whether only one instance of this sound should ever be playing at the same time.
         /// </summary>
-        public void setSingleInstance(bool aSingleInstance)
+        public void SetSingleInstance(bool singleInstance)
         {
-            if (aSingleInstance)
+            if (singleInstance)
             {
                 mFlags |= Flags.SingleInstance;
             }
@@ -191,12 +198,19 @@ namespace LoudPizza.Core
         }
 
         /// <summary>
+        /// Get whether only one instance of this sound should ever be playing at the same time.
+        /// </summary>
+        public bool GetSingleInstance()
+        {
+            return (mFlags & Flags.SingleInstance) != 0;
+        }
+
+        /// <summary>
         /// Set whether audio should auto-stop when it ends or not.
         /// </summary>
-        /// <param name="aAutoStop"></param>
-        public void setAutoStop(bool aAutoStop)
+        public void SetAutoStop(bool autoStop)
         {
-            if (aAutoStop)
+            if (autoStop)
             {
                 mFlags &= ~Flags.DisableAutostop;
             }
@@ -207,36 +221,69 @@ namespace LoudPizza.Core
         }
 
         /// <summary>
+        /// Set whether audio should auto-stop when it ends or not.
+        /// </summary>
+        public bool GetAutoStop()
+        {
+            return (mFlags & Flags.DisableAutostop) == 0;
+        }
+
+        /// <summary>
         /// Set the minimum and maximum distances for 3D audio source (closer to min distance = max volume).
         /// </summary>
-        public void set3dMinMaxDistance(float aMinDistance, float aMaxDistance)
+        public void SetMinMaxDistance(float minDistance, float maxDistance)
         {
-            m3dMinDistance = aMinDistance;
-            m3dMaxDistance = aMaxDistance;
+            m3dMinDistance = minDistance;
+            m3dMaxDistance = maxDistance;
+        }
+
+        /// <summary>
+        /// Get the minimum and maximum distances for 3D audio source (closer to min distance = max volume).
+        /// </summary>
+        public void GetMinMaxDistance(out float minDistance, out float maxDistance)
+        {
+            minDistance = m3dMinDistance;
+            maxDistance = m3dMaxDistance;
         }
 
         /// <summary>
         /// Set attenuation rolloff factor for 3D audio source.
         /// </summary>
-        public void set3dAttenuationRolloffFactor(float aAttenuationRolloffFactor)
+        public void SetAttenuationRolloffFactor(float attenuationRolloffFactor)
         {
-            m3dAttenuationRolloff = aAttenuationRolloffFactor;
+            m3dAttenuationRolloff = attenuationRolloffFactor;
+        }
+
+        /// <summary>
+        /// Get attenuation rolloff factor for 3D audio source.
+        /// </summary>
+        public float GetAttenuationRolloffFactor()
+        {
+            return m3dAttenuationRolloff;
         }
 
         /// <summary>
         /// Set doppler factor to reduce or enhance doppler effect (default = 1.0).
         /// </summary>
-        public void set3dDopplerFactor(float aDopplerFactor)
+        public void SetDopplerFactor(float dopplerFactor)
         {
-            m3dDopplerFactor = aDopplerFactor;
+            m3dDopplerFactor = dopplerFactor;
+        }
+
+        /// <summary>
+        /// Get doppler factor to reduce or enhance doppler effect (default = 1.0).
+        /// </summary>
+        public float GetDopplerFactor()
+        {
+            return m3dDopplerFactor;
         }
 
         /// <summary>
         /// Set the coordinates for this audio source to be relative to listener's coordinates.
         /// </summary>
-        public void set3dListenerRelative(bool aListenerRelative)
+        public void SetListenerRelative(bool listenerRelative)
         {
-            if (aListenerRelative)
+            if (listenerRelative)
             {
                 mFlags |= Flags.ListenerRelative;
             }
@@ -247,11 +294,19 @@ namespace LoudPizza.Core
         }
 
         /// <summary>
-        /// Enable delaying the start of the sound based on the distance.
+        /// Get the coordinates for this audio source to be relative to listener's coordinates.
         /// </summary>
-        public void set3dDistanceDelay(bool aDistanceDelay)
+        public bool GetListenerRelative()
         {
-            if (aDistanceDelay)
+            return (mFlags & Flags.ListenerRelative) != 0;
+        }
+
+        /// <summary>
+        /// Set whether delaying the start of the sound based on the distance is enabled.
+        /// </summary>
+        public void SetDistanceDelay(bool distanceDelay)
+        {
+            if (distanceDelay)
             {
                 mFlags |= Flags.DistanceDelay;
             }
@@ -262,50 +317,84 @@ namespace LoudPizza.Core
         }
 
         /// <summary>
+        /// Get whether delaying the start of the sound based on the distance is enabled.
+        /// </summary>
+        public bool SetDistanceDelay()
+        {
+            return (mFlags & Flags.DistanceDelay) != 0;
+        }
+
+        /// <summary>
         /// Set a custom 3D audio collider. Set to <see langword="null"/> to disable.
         /// </summary>
-        public void set3dCollider(AudioCollider? aCollider, int aUserData = 0)
+        public void SetCollider(AudioCollider? collider, IntPtr userData = default)
         {
-            mCollider = aCollider;
-            mColliderData = aUserData;
+            mCollider = collider;
+            mColliderData = userData;
+        }
+
+        /// <summary>
+        /// Get the custom 3D audio collider. Can be <see langword="null"/>.
+        /// </summary>
+        public AudioCollider? GetAudioCollider(out IntPtr userData)
+        {
+            userData = mColliderData;
+            return mCollider;
         }
 
         /// <summary>
         /// Set a custom attenuator. Set to <see langword="null"/> to disable.
         /// </summary>
-        public void set3dAttenuator(AudioAttenuator? aAttenuator)
+        public void SetAttenuator(AudioAttenuator? attenuator)
         {
-            mAttenuator = aAttenuator;
+            mAttenuator = attenuator;
+        }
+
+        /// <summary>
+        /// Get the custom attenuator. Can be <see langword="null"/>.
+        /// </summary>
+        public AudioAttenuator? GetAttenuator()
+        {
+            return mAttenuator;
         }
 
         /// <summary>
         /// Set behavior for inaudible sounds.
         /// </summary>
-        public void setInaudibleBehavior(bool aMustTick, bool aKill)
+        public void SetInaudibleBehavior(bool mustTick, bool kill)
         {
             mFlags &= ~(Flags.InaudibleKill | Flags.InaudibleTick);
-            if (aMustTick)
+            if (mustTick)
             {
                 mFlags |= Flags.InaudibleTick;
             }
-            if (aKill)
+            if (kill)
             {
                 mFlags |= Flags.InaudibleKill;
             }
         }
 
         /// <summary>
+        /// Get behavior for inaudible sounds.
+        /// </summary>
+        public void GetInaudibleBehavior(out bool mustTick, out bool kill)
+        {
+            mustTick = (mFlags & Flags.InaudibleTick) != 0;
+            kill = (mFlags & Flags.InaudibleKill) != 0;
+        }
+
+        /// <summary>
         /// Set time to jump to when looping.
         /// </summary>
-        public void setLoopPoint(ulong aLoopPoint)
+        public void SetLoopPoint(ulong loopPoint)
         {
-            mLoopPoint = aLoopPoint;
+            mLoopPoint = loopPoint;
         }
 
         /// <summary>
         /// Get current loop point value.
         /// </summary>
-        public ulong getLoopPoint()
+        public ulong GetLoopPoint()
         {
             return mLoopPoint;
         }
@@ -313,26 +402,42 @@ namespace LoudPizza.Core
         /// <summary>
         /// Set filter. Set to <see langword="null"/> to clear the filter.
         /// </summary>
-        public virtual void setFilter(uint aFilterId, Filter? aFilter)
+        /// <exception cref="ArgumentOutOfRangeException"><paramref name="filterId"/> is invalid.</exception>
+        public virtual void SetFilter(uint filterId, Filter? filter)
         {
-            if (aFilterId >= SoLoud.FiltersPerStream)
-                return;
-            mFilter[aFilterId] = aFilter;
+            if (filterId >= SoLoud.FiltersPerStream)
+            {
+                throw new ArgumentOutOfRangeException(nameof(filterId));
+            }
+            mFilter[filterId] = filter;
         }
 
         /// <summary>
-        /// Create instance from the audio source. Called from within <see cref="SoLoud"/> class.
+        /// Get filter. Can be <see langword="null"/>.
         /// </summary>
-        public abstract AudioSourceInstance createInstance();
+        /// <exception cref="ArgumentOutOfRangeException"><paramref name="filterId"/> is invalid.</exception>
+        public Filter? GetFilter(uint filterId)
+        {
+            if (filterId >= SoLoud.FiltersPerStream)
+            {
+                throw new ArgumentOutOfRangeException(nameof(filterId));
+            }
+            return mFilter[filterId];
+        }
+
+        /// <summary>
+        /// Create instance from the audio source. Called from within <see cref="Core.SoLoud"/> class.
+        /// </summary>
+        public abstract AudioSourceInstance CreateInstance();
 
         /// <summary>
         /// Stop all instances of this audio source.
         /// </summary>
-        public void stop()
+        public void Stop()
         {
-            if (mSoloud != null)
+            if (SoLoud != null)
             {
-                mSoloud.stopAudioSource(this);
+                SoLoud.stopAudioSource(this);
             }
         }
 
@@ -340,7 +445,7 @@ namespace LoudPizza.Core
         {
             if (!_isDisposed)
             {
-                stop();
+                Stop();
                 _isDisposed = true;
             }
         }

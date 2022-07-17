@@ -22,10 +22,8 @@ namespace LoudPizza.Core
             return mPostClipScaler;
         }
 
-        /// <summary>
-        /// Get the current main resampler.
-        /// </summary>
-        public AudioResampler getMainResampler()
+        /// <inheritdoc/>
+        public AudioResampler GetResampler()
         {
             return mResampler;
         }
@@ -110,7 +108,7 @@ namespace LoudPizza.Core
         /// <summary>
         /// Get the current number of busy voices.
         /// </summary>
-        public uint getActiveVoiceCount()
+        public uint GetActiveVoiceCount()
         {
             lock (mAudioThreadMutex)
             {
@@ -157,7 +155,7 @@ namespace LoudPizza.Core
         }
 
         /// <summary>
-        /// Get voice loop point value.
+        /// Get the voice loop point value.
         /// </summary>
         public ulong getLoopPoint(Handle aVoiceHandle)
         {
@@ -174,7 +172,7 @@ namespace LoudPizza.Core
         }
 
         /// <summary>
-        /// Query whether a voice is set to loop.
+        /// Query whether the voice is set to loop.
         /// </summary>
         public bool getLooping(Handle aVoiceHandle)
         {
@@ -191,7 +189,7 @@ namespace LoudPizza.Core
         }
 
         /// <summary>
-        /// Query whether a voice is set to auto-stop when it ends.
+        /// Query whether the voice is set to auto-stop when it ends.
         /// </summary>
         public bool getAutoStop(Handle aVoiceHandle)
         {
@@ -208,7 +206,7 @@ namespace LoudPizza.Core
         }
 
         /// <summary>
-        /// Get audiosource-specific information from a voice.
+        /// Get <see cref="AudioSource"/>-specific information from the voice.
         /// </summary>
         public float getInfo(Handle aVoiceHandle, uint mInfoKey)
         {
@@ -219,7 +217,7 @@ namespace LoudPizza.Core
                 {
                     return 0;
                 }
-                float v = ch.getInfo(mInfoKey);
+                float v = ch.GetInfo(mInfoKey);
                 return v;
             }
         }
@@ -278,6 +276,9 @@ namespace LoudPizza.Core
         /// <summary>
         /// Get current play time.
         /// </summary>
+        /// <remarks>
+        /// Not affected by playback rate.
+        /// </remarks>
         public Time getStreamTime(Handle aVoiceHandle)
         {
             lock (mAudioThreadMutex)
@@ -295,6 +296,9 @@ namespace LoudPizza.Core
         /// <summary>
         /// Get current stream position in samples.
         /// </summary>
+        /// <remarks>
+        /// Affected by playback rate.
+        /// </remarks>
         public ulong getStreamSamplePosition(Handle aVoiceHandle)
         {
             lock (mAudioThreadMutex)
@@ -310,8 +314,11 @@ namespace LoudPizza.Core
         }
 
         /// <summary>
-        /// Get current stream position in seconds.
+        /// Get current stream position.
         /// </summary>
+        /// <remarks>
+        /// Affected by playback rate.
+        /// </remarks>
         public Time getStreamTimePosition(Handle aVoiceHandle)
         {
             lock (mAudioThreadMutex)

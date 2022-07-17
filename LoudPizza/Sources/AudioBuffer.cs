@@ -11,10 +11,10 @@ namespace LoudPizza.Sources
         //result loadflac(MemoryFile* aReader);
         //result testAndLoadFile(MemoryFile* aReader);
 
-        public float[] mData;
-        public uint mSampleCount;
+        internal float[] mData;
+        internal uint mSampleCount;
 
-        public AudioBuffer()
+        public AudioBuffer(SoLoud soLoud) : base(soLoud)
         {
         }
 
@@ -77,7 +77,7 @@ namespace LoudPizza.Sources
             return SoLoudStatus.Ok;
         }
 
-        public override AudioBufferInstance createInstance()
+        public override AudioBufferInstance CreateInstance()
         {
             return new AudioBufferInstance(this);
         }
@@ -91,7 +91,7 @@ namespace LoudPizza.Sources
 
         private void deleteData()
         {
-            stop();
+            Stop();
             //delete[] mData; 
         }
 

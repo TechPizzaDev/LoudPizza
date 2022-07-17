@@ -5,9 +5,9 @@ namespace LoudPizza.Core
     {
         public static CatmullRomAudioResampler Instance { get; } = new();
 
-        public override unsafe void resample(float* aSrc, float* aSrc1, float* aDst, int aSrcOffset, int aDstSampleCount, int aStepFixed)
+        public override unsafe void Resample(float* src0, float* src1, float* dst, int srcOffset, int dstSampleCount, int stepFixed)
         {
-            SoLoud.resample_catmullrom(aSrc, aSrc1, aDst, aSrcOffset, aDstSampleCount, aStepFixed);
+            SoLoud.resample_catmullrom(src0, src1, dst, srcOffset, dstSampleCount, stepFixed);
         }
     }
 }

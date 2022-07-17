@@ -1,14 +1,16 @@
 using System;
+using System.Runtime.CompilerServices;
 using LoudPizza.Core;
 
 namespace LoudPizza.Sources
 {
     public unsafe class AudioStreamInstance : AudioSourceInstance
     {
-        public AudioStream mParent;
-        public IAudioStream mStream;
-        public uint mOffset;
+        public new AudioStream Source => Unsafe.As<AudioStream>(base.Source);
 
+        protected IAudioStream mStream;
+        protected uint mOffset;
+         
         //public File* mFile;
         //public object mCodec;
         //public uint mOggFrameSize;
@@ -60,10 +62,9 @@ namespace LoudPizza.Sources
         //    return true;
         //}
 
-        public AudioStreamInstance(AudioStream aParent, IAudioStream aStream)
+        public AudioStreamInstance(AudioStream source, IAudioStream stream) : base(source)
         {
-            mParent = aParent;
-            mStream = aStream;
+            mStream = stream;
             mOffset = 0;
 
             //mCodec.mOgg = 0;
@@ -215,7 +216,7 @@ namespace LoudPizza.Sources
         //    return samples;
         //}
 
-        public override uint getAudio(Span<float> aBuffer, uint aSamplesToRead, uint aBufferSize)
+        public override uint GetAudio(Span<float> aBuffer, uint aSamplesToRead, uint aBufferSize)
         {
             //uint offset = 0;
             //if (mFile == null)
@@ -318,17 +319,17 @@ namespace LoudPizza.Sources
             //    }
             //}
             //return aSamplesToRead;
-            return mStream.getAudio(aBuffer, aSamplesToRead, aBufferSize);
+            return mStream.GetAudio(aBuffer, aSamplesToRead, aBufferSize);
         }
 
-        public override unsafe SoLoudStatus seek(ulong aSamplePosition, Span<float> mScratch)
+        public override unsafe SoLoudStatus Seek(ulong aSamplePosition, Span<float> mScratch)
         {
-            return mStream.seek(aSamplePosition, mScratch);
+            return mStream.Seek(aSamplePosition, mScratch);
         }
 
-        public override bool hasEnded()
+        public override bool HasEnded()
         {
-            return mStream.hasEnded();
+            return mStream.HasEnded();
         }
     }
 }

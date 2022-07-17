@@ -24,60 +24,60 @@ namespace LoudPizza.Core
             mParam[0] = 1; // set 'wet' to 1
         }
 
-        public virtual void updateParams(Time aTime)
+        public virtual void UpdateParams(Time time)
         {
             for (uint i = 0; i < mNumParams; i++)
             {
                 if (mParamFader[i].mActive > 0)
                 {
                     mParamChanged |= 1u << (int)i;
-                    mParam[i] = mParamFader[i].get(aTime);
+                    mParam[i] = mParamFader[i].get(time);
                 }
             }
         }
 
-        public virtual void filter(float* aBuffer, uint aSamples, uint aBufferSize, uint aChannels, float aSamplerate, Time aTime)
+        public virtual void Filter(float* buffer, uint samples, uint bufferSize, uint channels, float sampleRate, Time time)
         {
-            for (uint i = 0; i < aChannels; i++)
+            for (uint i = 0; i < channels; i++)
             {
-                filterChannel(aBuffer + i * aBufferSize, aSamples, aSamplerate, aTime, i, aChannels);
+                FilterChannel(buffer + i * bufferSize, samples, sampleRate, time, i, channels);
             }
         }
 
-        public abstract void filterChannel(float* aBuffer, uint aSamples, float aSamplerate, Time aTime, uint aChannel, uint aChannels);
+        public abstract void FilterChannel(float* buffer, uint samples, float sampleRate, Time time, uint channel, uint channels);
 
-        public virtual float getFilterParameter(uint aAttributeId)
+        public virtual float GetFilterParameter(uint attributeId)
         {
-            if (aAttributeId >= mNumParams)
+            if (attributeId >= mNumParams)
                 return 0;
 
-            return mParam[aAttributeId];
+            return mParam[attributeId];
         }
 
-        public virtual void setFilterParameter(uint aAttributeId, float aValue)
+        public virtual void SetFilterParameter(uint attributeId, float value)
         {
-            if (aAttributeId >= mNumParams)
+            if (attributeId >= mNumParams)
                 return;
 
-            mParamFader[aAttributeId].mActive = 0;
-            mParam[aAttributeId] = aValue;
-            mParamChanged |= 1u << (int)aAttributeId;
+            mParamFader[attributeId].mActive = 0;
+            mParam[attributeId] = value;
+            mParamChanged |= 1u << (int)attributeId;
         }
 
-        public virtual void fadeFilterParameter(uint aAttributeId, float aTo, Time aTime, Time aStartTime)
+        public virtual void FadeFilterParameter(uint attributeId, float to, Time time, Time startTime)
         {
-            if (aAttributeId >= mNumParams || aTime <= 0 || aTo == mParam[aAttributeId])
+            if (attributeId >= mNumParams || time <= 0 || to == mParam[attributeId])
                 return;
 
-            mParamFader[aAttributeId].set(mParam[aAttributeId], aTo, aTime, aStartTime);
+            mParamFader[attributeId].set(mParam[attributeId], to, time, startTime);
         }
 
-        public virtual void oscillateFilterParameter(uint aAttributeId, float aFrom, float aTo, Time aTime, Time aStartTime)
+        public virtual void OscillateFilterParameter(uint attributeId, float from, float to, Time time, Time startTime)
         {
-            if (aAttributeId >= mNumParams || aTime <= 0 || aFrom == aTo)
+            if (attributeId >= mNumParams || time <= 0 || from == to)
                 return;
 
-            mParamFader[aAttributeId].setLFO(aFrom, aTo, aTime, aStartTime);
+            mParamFader[attributeId].setLFO(from, to, time, startTime);
         }
 
         protected virtual void Dispose(bool disposing)

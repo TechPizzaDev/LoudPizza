@@ -82,7 +82,7 @@ namespace LoudPizza.Core
                 // custom collider
                 if (v.mCollider != null)
                 {
-                    vol *= v.mCollider.collide(this, v, v.mColliderData);
+                    vol *= v.mCollider.Collide(this, v);
                 }
 
                 Vector3 pos = v.m3dPosition;
@@ -97,7 +97,7 @@ namespace LoudPizza.Core
                 if (v.mAttenuator != null)
                 {
                     float dist = pos.Length();
-                    vol *= v.mAttenuator.attenuate(dist, v.m3dMinDistance, v.m3dMaxDistance, v.m3dAttenuationRolloff);
+                    vol *= v.mAttenuator.Attenuate(dist, v.m3dMinDistance, v.m3dMaxDistance, v.m3dAttenuationRolloff);
                 }
 
                 // cone
@@ -139,6 +139,9 @@ namespace LoudPizza.Core
         /// <summary>
         /// Perform 3D audio parameter update.
         /// </summary>
+        /// <remarks>
+        /// Has to be called periodically to internally synchronize 3D audio parameters.
+        /// </remarks>
         [SkipLocalsInit]
         public void update3dAudio()
         {
@@ -276,6 +279,17 @@ namespace LoudPizza.Core
             return h;
         }
 
+        VoiceHandle IAudioBus.Play3D(
+            AudioSource sound,
+            Vector3 position,
+            Vector3 velocity,
+            float volume,
+            bool paused)
+        {
+            Handle handle = play3d(sound, position, velocity, volume, paused, default);
+            return new VoiceHandle(this, handle);
+        }
+
         /// <summary>
         /// Start playing a 3D audio source, delayed in relation to other sounds called via this function.
         /// </summary>
@@ -357,6 +371,17 @@ namespace LoudPizza.Core
             setDelaySamples(h, (uint)samples);
             setPause(h, false);
             return h;
+        }
+
+        VoiceHandle IAudioBus.PlayClocked3D(
+            AudioSource source,
+            Time soundTime,
+            Vector3 position,
+            Vector3 velocity,
+            float volume)
+        {
+            Handle handle = play3dClocked(soundTime, source, position, velocity, volume, default);
+            return new VoiceHandle(this, handle);
         }
 
         /// <summary>
@@ -495,9 +520,9 @@ namespace LoudPizza.Core
         }
 
         /// <summary>
-        /// Set 3D audio source collider. Set to <see langword="null"/> to disable.
+        /// Set 3D audio source collider and data. Set to <see langword="null"/> to disable.
         /// </summary>
-        public void set3dSourceCollider(Handle aVoiceHandle, AudioCollider? aCollider, int aUserData = 0)
+        public void set3dSourceCollider(Handle aVoiceHandle, AudioCollider? aCollider, IntPtr aUserData = default)
         {
             ReadOnlySpan<Handle> h_ = VoiceGroupHandleToSpan(ref aVoiceHandle);
             foreach (Handle h in h_)

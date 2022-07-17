@@ -10,7 +10,7 @@ namespace LoudPizza.Sources
         //public File* mStreamFile;
         public uint mSampleCount;
 
-        public AudioStream()
+        public AudioStream(SoLoud soLoud) : base(soLoud)
         {
             //mFilename = null;
             //mSampleCount = 0;
@@ -21,7 +21,7 @@ namespace LoudPizza.Sources
 
         ~AudioStream()
         {
-            stop();
+            Stop();
             //delete[] mFilename;
             //delete mMemFile;
         }

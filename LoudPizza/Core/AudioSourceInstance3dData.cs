@@ -1,30 +1,10 @@
+using System;
 using System.Numerics;
 
 namespace LoudPizza.Core
 {
     public struct AudioSourceInstance3dData
     {
-        public static AudioSourceInstance3dData ctor()
-        {
-            AudioSourceInstance3dData s;
-            s.m3dAttenuationRolloff = 1;
-            s.m3dDopplerFactor = 1.0f;
-            s.m3dMaxDistance = 1000000.0f;
-            s.m3dMinDistance = 0.0f;
-            s.m3dVolume = 0;
-            s.mCollider = null;
-            s.mColliderData = 0;
-            s.mAttenuator = null;
-            s.mDopplerValue = 0;
-            s.mFlags = 0;
-            s.mHandle = default;
-            s.m3dVelocity = default;
-            s.m3dPosition = default;
-            for (int i = 0; i < SoLoud.MaxChannels; i++)
-                s.mChannelVolume[i] = 0;
-            return s;
-        }
-
         /// <summary>
         /// Set settings from an <see cref="AudioSource"/>.
         /// </summary>
@@ -44,8 +24,7 @@ namespace LoudPizza.Core
             mHandle = default;
             m3dVelocity = default;
             m3dPosition = default;
-            for (int i = 0; i < SoLoud.MaxChannels; i++)
-                mChannelVolume[i] = 0;
+            mChannelVolume = default;
         }
 
         /// <summary>
@@ -102,7 +81,7 @@ namespace LoudPizza.Core
         /// <summary>
         /// User data related to audio collider.
         /// </summary>
-        public int mColliderData;
+        public IntPtr mColliderData;
 
         /// <summary>
         /// Doppler sample rate multiplier.

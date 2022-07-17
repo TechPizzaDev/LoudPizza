@@ -2,25 +2,32 @@ using System;
 
 namespace LoudPizza.Core
 {
-    public unsafe partial class SoLoud
+    public unsafe partial class SoLoud : IAudioBus
     {
         /// <summary>
         /// Start playing a sound. 
         /// Returns voice handle, which can be ignored or used to alter the playing sound's parameters. 
         /// Negative volume means to use default.
         /// </summary>
+        /// <exception cref="InvalidOperationException">
+        /// The source was not constructed from this library instance.
+        /// </exception>
         public Handle play(AudioSource aSound, float aVolume = -1.0f, float aPan = 0.0f, bool aPaused = false, Handle aBus = default)
         {
+            if (aSound.SoLoud != this)
+            {
+                throw new InvalidOperationException("The source was not constructed from this library instance.");
+            }
+
             if ((aSound.mFlags & AudioSource.Flags.SingleInstance) != 0)
             {
                 // Only one instance allowed, stop others
-                aSound.stop();
+                aSound.Stop();
             }
 
             // Creation of an audio instance may take significant amount of time,
             // so let's not do it inside the audio thread mutex.
-            aSound.mSoloud = this;
-            AudioSourceInstance instance = aSound.createInstance();
+            AudioSourceInstance instance = aSound.CreateInstance();
 
             lock (mAudioThreadMutex)
             {
@@ -30,15 +37,9 @@ namespace LoudPizza.Core
                     instance.Dispose();
                     return new Handle((uint)SoLoudStatus.UnknownError);
                 }
-                if (aSound.mAudioSourceID == 0)
-                {
-                    aSound.mAudioSourceID = mAudioSourceID;
-                    mAudioSourceID++;
-                }
                 mVoice[ch] = instance;
-                instance.mAudioSourceID = aSound.mAudioSourceID;
                 instance.mBusHandle = aBus;
-                instance.init(aSound, mPlayIndex);
+                instance.init(mPlayIndex);
                 m3dData[ch].init(aSound);
 
                 mPlayIndex++;
@@ -78,7 +79,7 @@ namespace LoudPizza.Core
                     Filter? filter = aSound.mFilter[i];
                     if (filter != null)
                     {
-                        instance.mFilter[i] = filter.createInstance();
+                        instance.mFilter[i] = filter.CreateInstance();
                     }
                 }
 
@@ -87,6 +88,12 @@ namespace LoudPizza.Core
                 Handle handle = getHandleFromVoice_internal((uint)ch);
                 return handle;
             }
+        }
+
+        VoiceHandle IAudioBus.Play(AudioSource source, float volume, float pan, bool paused)
+        {
+            Handle handle = play(source, volume, pan, paused, default);
+            return new VoiceHandle(this, handle);
         }
 
         /// <summary>
@@ -116,14 +123,29 @@ namespace LoudPizza.Core
             return h;
         }
 
+        VoiceHandle IAudioBus.PlayClocked(AudioSource source, Time soundTime, float volume, float pan)
+        {
+            Handle handle = playClocked(soundTime, source, volume, default);
+            return new VoiceHandle(this, handle);
+        }
+
         /// <summary>
-        /// Start playing a sound without any panning. It will be played at full volume.
+        /// Start playing a sound without any panning.
         /// </summary>
-        public Handle playBackground(AudioSource aSound, float aVolume = -1.0f, bool aPaused = false, Handle aBus = default)
+        /// <remarks>
+        /// It will be played at full volume.
+        /// </remarks>
+        public Handle playBackground(AudioSource aSound, float aVolume = 1.0f, bool aPaused = false, Handle aBus = default)
         {
             Handle h = play(aSound, aVolume, 0.0f, aPaused, aBus);
             setPanAbsolute(h, 1.0f, 1.0f);
             return h;
+        }
+
+        VoiceHandle IAudioBus.PlayBackground(AudioSource source, float volume, bool paused)
+        {
+            Handle handle = playBackground(source, volume, default);
+            return new VoiceHandle(this, handle);
         }
 
         /// <summary>
@@ -131,7 +153,6 @@ namespace LoudPizza.Core
         /// </summary>
         /// <remarks>
         /// Some streams can't seek backwards. 
-        /// Relative play speed affects time.
         /// </remarks>
         public SoLoudStatus seek(Handle aVoiceHandle, ulong aSamplePosition)
         {
@@ -145,7 +166,7 @@ namespace LoudPizza.Core
                     AudioSourceInstance? ch = getVoiceRefFromHandle_internal(h);
                     if (ch != null)
                     {
-                        SoLoudStatus singleres = ch.seek(aSamplePosition, mScratch.AsSpan());
+                        SoLoudStatus singleres = ch.Seek(aSamplePosition, mScratch.AsSpan());
                         if (singleres != SoLoudStatus.Ok)
                             res = singleres;
                     }
@@ -155,7 +176,7 @@ namespace LoudPizza.Core
         }
 
         /// <summary>
-        /// Stop the sound.
+        /// Stop the voice.
         /// </summary>
         public void stop(Handle aVoiceHandle)
         {
@@ -174,21 +195,18 @@ namespace LoudPizza.Core
         }
 
         /// <summary>
-        /// Stop all voices that play this sound source.
+        /// Stop all voices that are playing from the given audio source.
         /// </summary>
         public void stopAudioSource(AudioSource aSound)
         {
-            if (aSound.mAudioSourceID != 0)
+            lock (mAudioThreadMutex)
             {
-                lock (mAudioThreadMutex)
+                for (uint i = 0; i < mHighestVoice; i++)
                 {
-                    for (uint i = 0; i < mHighestVoice; i++)
+                    AudioSourceInstance? voice = mVoice[i];
+                    if (voice != null && voice.Source == aSound)
                     {
-                        AudioSourceInstance? voice = mVoice[i];
-                        if (voice != null && voice.mAudioSourceID == aSound.mAudioSourceID)
-                        {
-                            stopVoice_internal(i);
-                        }
+                        stopVoice_internal(i);
                     }
                 }
             }
@@ -209,26 +227,54 @@ namespace LoudPizza.Core
         }
 
         /// <summary>
-        /// Gets the amount of voices that play this audio source.
+        /// Gets the amount of voices that play the given audio source.
         /// </summary>
         public int countAudioSource(AudioSource aSound)
         {
             int count = 0;
-            if (aSound.mAudioSourceID != 0)
+            lock (mAudioThreadMutex)
             {
-                lock (mAudioThreadMutex)
+                for (uint i = 0; i < mHighestVoice; i++)
                 {
-                    for (uint i = 0; i < mHighestVoice; i++)
+                    AudioSourceInstance? voice = mVoice[i];
+                    if (voice != null && voice.Source == aSound)
                     {
-                        AudioSourceInstance? voice = mVoice[i];
-                        if (voice != null && voice.mAudioSourceID == aSound.mAudioSourceID)
-                        {
-                            count++;
-                        }
+                        count++;
                     }
                 }
             }
             return count;
+        }
+
+        /// <summary>
+        /// Move a live sound to the given bus.
+        /// </summary>
+        public void AnnexSound(Handle voiceHandle, Handle busHandle)
+        {
+            lock (mAudioThreadMutex)
+            {
+                ReadOnlySpan<Handle> h_ = VoiceGroupHandleToSpan(ref voiceHandle);
+                foreach (Handle h in h_)
+                {
+                    AudioSourceInstance? ch = getVoiceRefFromHandle_internal(h);
+                    if (ch != null)
+                    {
+                        ch.mBusHandle = busHandle;
+                    }
+                }
+            }
+        }
+
+        /// <inheritdoc/>
+        public void AnnexSound(Handle voiceHandle)
+        {
+            AnnexSound(voiceHandle, default);
+        }
+
+        /// <inheritdoc/>
+        public Handle GetBusHandle()
+        {
+            return default;
         }
     }
 }
