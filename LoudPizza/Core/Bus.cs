@@ -143,7 +143,7 @@ namespace LoudPizza.Core
         }
 
         /// <inheritdoc/>
-        public void SetVisualizationEnable(bool aEnable)
+        public void SetVisualizationEnabled(bool aEnable)
         {
             if (aEnable)
             {
@@ -156,7 +156,7 @@ namespace LoudPizza.Core
         }
 
         /// <inheritdoc/>
-        public bool GetVisualizationEnable()
+        public bool GetVisualizationEnabled()
         {
             return (mFlags & Flags.VisualizationData) != 0;
         }

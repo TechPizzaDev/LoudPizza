@@ -36,15 +36,39 @@ namespace LoudPizza
         }
 
         /// <inheritdoc/>
-        public void SetVisualizationEnable(bool enable)
+        public void SetVisualizationEnabled(bool enable)
         {
-            SoLoud.SetVisualizationEnable(enable);
+            SoLoud.SetVisualizationEnabled(enable);
         }
 
         /// <inheritdoc/>
-        public bool GetVisualizationEnable()
+        public bool GetVisualizationEnabled()
         {
-            return SoLoud.GetVisualizationEnable();
+            return SoLoud.GetVisualizationEnabled();
+        }
+
+        /// <inheritdoc cref="SoLoud.SetClipRoundoff(bool)"/>
+        public void SetClipRoundoff(bool enable)
+        {
+            SoLoud.SetClipRoundoff(enable);
+        }
+
+        /// <inheritdoc cref="SoLoud.GetClipRoundoff"/>
+        public bool GetClipRoundoff()
+        {
+            return SoLoud.GetClipRoundoff();
+        }
+
+        /// <inheritdoc cref="SoLoud.SetLeftHanded3D(bool)"/>
+        public void SetLeftHanded3D(bool enable)
+        {
+            SoLoud.SetLeftHanded3D(enable);
+        }
+
+        /// <inheritdoc cref="SoLoud.GetLeftHanded3D"/>
+        public bool GetLeftHanded3D()
+        {
+            return SoLoud.GetLeftHanded3D();
         }
 
         /// <inheritdoc cref="SoLoud.setSpeakerPosition(uint, Vector3)"/>

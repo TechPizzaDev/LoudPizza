@@ -56,12 +56,12 @@ namespace LoudPizza
         /// <summary>
         /// Enable or disable visualization data gathering.
         /// </summary>
-        public void SetVisualizationEnable(bool enable);
+        public void SetVisualizationEnabled(bool enable);
 
         /// <summary>
         /// Get whether visualization data gathering is enabled.
         /// </summary>
-        public bool GetVisualizationEnable();
+        public bool GetVisualizationEnabled();
 
         /// <summary>
         /// Move a live sound to this bus.

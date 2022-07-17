@@ -381,9 +381,9 @@ namespace LoudPizza.Core
         }
 
         /// <inheritdoc/>
-        public void SetVisualizationEnable(bool aEnable)
+        public void SetVisualizationEnabled(bool enable)
         {
-            if (aEnable)
+            if (enable)
             {
                 mFlags |= Flags.EnableVisualization;
             }
@@ -394,9 +394,43 @@ namespace LoudPizza.Core
         }
 
         /// <inheritdoc/>
-        public bool GetVisualizationEnable()
+        public bool GetVisualizationEnabled()
         {
             return (mFlags & Flags.EnableVisualization) != 0;
+        }
+
+        public void SetClipRoundoff(bool enable)
+        {
+            if (enable)
+            {
+                mFlags |= Flags.ClipRoundoff;
+            }
+            else
+            {
+                mFlags &= ~Flags.ClipRoundoff;
+            }
+        }
+
+        public bool GetClipRoundoff()
+        {
+            return (mFlags & Flags.ClipRoundoff) != 0;
+        }
+
+        public void SetLeftHanded3D(bool enable)
+        {
+            if (enable)
+            {
+                mFlags |= Flags.LeftHanded3D;
+            }
+            else
+            {
+                mFlags &= ~Flags.LeftHanded3D;
+            }
+        }
+
+        public bool GetLeftHanded3D()
+        {
+            return (mFlags & Flags.LeftHanded3D) != 0;
         }
 
         /// <summary>

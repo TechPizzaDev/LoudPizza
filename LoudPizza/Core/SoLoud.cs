@@ -107,7 +107,7 @@ namespace LoudPizza.Core
             mResampler = DefaultResampler;
             mSamplerate = 0;
             mBufferSize = 0;
-            mFlags = Flags.ClipRoundoff;
+            mFlags = 0;
             mGlobalVolume = 0;
             mPlayIndex = 0;
             mBackendData = null;
