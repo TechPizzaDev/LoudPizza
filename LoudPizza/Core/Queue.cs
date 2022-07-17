@@ -6,7 +6,7 @@ namespace LoudPizza.Core
         internal uint mReadIndex;
         internal uint mWriteIndex;
         internal uint mCount;
-        internal AudioSourceInstance?[] mSource;
+        internal IAudioStream?[] mSource;
         internal QueueInstance? mInstance;
         internal Handle mQueueHandle;
 
@@ -17,7 +17,7 @@ namespace LoudPizza.Core
             mReadIndex = 0;
             mWriteIndex = 0;
             mCount = 0;
-            mSource = new AudioSourceInstance[capacity];
+            mSource = new IAudioStream[capacity];
         }
 
         public override QueueInstance CreateInstance()
@@ -32,13 +32,13 @@ namespace LoudPizza.Core
         }
 
         /// <summary>
-        /// Play the audio source through the queue.
+        /// Get whether the queue can currently play a audio.
         /// </summary>
-        public SoLoudStatus Play(AudioSource source)
+        public SoLoudStatus CanPlay()
         {
             if (SoLoud == null)
                 return SoLoudStatus.InvalidParameter;
-            
+
             Handle queueHandle = FindQueueHandle();
             if (queueHandle.Value == 0)
                 return SoLoudStatus.InvalidParameter;
@@ -46,20 +46,45 @@ namespace LoudPizza.Core
             if (mCount >= mSource.Length)
                 return SoLoudStatus.OutOfMemory;
 
-            AudioSourceInstance instance = source.CreateInstance();
-            if (instance == null)
-            {
-                return SoLoudStatus.OutOfMemory;
-            }
-            instance.Initialize(0);
+            return SoLoudStatus.Ok;
+        }
 
+        /// <summary>
+        /// Play the audio source through the queue.
+        /// </summary>
+        public SoLoudStatus Play(AudioSource source)
+        {
+            SoLoudStatus status = CanPlay();
+            if (status == SoLoudStatus.Ok)
+            {
+                AudioSourceInstance instance = source.CreateInstance();
+                instance.Initialize(0);
+                Enqueue(instance);
+            }
+            return status;
+        }
+
+        /// <summary>
+        /// Play the audio stream through the queue.
+        /// </summary>
+        public SoLoudStatus Play(IAudioStream stream)
+        {
+            SoLoudStatus status = CanPlay();
+            if (status == SoLoudStatus.Ok)
+            {
+                Enqueue(stream);
+            }
+            return SoLoudStatus.Ok;
+        }
+
+        private void Enqueue(IAudioStream stream)
+        {
             lock (SoLoud.mAudioThreadMutex)
             {
-                mSource[mWriteIndex] = instance;
+                mSource[mWriteIndex] = stream;
                 mWriteIndex = (mWriteIndex + 1) % (uint)mSource.Length;
                 mCount++;
             }
-            return SoLoudStatus.Ok;
         }
 
         /// <summary>
@@ -89,7 +114,26 @@ namespace LoudPizza.Core
 
             lock (SoLoud.mAudioThreadMutex)
             {
-                bool res = mSource[mReadIndex]!.Source == source;
+                if (mSource[mReadIndex] is AudioSourceInstance audioInstance)
+                {
+                    bool res = audioInstance.Source == source;
+                    return res;
+                }
+                return false;
+            }
+        }
+
+        /// <summary>
+        /// Get whether the given audio stream currently playing.
+        /// </summary>
+        public bool IsCurrentlyPlaying(IAudioStream stream)
+        {
+            if (SoLoud == null || mCount == 0)
+                return false;
+
+            lock (SoLoud.mAudioThreadMutex)
+            {
+                bool res = mSource[mReadIndex]! == stream;
                 return res;
             }
         }

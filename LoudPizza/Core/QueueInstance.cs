@@ -3,7 +3,7 @@ using System.Runtime.CompilerServices;
 
 namespace LoudPizza.Core
 {
-    public unsafe class QueueInstance : AudioSourceInstance
+    public class QueueInstance : AudioSourceInstance
     {
         public new Queue Source => Unsafe.As<Queue>(base.Source);
 
@@ -24,7 +24,7 @@ namespace LoudPizza.Core
             uint copyofs = 0;
             while (copycount != 0 && parent.mCount != 0)
             {
-                AudioSourceInstance source = parent.mSource[parent.mReadIndex]!;
+                IAudioStream source = parent.mSource[parent.mReadIndex]!;
                 uint readcount = source.GetAudio(buffer.Slice((int)copyofs), copycount, bufferSize);
                 copyofs += readcount;
                 copycount -= readcount;
@@ -40,7 +40,7 @@ namespace LoudPizza.Core
             return copyofs;
         }
 
-        public override unsafe SoLoudStatus Seek(ulong aSamplePosition, Span<float> mScratch)
+        public override SoLoudStatus Seek(ulong aSamplePosition, Span<float> mScratch)
         {
             return SoLoudStatus.NotImplemented;
         }

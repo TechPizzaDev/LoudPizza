@@ -278,23 +278,13 @@ namespace LoudPizza.Core
         /// </summary>
         internal ulong mLoopPoint;
 
-        /// <summary>
-        /// Get samples from the stream to the buffer.
-        /// </summary>
-        /// <returns>The amount of samples written.</returns>
+        /// <inheritdoc/>
         public abstract uint GetAudio(Span<float> buffer, uint samplesToRead, uint bufferSize);
 
-        /// <summary>
-        /// Get whether the has stream ended.
-        /// </summary>
+        /// <inheritdoc/>
         public abstract bool HasEnded();
 
-        /// <summary>
-        /// Seek to certain place in the stream. 
-        /// </summary>
-        /// <remarks>
-        /// Base implementation is generic "tape" seek (and slow).
-        /// </remarks>
+        /// <inheritdoc/>
         public abstract SoLoudStatus Seek(ulong samplePosition, Span<float> scratch);
 
         /// <summary>

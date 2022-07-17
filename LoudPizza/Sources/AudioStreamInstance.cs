@@ -322,7 +322,7 @@ namespace LoudPizza.Sources
             return mStream.GetAudio(buffer, samplesToRead, bufferSize);
         }
 
-        public override unsafe SoLoudStatus Seek(ulong samplePosition, Span<float> scratch)
+        public override SoLoudStatus Seek(ulong samplePosition, Span<float> scratch)
         {
             return mStream.Seek(samplePosition, scratch);
         }

@@ -2,13 +2,13 @@ using System;
 
 namespace LoudPizza.Core
 {
-    public unsafe interface IAudioStream : IDisposable
+    public interface IAudioStream : IDisposable
     {
         /// <summary>
-        /// Get samples from the stream to the buffer.
+        /// Read samples from the stream to the buffer.
         /// </summary>
-        /// <returns>The amount of samples written.</returns>
-        uint GetAudio(Span<float> aBuffer, uint aSamplesToRead, uint aBufferSize);
+        /// <returns>The amount of samples read.</returns>
+        uint GetAudio(Span<float> buffer, uint samplesToRead, uint bufferSize);
 
         /// <summary>
         /// Get whether the has stream ended.
@@ -19,8 +19,8 @@ namespace LoudPizza.Core
         /// Seek to certain place in the stream.
         /// </summary>
         /// <remarks>
-        /// Base implementation is generic "tape" seek (and slow).
+        /// Base implementation is a generic "tape" seek.
         /// </remarks>
-        SoLoudStatus Seek(ulong aSamplePosition, Span<float> mScratch);
+        SoLoudStatus Seek(ulong samplePosition, Span<float> scratch);
     }
 }
