@@ -1034,7 +1034,7 @@ namespace LoudPizza.Core
                             vol = Sse.Add(vol, vdelta);
 
                             //float u1 = (f1 > -1.65f);
-                            Vector128<float> u = Sse.CompareLessThan(f, negbound);
+                            Vector128<float> u = Sse.CompareGreaterThan(f, negbound);
 
                             //float o1 = (f1 < 1.65f);
                             Vector128<float> o = Sse.CompareLessThan(f, posbound);
