@@ -21,6 +21,7 @@ namespace LoudPizza.Core
         private const int FIXPOINT_FRAC_MUL = (1 << FIXPOINT_FRAC_BITS);
         private const int FIXPOINT_FRAC_MASK = ((1 << FIXPOINT_FRAC_BITS) - 1);
         private const float FIXPOINT_FRAC_RECI = 1f / FIXPOINT_FRAC_MUL;
+        private static readonly Vector<int> CONSECUTIVE_INDICES;
 
         private const float SQRT2RECP = 0.7071067811865475f;
 
@@ -96,6 +97,16 @@ namespace LoudPizza.Core
             Humps,
             FSquare,
             FSaw,
+        }
+
+        static SoLoud()
+        {
+            int* tmp = stackalloc int[Vector<int>.Count];
+            for (int i = 0; i < Vector<int>.Count; i++)
+            {
+                tmp[i] = i + 1;
+            }
+            CONSECUTIVE_INDICES = Unsafe.ReadUnaligned<Vector<int>>(tmp);
         }
 
         /// <summary>
@@ -793,21 +804,21 @@ namespace LoudPizza.Core
                             // Run the per-stream filters to get our source data
                             if (voice.mFilterCount != 0)
                             {
-                            for (j = 0; j < FiltersPerStream; j++)
-                            {
-                                FilterInstance? instance = voice.mFilter[j];
-                                if (instance != null)
+                                for (j = 0; j < FiltersPerStream; j++)
                                 {
-                                    instance.Filter(
-                                        voice.mResampleData0.mData,
-                                        SampleGranularity,
-                                        SampleGranularity,
-                                        voice.mChannels,
-                                        voice.mSamplerate,
-                                        mStreamTime);
+                                    FilterInstance? instance = voice.mFilter[j];
+                                    if (instance != null)
+                                    {
+                                        instance.Filter(
+                                            voice.mResampleData0.mData,
+                                            SampleGranularity,
+                                            SampleGranularity,
+                                            voice.mChannels,
+                                            voice.mSamplerate,
+                                            mStreamTime);
+                                    }
                                 }
                             }
-                        }
                         }
                         else
                         {
@@ -1736,47 +1747,35 @@ namespace LoudPizza.Core
                             break;
 
                         case 2: // 2->2
-#if SSE_INTRINSICS
-                            if (Sse.IsSupported)
+                            if (Vector.IsHardwareAccelerated)
                             {
-                                //if ((aBufferSize & 3) == 0)
+                                uint samplequads = aSamplesToRead / (uint)Vector<float>.Count; // rounded down
+                                Vector<float> indices = Vector.ConvertToSingle(CONSECUTIVE_INDICES);
+                                Vector<float> p0 = new Vector<float>(pan[0]) + new Vector<float>(pani[0]) * indices;
+                                Vector<float> p1 = new Vector<float>(pan[1]) + new Vector<float>(pani[1]) * indices;
+
+                                Vector<float> pan0delta = new(pani[0] * Vector<float>.Count);
+                                Vector<float> pan1delta = new(pani[1] * Vector<float>.Count);
+
+                                for (uint q = 0; q < samplequads; q++)
                                 {
-                                    uint samplequads = aSamplesToRead / 4; // rounded down
-                                    Vector128<float> p0 = Vector128.Create(
-                                        pan[0] + pani[0] * 1,
-                                        pan[0] + pani[0] * 2,
-                                        pan[0] + pani[0] * 3,
-                                        pan[0] + pani[0] * 4);
+                                    Vector<float> f0 = Unsafe.Read<Vector<float>>(aScratch + j);
+                                    Vector<float> f1 = Unsafe.Read<Vector<float>>(aScratch + j + aBufferSize);
+                                    Vector<float> o0 = Unsafe.Read<Vector<float>>(aBuffer + j);
+                                    Vector<float> o1 = Unsafe.Read<Vector<float>>(aBuffer + j + aBufferSize);
 
-                                    Vector128<float> p1 = Vector128.Create(
-                                        pan[1] + pani[1] * 1,
-                                        pan[1] + pani[1] * 2,
-                                        pan[1] + pani[1] * 3,
-                                        pan[1] + pani[1] * 4);
+                                    Vector<float> c0 = f0 * p0 + o0;
+                                    Vector<float> c1 = f1 * p1 + o1;
+                                    Unsafe.WriteUnaligned(aBuffer + j, c0);
+                                    Unsafe.WriteUnaligned(aBuffer + j + aBufferSize, c1);
 
-                                    Vector128<float> pan0delta = Vector128.Create(pani[0] * 4);
-                                    Vector128<float> pan1delta = Vector128.Create(pani[1] * 4);
-
-                                    for (uint q = 0; q < samplequads; q++)
-                                    {
-                                        Vector128<float> f0 = Sse.LoadAlignedVector128(aScratch + j);
-                                        Vector128<float> c0 = Sse.Multiply(f0, p0);
-                                        Vector128<float> f1 = Sse.LoadAlignedVector128(aScratch + j + aBufferSize);
-                                        Vector128<float> c1 = Sse.Multiply(f1, p1);
-                                        Vector128<float> o0 = Sse.LoadAlignedVector128(aBuffer + j);
-                                        Vector128<float> o1 = Sse.LoadAlignedVector128(aBuffer + j + aBufferSize);
-                                        c0 = Sse.Add(c0, o0);
-                                        c1 = Sse.Add(c1, o1);
-                                        Sse.Store(aBuffer + j, c0);
-                                        Sse.Store(aBuffer + j + aBufferSize, c1);
-                                        p0 = Sse.Add(p0, pan0delta);
-                                        p1 = Sse.Add(p1, pan1delta);
-                                        j += 4;
-                                    }
+                                    p0 += pan0delta;
+                                    p1 += pan1delta;
+                                    j += (uint)Vector<float>.Count;
                                 }
                             }
-#endif
-                            // If buffer size or samples to read are not divisible by 4, handle leftovers
+
+                            // If buffer size or samples to read are not divisible by vector length, handle leftovers
                             for (; j < aSamplesToRead; j++)
                             {
                                 pan[0] += pani[0];
@@ -1789,46 +1788,34 @@ namespace LoudPizza.Core
                             break;
 
                         case 1: // 1->2
-#if SSE_INTRINSICS
-                            if (Sse.IsSupported)
+                            if (Vector.IsHardwareAccelerated)
                             {
-                                //if ((aBufferSize & 3) == 0)
+                                uint samplequads = aSamplesToRead / (uint)Vector<float>.Count; // rounded down
+                                Vector<float> indices = Vector.ConvertToSingle(CONSECUTIVE_INDICES);
+                                Vector<float> p0 = new Vector<float>(pan[0]) + new Vector<float>(pani[0]) * indices;
+                                Vector<float> p1 = new Vector<float>(pan[1]) + new Vector<float>(pani[1]) * indices;
+
+                                Vector<float> pan0delta = new(pani[0] * Vector<float>.Count);
+                                Vector<float> pan1delta = new(pani[1] * Vector<float>.Count);
+
+                                for (uint q = 0; q < samplequads; q++)
                                 {
-                                    uint samplequads = aSamplesToRead / 4; // rounded down
-                                    Vector128<float> p0 = Vector128.Create(
-                                        pan[0] + pani[0] * 1,
-                                        pan[0] + pani[0] * 2,
-                                        pan[0] + pani[0] * 3,
-                                        pan[0] + pani[0] * 4);
+                                    Vector<float> f0 = Unsafe.Read<Vector<float>>(aScratch + j);
+                                    Vector<float> o0 = Unsafe.Read<Vector<float>>(aBuffer + j);
+                                    Vector<float> o1 = Unsafe.Read<Vector<float>>(aBuffer + j + aBufferSize);
 
-                                    Vector128<float> p1 = Vector128.Create(
-                                        pan[1] + pani[1] * 1,
-                                        pan[1] + pani[1] * 2,
-                                        pan[1] + pani[1] * 3,
-                                        pan[1] + pani[1] * 4);
+                                    Vector<float> c0 = f0 * p0 + o0;
+                                    Vector<float> c1 = f0 * p1 + o1;
+                                    Unsafe.WriteUnaligned(aBuffer + j, c0);
+                                    Unsafe.WriteUnaligned(aBuffer + j + aBufferSize, c1);
 
-                                    Vector128<float> pan0delta = Vector128.Create(pani[0] * 4);
-                                    Vector128<float> pan1delta = Vector128.Create(pani[1] * 4);
-
-                                    for (uint q = 0; q < samplequads; q++)
-                                    {
-                                        Vector128<float> f = Sse.LoadAlignedVector128(aScratch + j);
-                                        Vector128<float> c0 = Sse.Multiply(f, p0);
-                                        Vector128<float> c1 = Sse.Multiply(f, p1);
-                                        Vector128<float> o0 = Sse.LoadAlignedVector128(aBuffer + j);
-                                        Vector128<float> o1 = Sse.LoadAlignedVector128(aBuffer + j + aBufferSize);
-                                        c0 = Sse.Add(c0, o0);
-                                        c1 = Sse.Add(c1, o1);
-                                        Sse.Store(aBuffer + j, c0);
-                                        Sse.Store(aBuffer + j + aBufferSize, c1);
-                                        p0 = Sse.Add(p0, pan0delta);
-                                        p1 = Sse.Add(p1, pan1delta);
-                                        j += 4;
-                                    }
+                                    p0 += pan0delta;
+                                    p1 += pan1delta;
+                                    j += (uint)Vector<float>.Count;
                                 }
                             }
-#endif
-                            // If buffer size or samples to read are not divisible by 4, handle leftovers
+
+                            // If buffer size or samples to read are not divisible by vector length, handle leftovers
                             for (; j < aSamplesToRead; j++)
                             {
                                 pan[0] += pani[0];
