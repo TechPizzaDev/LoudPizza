@@ -1659,22 +1659,22 @@ namespace LoudPizza.Core
             ChannelBuffer pan; // current speaker volume
             ChannelBuffer pand; // destination speaker volume
             ChannelBuffer pani; // speaker volume increment per sample
-            uint j, k;
-            for (k = 0; k < aChannels; k++)
+
+            for (uint k = 0; k < aChannels; k++)
             {
                 pan[k] = aVoice.mCurrentChannelVolume[k];
                 pand[k] = aVoice.mChannelVolume[k] * aVoice.mOverallVolume;
                 pani[k] = (pand[k] - pan[k]) / aSamplesToRead; // TODO: this is a bit inconsistent.. but it's a hack to begin with
             }
 
-            uint ofs = 0;
+            uint j = 0;
             switch (aChannels)
             {
                 case 1: // Target is mono. Sum everything. (1->1, 2->1, 4->1, 6->1, 8->1)
-                    for (j = 0, ofs = 0; j < aVoice.mChannels; j++, ofs += aBufferSize)
+                    for (uint ofs = 0; j < aVoice.mChannels; j++, ofs += aBufferSize)
                     {
                         pan[0] = aVoice.mCurrentChannelVolume[0];
-                        for (k = 0; k < aSamplesToRead; k++)
+                        for (uint k = 0; k < aSamplesToRead; k++)
                         {
                             pan[0] += pani[0];
                             aBuffer[k] += aScratch[ofs + k] * pan[0];
@@ -1686,7 +1686,7 @@ namespace LoudPizza.Core
                     switch (aVoice.mChannels)
                     {
                         case 8: // 8->2, just sum lefties and righties, add a bit of center and sub?
-                            for (j = 0; j < aSamplesToRead; j++)
+                            for (; j < aSamplesToRead; j++)
                             {
                                 pan[0] += pani[0];
                                 pan[1] += pani[1];
@@ -1704,7 +1704,7 @@ namespace LoudPizza.Core
                             break;
 
                         case 6: // 6->2, just sum lefties and righties, add a bit of center and sub?
-                            for (j = 0; j < aSamplesToRead; j++)
+                            for (; j < aSamplesToRead; j++)
                             {
                                 pan[0] += pani[0];
                                 pan[1] += pani[1];
@@ -1720,7 +1720,7 @@ namespace LoudPizza.Core
                             break;
 
                         case 4: // 4->2, just sum lefties and righties
-                            for (j = 0; j < aSamplesToRead; j++)
+                            for (; j < aSamplesToRead; j++)
                             {
                                 pan[0] += pani[0];
                                 pan[1] += pani[1];
@@ -1737,70 +1737,52 @@ namespace LoudPizza.Core
 #if SSE_INTRINSICS
                             if (Sse.IsSupported)
                             {
-                                uint c = 0;
                                 //if ((aBufferSize & 3) == 0)
                                 {
                                     uint samplequads = aSamplesToRead / 4; // rounded down
-                                    Unsafe.SkipInit(out TinyAlignedFloatBuffer pan0);
-                                    float* pan0Data = TinyAlignedFloatBuffer.align(pan0.mData);
-                                    pan0Data[0] = pan[0] + pani[0];
-                                    pan0Data[1] = pan[0] + pani[0] * 2;
-                                    pan0Data[2] = pan[0] + pani[0] * 3;
-                                    pan0Data[3] = pan[0] + pani[0] * 4;
-                                    Unsafe.SkipInit(out TinyAlignedFloatBuffer pan1);
-                                    float* pan1Data = TinyAlignedFloatBuffer.align(pan1.mData);
-                                    pan1Data[0] = pan[1] + pani[1];
-                                    pan1Data[1] = pan[1] + pani[1] * 2;
-                                    pan1Data[2] = pan[1] + pani[1] * 3;
-                                    pan1Data[3] = pan[1] + pani[1] * 4;
-                                    pani[0] *= 4;
-                                    pani[1] *= 4;
-                                    Vector128<float> pan0delta = Vector128.Create(pani.Data[0]);
-                                    Vector128<float> pan1delta = Vector128.Create(pani.Data[1]);
-                                    Vector128<float> p0 = Sse.LoadAlignedVector128(pan0Data);
-                                    Vector128<float> p1 = Sse.LoadAlignedVector128(pan1Data);
+                                    Vector128<float> p0 = Vector128.Create(
+                                        pan[0] + pani[0] * 1,
+                                        pan[0] + pani[0] * 2,
+                                        pan[0] + pani[0] * 3,
+                                        pan[0] + pani[0] * 4);
 
-                                    for (j = 0; j < samplequads; j++)
+                                    Vector128<float> p1 = Vector128.Create(
+                                        pan[1] + pani[1] * 1,
+                                        pan[1] + pani[1] * 2,
+                                        pan[1] + pani[1] * 3,
+                                        pan[1] + pani[1] * 4);
+
+                                    Vector128<float> pan0delta = Vector128.Create(pani[0] * 4);
+                                    Vector128<float> pan1delta = Vector128.Create(pani[1] * 4);
+
+                                    for (uint q = 0; q < samplequads; q++)
                                     {
-                                        Vector128<float> f0 = Sse.LoadAlignedVector128(aScratch + c);
+                                        Vector128<float> f0 = Sse.LoadAlignedVector128(aScratch + j);
                                         Vector128<float> c0 = Sse.Multiply(f0, p0);
-                                        Vector128<float> f1 = Sse.LoadAlignedVector128(aScratch + c + aBufferSize);
+                                        Vector128<float> f1 = Sse.LoadAlignedVector128(aScratch + j + aBufferSize);
                                         Vector128<float> c1 = Sse.Multiply(f1, p1);
-                                        Vector128<float> o0 = Sse.LoadAlignedVector128(aBuffer + c);
-                                        Vector128<float> o1 = Sse.LoadAlignedVector128(aBuffer + c + aBufferSize);
+                                        Vector128<float> o0 = Sse.LoadAlignedVector128(aBuffer + j);
+                                        Vector128<float> o1 = Sse.LoadAlignedVector128(aBuffer + j + aBufferSize);
                                         c0 = Sse.Add(c0, o0);
                                         c1 = Sse.Add(c1, o1);
-                                        Sse.Store(aBuffer + c, c0);
-                                        Sse.Store(aBuffer + c + aBufferSize, c1);
+                                        Sse.Store(aBuffer + j, c0);
+                                        Sse.Store(aBuffer + j + aBufferSize, c1);
                                         p0 = Sse.Add(p0, pan0delta);
                                         p1 = Sse.Add(p1, pan1delta);
-                                        c += 4;
+                                        j += 4;
                                     }
                                 }
-
-                                // If buffer size or samples to read are not divisible by 4, handle leftovers
-                                for (j = c; j < aSamplesToRead; j++)
-                                {
-                                    pan[0] += pani[0];
-                                    pan[1] += pani[1];
-                                    float s1 = aScratch[j];
-                                    float s2 = aScratch[aBufferSize + j];
-                                    aBuffer[j + 0] += s1 * pan[0];
-                                    aBuffer[j + aBufferSize] += s2 * pan[1];
-                                }
                             }
-                            else
 #endif
+                            // If buffer size or samples to read are not divisible by 4, handle leftovers
+                            for (; j < aSamplesToRead; j++)
                             {
-                                for (j = 0; j < aSamplesToRead; j++)
-                                {
-                                    pan[0] += pani[0];
-                                    pan[1] += pani[1];
-                                    float s1 = aScratch[j];
-                                    float s2 = aScratch[aBufferSize + j];
-                                    aBuffer[j + 0] += s1 * pan[0];
-                                    aBuffer[j + aBufferSize] += s2 * pan[1];
-                                }
+                                pan[0] += pani[0];
+                                pan[1] += pani[1];
+                                float s1 = aScratch[j];
+                                float s2 = aScratch[aBufferSize + j];
+                                aBuffer[j + 0] += s1 * pan[0];
+                                aBuffer[j + aBufferSize] += s2 * pan[1];
                             }
                             break;
 
@@ -1808,66 +1790,50 @@ namespace LoudPizza.Core
 #if SSE_INTRINSICS
                             if (Sse.IsSupported)
                             {
-                                uint c = 0;
                                 //if ((aBufferSize & 3) == 0)
                                 {
                                     uint samplequads = aSamplesToRead / 4; // rounded down
-                                    Unsafe.SkipInit(out TinyAlignedFloatBuffer pan0);
-                                    float* pan0Data = TinyAlignedFloatBuffer.align(pan0.mData);
-                                    pan0Data[0] = pan[0] + pani[0];
-                                    pan0Data[1] = pan[0] + pani[0] * 2;
-                                    pan0Data[2] = pan[0] + pani[0] * 3;
-                                    pan0Data[3] = pan[0] + pani[0] * 4;
-                                    Unsafe.SkipInit(out TinyAlignedFloatBuffer pan1);
-                                    float* pan1Data = TinyAlignedFloatBuffer.align(pan1.mData);
-                                    pan1Data[0] = pan[1] + pani[1];
-                                    pan1Data[1] = pan[1] + pani[1] * 2;
-                                    pan1Data[2] = pan[1] + pani[1] * 3;
-                                    pan1Data[3] = pan[1] + pani[1] * 4;
-                                    pani[0] *= 4;
-                                    pani[1] *= 4;
-                                    Vector128<float> pan0delta = Vector128.Create(pani.Data[0]);
-                                    Vector128<float> pan1delta = Vector128.Create(pani.Data[1]);
-                                    Vector128<float> p0 = Sse.LoadAlignedVector128(pan0Data);
-                                    Vector128<float> p1 = Sse.LoadAlignedVector128(pan1Data);
+                                    Vector128<float> p0 = Vector128.Create(
+                                        pan[0] + pani[0] * 1,
+                                        pan[0] + pani[0] * 2,
+                                        pan[0] + pani[0] * 3,
+                                        pan[0] + pani[0] * 4);
 
-                                    for (j = 0; j < samplequads; j++)
+                                    Vector128<float> p1 = Vector128.Create(
+                                        pan[1] + pani[1] * 1,
+                                        pan[1] + pani[1] * 2,
+                                        pan[1] + pani[1] * 3,
+                                        pan[1] + pani[1] * 4);
+
+                                    Vector128<float> pan0delta = Vector128.Create(pani[0] * 4);
+                                    Vector128<float> pan1delta = Vector128.Create(pani[1] * 4);
+
+                                    for (uint q = 0; q < samplequads; q++)
                                     {
-                                        Vector128<float> f = Sse.LoadAlignedVector128(aScratch + c);
+                                        Vector128<float> f = Sse.LoadAlignedVector128(aScratch + j);
                                         Vector128<float> c0 = Sse.Multiply(f, p0);
                                         Vector128<float> c1 = Sse.Multiply(f, p1);
-                                        Vector128<float> o0 = Sse.LoadAlignedVector128(aBuffer + c);
-                                        Vector128<float> o1 = Sse.LoadAlignedVector128(aBuffer + c + aBufferSize);
+                                        Vector128<float> o0 = Sse.LoadAlignedVector128(aBuffer + j);
+                                        Vector128<float> o1 = Sse.LoadAlignedVector128(aBuffer + j + aBufferSize);
                                         c0 = Sse.Add(c0, o0);
                                         c1 = Sse.Add(c1, o1);
-                                        Sse.Store(aBuffer + c, c0);
-                                        Sse.Store(aBuffer + c + aBufferSize, c1);
+                                        Sse.Store(aBuffer + j, c0);
+                                        Sse.Store(aBuffer + j + aBufferSize, c1);
                                         p0 = Sse.Add(p0, pan0delta);
                                         p1 = Sse.Add(p1, pan1delta);
-                                        c += 4;
+                                        j += 4;
                                     }
                                 }
-                                // If buffer size or samples to read are not divisible by 4, handle leftovers
-                                for (j = c; j < aSamplesToRead; j++)
-                                {
-                                    pan[0] += pani[0];
-                                    pan[1] += pani[1];
-                                    float s = aScratch[j];
-                                    aBuffer[j + 0] += s * pan[0];
-                                    aBuffer[j + aBufferSize] += s * pan[1];
-                                }
                             }
-                            else
 #endif
+                            // If buffer size or samples to read are not divisible by 4, handle leftovers
+                            for (; j < aSamplesToRead; j++)
                             {
-                                for (j = 0; j < aSamplesToRead; j++)
-                                {
-                                    pan[0] += pani[0];
-                                    pan[1] += pani[1];
-                                    float s = aScratch[j];
-                                    aBuffer[j + 0] += s * pan[0];
-                                    aBuffer[j + aBufferSize] += s * pan[1];
-                                }
+                                pan[0] += pani[0];
+                                pan[1] += pani[1];
+                                float s = aScratch[j];
+                                aBuffer[j + 0] += s * pan[0];
+                                aBuffer[j + aBufferSize] += s * pan[1];
                             }
                             break;
                     }
@@ -1877,7 +1843,7 @@ namespace LoudPizza.Core
                     switch (aVoice.mChannels)
                     {
                         case 8: // 8->4, add a bit of center, sub?
-                            for (j = 0; j < aSamplesToRead; j++)
+                            for (; j < aSamplesToRead; j++)
                             {
                                 pan[0] += pani[0];
                                 pan[1] += pani[1];
@@ -1900,7 +1866,7 @@ namespace LoudPizza.Core
                             break;
 
                         case 6: // 6->4, add a bit of center, sub?
-                            for (j = 0; j < aSamplesToRead; j++)
+                            for (; j < aSamplesToRead; j++)
                             {
                                 pan[0] += pani[0];
                                 pan[1] += pani[1];
@@ -1921,7 +1887,7 @@ namespace LoudPizza.Core
                             break;
 
                         case 4: // 4->4
-                            for (j = 0; j < aSamplesToRead; j++)
+                            for (; j < aSamplesToRead; j++)
                             {
                                 pan[0] += pani[0];
                                 pan[1] += pani[1];
@@ -1939,7 +1905,7 @@ namespace LoudPizza.Core
                             break;
 
                         case 2: // 2->4
-                            for (j = 0; j < aSamplesToRead; j++)
+                            for (; j < aSamplesToRead; j++)
                             {
                                 pan[0] += pani[0];
                                 pan[1] += pani[1];
@@ -1955,7 +1921,7 @@ namespace LoudPizza.Core
                             break;
 
                         case 1: // 1->4
-                            for (j = 0; j < aSamplesToRead; j++)
+                            for (; j < aSamplesToRead; j++)
                             {
                                 pan[0] += pani[0];
                                 pan[1] += pani[1];
@@ -1975,7 +1941,7 @@ namespace LoudPizza.Core
                     switch (aVoice.mChannels)
                     {
                         case 8: // 8->6
-                            for (j = 0; j < aSamplesToRead; j++)
+                            for (; j < aSamplesToRead; j++)
                             {
                                 pan[0] += pani[0];
                                 pan[1] += pani[1];
@@ -2001,7 +1967,7 @@ namespace LoudPizza.Core
                             break;
 
                         case 6: // 6->6
-                            for (j = 0; j < aSamplesToRead; j++)
+                            for (; j < aSamplesToRead; j++)
                             {
                                 pan[0] += pani[0];
                                 pan[1] += pani[1];
@@ -2025,7 +1991,7 @@ namespace LoudPizza.Core
                             break;
 
                         case 4: // 4->6
-                            for (j = 0; j < aSamplesToRead; j++)
+                            for (; j < aSamplesToRead; j++)
                             {
                                 pan[0] += pani[0];
                                 pan[1] += pani[1];
@@ -2047,7 +2013,7 @@ namespace LoudPizza.Core
                             break;
 
                         case 2: // 2->6
-                            for (j = 0; j < aSamplesToRead; j++)
+                            for (; j < aSamplesToRead; j++)
                             {
                                 pan[0] += pani[0];
                                 pan[1] += pani[1];
@@ -2067,7 +2033,7 @@ namespace LoudPizza.Core
                             break;
 
                         case 1: // 1->6
-                            for (j = 0; j < aSamplesToRead; j++)
+                            for (; j < aSamplesToRead; j++)
                             {
                                 pan[0] += pani[0];
                                 pan[1] += pani[1];
@@ -2091,7 +2057,7 @@ namespace LoudPizza.Core
                     switch (aVoice.mChannels)
                     {
                         case 8: // 8->8
-                            for (j = 0; j < aSamplesToRead; j++)
+                            for (; j < aSamplesToRead; j++)
                             {
                                 pan[0] += pani[0];
                                 pan[1] += pani[1];
@@ -2121,7 +2087,7 @@ namespace LoudPizza.Core
                             break;
 
                         case 6: // 6->8
-                            for (j = 0; j < aSamplesToRead; j++)
+                            for (; j < aSamplesToRead; j++)
                             {
                                 pan[0] += pani[0];
                                 pan[1] += pani[1];
@@ -2149,7 +2115,7 @@ namespace LoudPizza.Core
                             break;
 
                         case 4: // 4->8
-                            for (j = 0; j < aSamplesToRead; j++)
+                            for (; j < aSamplesToRead; j++)
                             {
                                 pan[0] += pani[0];
                                 pan[1] += pani[1];
@@ -2175,7 +2141,7 @@ namespace LoudPizza.Core
                             break;
 
                         case 2: // 2->8
-                            for (j = 0; j < aSamplesToRead; j++)
+                            for (; j < aSamplesToRead; j++)
                             {
                                 pan[0] += pani[0];
                                 pan[1] += pani[1];
@@ -2199,7 +2165,7 @@ namespace LoudPizza.Core
                             break;
 
                         case 1: // 1->8
-                            for (j = 0; j < aSamplesToRead; j++)
+                            for (; j < aSamplesToRead; j++)
                             {
                                 pan[0] += pani[0];
                                 pan[1] += pani[1];
@@ -2224,7 +2190,7 @@ namespace LoudPizza.Core
                     break;
             }
 
-            for (k = 0; k < aChannels; k++)
+            for (uint k = 0; k < aChannels; k++)
                 aVoice.mCurrentChannelVolume[k] = pand[k];
         }
     }
