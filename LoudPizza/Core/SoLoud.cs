@@ -20,6 +20,7 @@ namespace LoudPizza.Core
         private const int FIXPOINT_FRAC_BITS = 20;
         private const int FIXPOINT_FRAC_MUL = (1 << FIXPOINT_FRAC_BITS);
         private const int FIXPOINT_FRAC_MASK = ((1 << FIXPOINT_FRAC_BITS) - 1);
+        private const float FIXPOINT_FRAC_RECI = 1f / FIXPOINT_FRAC_MUL;
 
         private const float SQRT2RECP = 0.7071067811865475f;
 
@@ -1469,15 +1470,60 @@ namespace LoudPizza.Core
             int aDstSampleCount,
             int aStepFixed)
         {
-            int i;
+            int i = 0;
             int pos = aSrcOffset;
 
-            for (i = 0; i < aDstSampleCount; i++, pos += aStepFixed)
+#if SSE_INTRINSICS
+            if (Avx2.IsSupported)
+            {
+                Vector256<int> vPos = Vector256.Create(
+                    pos + aStepFixed * 0,
+                    pos + aStepFixed * 1,
+                    pos + aStepFixed * 2,
+                    pos + aStepFixed * 3,
+                    pos + aStepFixed * 4,
+                    pos + aStepFixed * 5,
+                    pos + aStepFixed * 6,
+                    pos + aStepFixed * 7);
+
+                Vector256<int> vStepFixed = Vector256.Create(aStepFixed * 8);
+                Vector256<int> fxpFracMask = Vector256.Create(FIXPOINT_FRAC_MASK);
+                Vector256<float> fxpFracReci = Vector256.Create(FIXPOINT_FRAC_RECI);
+                Vector256<float> s1BaseValue = Vector256.Create(aSrc1[SampleGranularity - 1]);
+                Vector256<int> one = Vector256.Create(1);
+
+                while (i + Vector256<float>.Count <= aDstSampleCount)
+                {
+                    Vector256<int> p = Avx2.ShiftRightArithmetic(vPos, FIXPOINT_FRAC_BITS);
+                    Vector256<int> f = Avx2.And(vPos, fxpFracMask);
+
+                    Vector256<int> mask = Avx2.CompareEqual(p, Vector256<int>.Zero);
+                    mask = Avx2.Xor(mask, Vector256<int>.AllBitsSet); // bitwise-NOT
+
+                    Vector256<int> pSub1 = Avx2.Subtract(p, one);
+                    Vector256<float> s1 = Avx2.GatherMaskVector256(s1BaseValue, aSrc, pSub1, mask.AsSingle(), sizeof(float));
+                    Vector256<float> s2 = Avx2.GatherVector256(aSrc, p, sizeof(float));
+
+                    Vector256<float> dst = Avx.Add(s1, Avx.Multiply(
+                        Avx.Multiply(Avx.Subtract(s2, s1), Avx.ConvertToVector256Single(f)),
+                        fxpFracReci));
+
+                    Unsafe.WriteUnaligned(aDst + i, dst);
+
+                    i += Vector256<float>.Count;
+                    vPos = Avx2.Add(vPos, vStepFixed);
+                }
+
+                pos = vPos.GetElement(0);
+            }
+#endif
+
+            for (; i < aDstSampleCount; i++, pos += aStepFixed)
             {
                 int p = pos >> FIXPOINT_FRAC_BITS;
                 int f = pos & FIXPOINT_FRAC_MASK;
 #if DEBUG
-                if (p >= SampleGranularity || p < 0)
+                if ((uint)p >= SampleGranularity)
                 {
                     // This should never actually happen
                     p = SampleGranularity - 1;
@@ -1489,7 +1535,7 @@ namespace LoudPizza.Core
                 {
                     s1 = aSrc[p - 1];
                 }
-                aDst[i] = s1 + (s2 - s1) * f * (1 / (float)FIXPOINT_FRAC_MUL);
+                aDst[i] = s1 + (s2 - s1) * f * FIXPOINT_FRAC_RECI;
             }
         }
 
