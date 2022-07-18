@@ -1374,12 +1374,50 @@ namespace LoudPizza.Core
         private static void interlace_samples_float(float* aSourceBuffer, float* aDestBuffer, uint aSamples, uint aChannels, uint aStride)
         {
             // 111222 -> 121212
-            uint i, j, c;
-            c = 0;
-            for (j = 0; j < aChannels; j++)
+
+#if SSE_INTRINSICS
+            if (Sse.IsSupported)
             {
-                c = j * aStride;
-                for (i = j; i < aSamples * aChannels; i += aChannels)
+                if (aChannels == 2)
+                {
+                    uint i = 0;
+                    float* srcBuffer1 = aSourceBuffer;
+                    float* srcBuffer2 = aSourceBuffer + aStride;
+
+                    for (; i + (uint)Vector128<float>.Count * 2 <= aSamples * 2;)
+                    {
+                        Vector128<float> src0 = Sse.LoadVector128(srcBuffer1);
+                        Vector128<float> src1 = Sse.LoadVector128(srcBuffer2);
+
+                        Vector128<float> dst0 = Sse.UnpackLow(src0, src1);
+                        Vector128<float> dst1 = Sse.UnpackHigh(src0, src1);
+
+                        Unsafe.WriteUnaligned(aDestBuffer + i, dst0);
+                        i += (uint)Vector128<float>.Count;
+
+                        Unsafe.WriteUnaligned(aDestBuffer + i, dst1);
+                        i += (uint)Vector128<float>.Count;
+
+                        srcBuffer1 += Vector128<float>.Count;
+                        srcBuffer2 += Vector128<float>.Count;
+                    }
+
+                    for (; i < aSamples * 2; i += 2)
+                    {
+                        aDestBuffer[i + 0] = *srcBuffer1++;
+                        aDestBuffer[i + 1] = *srcBuffer2++;
+                    }
+                    return;
+                }
+            }
+#endif
+
+            for (uint j = 0; j < aChannels; j++)
+            {
+                uint i = j;
+                uint c = j * aStride;
+
+                for (; i < aSamples * aChannels; i += aChannels)
                 {
                     aDestBuffer[i] = aSourceBuffer[c];
                     c++;
@@ -1390,12 +1428,65 @@ namespace LoudPizza.Core
         private static void interlace_samples_s16(float* aSourceBuffer, short* aDestBuffer, uint aSamples, uint aChannels, uint aStride)
         {
             // 111222 -> 121212
-            uint i, j, c;
-            c = 0;
-            for (j = 0; j < aChannels; j++)
+
+#if SSE_INTRINSICS
+            if (Sse2.IsSupported)
             {
-                c = j * aStride;
-                for (i = j; i < aSamples * aChannels; i += aChannels)
+                if (aChannels == 2)
+                {
+                    uint i = 0;
+                    float* srcBuffer1 = aSourceBuffer;
+                    float* srcBuffer2 = aSourceBuffer + aStride;
+                    Vector128<float> factor = Vector128.Create((float)0x7fff);
+
+                    for (; i + (uint)Vector128<short>.Count * 2 <= aSamples * 2;)
+                    {
+                        Vector128<float> src0_0 = Sse.LoadVector128(srcBuffer1);
+                        Vector128<float> src0_1 = Sse.LoadVector128(srcBuffer1 + Vector128<float>.Count);
+
+                        Vector128<float> src1_0 = Sse.LoadVector128(srcBuffer2);
+                        Vector128<float> src1_1 = Sse.LoadVector128(srcBuffer2 + Vector128<float>.Count);
+
+                        Vector128<float> dst0 = Sse.Multiply(Sse.UnpackLow(src0_0, src1_0), factor);
+                        Vector128<float> dst1 = Sse.Multiply(Sse.UnpackHigh(src0_0, src1_0), factor);
+
+                        Vector128<float> dst2 = Sse.Multiply(Sse.UnpackLow(src0_1, src1_1), factor);
+                        Vector128<float> dst3 = Sse.Multiply(Sse.UnpackHigh(src0_1, src1_1), factor);
+
+                        Vector128<short> sdst0 = Sse2.PackSignedSaturate(
+                            Sse2.ConvertToVector128Int32(dst0),
+                            Sse2.ConvertToVector128Int32(dst1));
+
+                        Vector128<short> sdst1 = Sse2.PackSignedSaturate(
+                            Sse2.ConvertToVector128Int32(dst2),
+                            Sse2.ConvertToVector128Int32(dst3));
+
+                        Unsafe.WriteUnaligned(aDestBuffer + i, sdst0);
+                        i += (uint)Vector128<short>.Count;
+
+                        Unsafe.WriteUnaligned(aDestBuffer + i, sdst1);
+                        i += (uint)Vector128<short>.Count;
+
+                        srcBuffer1 += Vector128<short>.Count;
+                        srcBuffer2 += Vector128<short>.Count;
+                    }
+
+                    for (; i < aSamples * 2; i += 2)
+                    {
+                        aDestBuffer[i + 0] = (short)(*srcBuffer1++ * 0x7fff);
+                        aDestBuffer[i + 1] = (short)(*srcBuffer2++ * 0x7fff);
+                    }
+                    return;
+                }
+            }
+#endif
+
+            for (uint j = 0; j < aChannels; j++)
+            {
+                uint i = j;
+                uint c = j * aStride;
+
+                for (; i < aSamples * aChannels; i += aChannels)
                 {
                     aDestBuffer[i] = (short)(aSourceBuffer[c] * 0x7fff);
                     c++;
