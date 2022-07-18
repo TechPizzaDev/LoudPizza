@@ -1595,9 +1595,10 @@ namespace LoudPizza.Core
                     Vector256<float> s1 = Avx2.GatherMaskVector256(s1BaseValue, aSrc, pSub1, mask.AsSingle(), sizeof(float));
                     Vector256<float> s2 = Avx2.GatherVector256(aSrc, p, sizeof(float));
 
-                    Vector256<float> dst = Avx.Add(s1, Avx.Multiply(
-                        Avx.Multiply(Avx.Subtract(s2, s1), Avx.ConvertToVector256Single(f)),
-                        fxpFracReci));
+                    Vector256<float> diff = Avx.Multiply(Avx.Subtract(s2, s1), Avx.ConvertToVector256Single(f));
+                    Vector256<float> dst = Fma.IsSupported
+                        ? Fma.MultiplyAdd(diff, fxpFracReci, s1)
+                        : Avx.Add(Avx.Multiply(diff, fxpFracReci), s1);
 
                     Unsafe.WriteUnaligned(aDst + i, dst);
 
