@@ -63,7 +63,7 @@ namespace LoudPizza.Core
                 return -1;
             }
 
-            int ch = (int)(handle.Value & 0xfff - 1);
+            int ch = (int)((handle.Value & 0xfff) - 1);
             uint idx = handle.Value >> 12;
             AudioSourceInstance? voice = mVoice[ch];
             if (voice != null &&
@@ -88,7 +88,7 @@ namespace LoudPizza.Core
                 return null;
             }
 
-            int ch = (int)(handle.Value & 0xfff - 1);
+            int ch = (int)((handle.Value & 0xfff) - 1);
             uint idx = handle.Value >> 12;
             AudioSourceInstance? voice = mVoice[ch];
             if (voice != null &&

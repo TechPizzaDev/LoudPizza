@@ -105,7 +105,7 @@ namespace LoudPizza.Core
         /// </exception>
         public void setMaxActiveVoiceCount(uint aVoiceCount)
         {
-            if (aVoiceCount == 0 || aVoiceCount >= MaxVoiceCount)
+            if (aVoiceCount == 0 || aVoiceCount > MaxVoiceCount)
             {
                 throw new ArgumentOutOfRangeException(nameof(aVoiceCount));
             }

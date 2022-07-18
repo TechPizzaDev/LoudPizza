@@ -37,7 +37,7 @@ namespace LoudPizza.Core
         /// <summary>
         /// Maximum number of concurrent voices (hard limit is 4095).
         /// </summary>
-        public const int MaxVoiceCount = 1024;
+        public const int MaxVoiceCount = 4095;
 
         /// <summary>
         /// 1) mono, 2) stereo, 4) quad, 6) 5.1, 8) 7.1,
@@ -625,8 +625,8 @@ namespace LoudPizza.Core
         [SkipLocalsInit]
         internal void mapResampleBuffers_internal()
         {
-            Debug.Assert(mMaxActiveVoices < 256);
-            byte* live = stackalloc byte[256];
+            Debug.Assert(mMaxActiveVoices <= MaxVoiceCount);
+            byte* live = stackalloc byte[MaxVoiceCount];
             new Span<byte>(live, (int)mMaxActiveVoices).Clear();
 
             uint i, j;

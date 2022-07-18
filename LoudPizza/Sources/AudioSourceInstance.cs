@@ -309,9 +309,6 @@ namespace LoudPizza.Sources
                     }
                 }
 
-                mResampleData0.destroy();
-                mResampleData1.destroy();
-
                 _isDisposed = true;
             }
         }

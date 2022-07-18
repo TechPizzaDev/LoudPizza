@@ -48,6 +48,10 @@ namespace LoudPizza.Core
 
         public Span<float> AsSpan()
         {
+            if (mData == null)
+            {
+                throw new InvalidOperationException();
+            }
             return new Span<float>(mData, (int)mFloats);
         }
 
@@ -67,6 +71,7 @@ namespace LoudPizza.Core
             {
                 Marshal.FreeHGlobal(mBasePtr);
                 mBasePtr = IntPtr.Zero;
+                mData = null;
             }
         }
     }
