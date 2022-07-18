@@ -791,7 +791,8 @@ namespace LoudPizza.Core
 
 
                             // Run the per-stream filters to get our source data
-
+                            if (voice.mFilterCount != 0)
+                            {
                             for (j = 0; j < FiltersPerStream; j++)
                             {
                                 FilterInstance? instance = voice.mFilter[j];
@@ -806,6 +807,7 @@ namespace LoudPizza.Core
                                         mStreamTime);
                                 }
                             }
+                        }
                         }
                         else
                         {

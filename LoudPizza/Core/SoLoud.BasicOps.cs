@@ -82,6 +82,7 @@ namespace LoudPizza.Core
                     if (filter != null)
                     {
                         instance.mFilter[i] = filter.CreateInstance();
+                        instance.mFilterCount++;
                     }
                 }
 

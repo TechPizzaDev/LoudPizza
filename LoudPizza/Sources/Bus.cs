@@ -46,12 +46,18 @@ namespace LoudPizza.Sources
             {
                 lock (SoLoud.mAudioThreadMutex)
                 {
-                    mInstance.mFilter[filterId]?.Dispose();
-                    mInstance.mFilter[filterId] = null;
+                    ref FilterInstance? instance = ref mInstance.mFilter[filterId];
+                    if (instance != null)
+                    {
+                        instance.Dispose();
+                        instance = null;
+                        mInstance.mFilterCount--;
+                    }
 
                     if (filter != null)
                     {
-                        mInstance.mFilter[filterId] = filter.CreateInstance();
+                        instance = filter.CreateInstance();
+                        mInstance.mFilterCount++;
                     }
                 }
             }

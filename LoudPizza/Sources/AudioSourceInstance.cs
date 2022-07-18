@@ -211,6 +211,11 @@ namespace LoudPizza.Sources
         internal FilterInstance?[] mFilter = new FilterInstance[SoLoud.FiltersPerStream];
 
         /// <summary>
+        /// Amount of active filters.
+        /// </summary>
+        internal int mFilterCount;
+
+        /// <summary>
         /// Initialize instance. Mostly internal use.
         /// </summary>
         public void Initialize(uint aPlayIndex)
@@ -305,7 +310,12 @@ namespace LoudPizza.Sources
                 {
                     for (int i = 0; i < mFilter.Length; i++)
                     {
-                        mFilter[i]?.Dispose();
+                        FilterInstance? instance = mFilter[i];
+                        if (instance != null)
+                        {
+                            instance.Dispose();
+                            mFilterCount--;
+                        }
                     }
                 }
 
