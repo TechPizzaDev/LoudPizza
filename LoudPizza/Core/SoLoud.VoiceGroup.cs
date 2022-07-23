@@ -13,61 +13,50 @@ namespace LoudPizza.Core
         {
             lock (mAudioThreadMutex)
             {
-                uint i;
-                // Check if there's any deleted voice groups and re-use if found
-                for (i = 0; i < mVoiceGroupCount; i++)
+                int index;
                 {
-                    if (mVoiceGroup[i].Length == 0)
+                    // Check if there's any deleted voice groups and re-use if found
+                    Handle[][] voiceGroups = mVoiceGroup;
+                    for (int i = 0; i < voiceGroups.Length; i++)
                     {
-                        Handle[] groupa = new Handle[16];
-                        if (groupa == null)
+                        if (voiceGroups[i].Length == 0)
                         {
-                            return default;
+                            Handle[] groupa = new Handle[16];
+                            if (groupa == null)
+                            {
+                                return default;
+                            }
+                            mVoiceGroup[i] = groupa;
+                            return new Handle(0xfffff000 | (uint)i);
                         }
-                        mVoiceGroup[i] = groupa;
-                        //groupa[0] = 16;
-                        groupa[0] = default;
-                        return new Handle(0xfffff000 | i);
                     }
-                }
-                if (mVoiceGroupCount == 4096)
-                {
-                    return default;
-                }
-                uint oldcount = mVoiceGroupCount;
-                if (mVoiceGroupCount == 0)
-                {
-                    mVoiceGroupCount = 4;
-                }
-                mVoiceGroupCount *= 2;
-                Handle[][] vg = new Handle[mVoiceGroupCount][];
-                if (vg == null)
-                {
-                    mVoiceGroupCount = oldcount;
-                    return default;
-                }
-                for (i = 0; i < oldcount; i++)
-                {
-                    vg[i] = mVoiceGroup[i];
+                    if (voiceGroups.Length == 4096)
+                    {
+                        return default;
+                    }
+
+                    Handle[][] vg = new Handle[Math.Max(4, voiceGroups.Length * 2)][];
+                    if (vg == null)
+                    {
+                        return default;
+                    }
+                    voiceGroups.CopyTo(vg.AsSpan());
+                    for (int i = voiceGroups.Length; i < vg.Length; i++)
+                    {
+                        vg[i] = Array.Empty<Handle>();
+                    }
+
+                    mVoiceGroup = vg;
+                    index = voiceGroups.Length;
                 }
 
-                for (; i < mVoiceGroupCount; i++)
-                {
-                    vg[i] = Array.Empty<Handle>();
-                }
-
-                //delete[] mVoiceGroup;
-                mVoiceGroup = vg;
-                i = oldcount;
                 Handle[] groupb = new Handle[16];
                 if (groupb == null)
                 {
                     return default;
                 }
-                mVoiceGroup[i] = groupb;
-                //groupb[0] = 16;
-                groupb[0] = default;
-                return new Handle(0xfffff000 | i);
+                mVoiceGroup[index] = groupb;
+                return new Handle(0xfffff000 | (uint)index);
             }
         }
 
@@ -108,37 +97,32 @@ namespace LoudPizza.Core
             lock (mAudioThreadMutex)
             {
                 Handle[] group = mVoiceGroup[c];
-                for (uint i = 0; i < group.Length; i++)
+                for (int i = 0; i < group.Length; i++)
                 {
                     if (group[i] == aVoiceHandle)
                     {
                         return SoLoudStatus.Ok; // already there
                     }
 
-                    if (group[i].Value == 0)
+                    if (group[i] == default)
                     {
                         group[i] = aVoiceHandle;
-                        group[i + 1] = default;
-
                         return SoLoudStatus.Ok;
                     }
                 }
 
                 // Full group, allocate more memory
-                int newLength = group.Length != 0 ? group.Length * 2 : 16;
-                Handle[] n = new Handle[newLength];
-                if (n == null)
+                int newLength = Math.Max(16, group.Length * 2);
+                Handle[] newGroup = new Handle[newLength];
+                if (newGroup == null)
                 {
                     return SoLoudStatus.OutOfMemory;
                 }
 
-                for (uint i = 0; i < group.Length; i++)
-                    n[i] = group[i];
-                n[group.Length] = aVoiceHandle;
-                n[group.Length + 1] = default;
-                //n[0] = (uint)n.Length;
-                //delete[] mVoiceGroup[c];
-                mVoiceGroup[c] = n;
+                group.CopyTo(newGroup.AsSpan());
+                newGroup[group.Length] = aVoiceHandle;
+
+                mVoiceGroup[c] = newGroup;
                 return SoLoudStatus.Ok;
             }
         }
@@ -151,13 +135,15 @@ namespace LoudPizza.Core
             if ((aVoiceGroupHandle.Value & 0xfffff000) != 0xfffff000)
                 return false;
 
-            uint c = aVoiceGroupHandle.Value & 0xfff;
-            if (c >= mVoiceGroupCount)
-                return false;
+            int c = (int)(aVoiceGroupHandle.Value & 0xfff);
 
             lock (mAudioThreadMutex)
             {
-                bool res = mVoiceGroup[c].Length != 0;
+                Handle[][] voiceGroups = mVoiceGroup;
+                if (c >= voiceGroups.Length)
+                    return false;
+
+                bool res = voiceGroups[c].Length != 0;
                 return res;
             }
         }
@@ -188,23 +174,17 @@ namespace LoudPizza.Core
         {
             if (!isVoiceGroup(aVoiceGroupHandle))
                 return;
+
             int c = (int)(aVoiceGroupHandle.Value & 0xfff);
 
             lock (mAudioThreadMutex)
             {
                 Handle[] group = mVoiceGroup[c];
 
-                // empty group
-                if (group.Length == 0)
-                {
-                    return;
-                }
-
-                // first item in voice group is number of allocated indices
-                for (uint i = 0; i < group.Length; i++)
+                for (int i = 0; i < group.Length; i++)
                 {
                     // If we hit a voice in the group that's not set, we're done
-                    if (group[i].Value == 0)
+                    if (group[i] == default)
                     {
                         return;
                     }
@@ -212,17 +192,16 @@ namespace LoudPizza.Core
                     while (!isValidVoiceHandle(group[i]))
                     {
                         // current index is an invalid handle, move all following handles backwards
-                        for (uint j = i; j < group.Length - 1; j++)
+                        for (int j = i; j < group.Length - 1; j++)
                         {
                             group[j] = group[j + 1];
                             // not a full group, we can stop copying
-                            if (group[j].Value == 0)
+                            if (group[j] == default)
                                 break;
                         }
-                        // be sure to mark the last one as unused in any case
-                        group[group.Length - 1] = default;
+
                         // did we end up with an empty group? we're done then
-                        if (group[i].Value == 0)
+                        if (group[i] == default)
                         {
                             return;
                         }
@@ -239,11 +218,13 @@ namespace LoudPizza.Core
             if ((aVoiceGroupHandle.Value & 0xfffff000) != 0xfffff000)
                 return MemoryMarshal.CreateReadOnlySpan(ref aVoiceGroupHandle, 1);
 
-            uint c = aVoiceGroupHandle.Value & 0xfff;
-            if (c >= mVoiceGroupCount)
+            int c = (int)(aVoiceGroupHandle.Value & 0xfff);
+
+            Handle[][] voiceGroups = mVoiceGroup;
+            if (c >= voiceGroups.Length)
                 return MemoryMarshal.CreateReadOnlySpan(ref aVoiceGroupHandle, 1);
 
-            Handle[] group = mVoiceGroup[c];
+            Handle[] group = voiceGroups[c];
             return group;
         }
     }
