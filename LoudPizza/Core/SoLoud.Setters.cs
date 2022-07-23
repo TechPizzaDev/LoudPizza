@@ -50,7 +50,7 @@ namespace LoudPizza.Core
                     if (ch != -1)
                     {
                         mVoice[ch]!.mRelativePlaySpeedFader.mActive = 0;
-                        setVoiceRelativePlaySpeed_internal((uint)ch, aSpeed);
+                        setVoiceRelativePlaySpeed_internal(ch, aSpeed);
                     }
                 }
 
@@ -72,7 +72,7 @@ namespace LoudPizza.Core
                     if (ch != -1)
                     {
                         mVoice[ch]!.mBaseSamplerate = aSamplerate;
-                        updateVoiceRelativePlaySpeed_internal((uint)ch);
+                        updateVoiceRelativePlaySpeed_internal(ch);
                     }
                 }
             }
@@ -91,7 +91,7 @@ namespace LoudPizza.Core
                     int ch = getVoiceFromHandle_internal(h);
                     if (ch != -1)
                     {
-                        setVoicePause_internal((uint)ch, aPause);
+                        setVoicePause_internal(ch, aPause);
                     }
                 }
             }
@@ -103,9 +103,9 @@ namespace LoudPizza.Core
         /// <exception cref="ArgumentOutOfRangeException">
         /// <paramref name="aVoiceCount"/> exceeds the technical maximum amount.
         /// </exception>
-        public void setMaxActiveVoiceCount(uint aVoiceCount)
+        public void setMaxActiveVoiceCount(int aVoiceCount)
         {
-            if (aVoiceCount == 0 || aVoiceCount > MaxVoiceCount)
+            if (aVoiceCount == 0 || (uint)aVoiceCount > MaxVoiceCount)
             {
                 throw new ArgumentOutOfRangeException(nameof(aVoiceCount));
             }
@@ -125,7 +125,7 @@ namespace LoudPizza.Core
         {
             lock (mAudioThreadMutex)
             {
-                for (uint ch = 0; ch < mHighestVoice; ch++)
+                for (int ch = 0; ch < mHighestVoice; ch++)
                 {
                     setVoicePause_internal(ch, aPause);
                 }
@@ -171,7 +171,7 @@ namespace LoudPizza.Core
                     int ch = getVoiceFromHandle_internal(h);
                     if (ch != -1)
                     {
-                        setVoicePan_internal((uint)ch, aPan);
+                        setVoicePan_internal(ch, aPan);
                     }
                 }
             }
@@ -354,7 +354,7 @@ namespace LoudPizza.Core
                     if (ch != -1)
                     {
                         mVoice[ch]!.mVolumeFader.mActive = 0;
-                        setVoiceVolume_internal((uint)ch, aVolume);
+                        setVoiceVolume_internal(ch, aVolume);
                     }
                 }
             }

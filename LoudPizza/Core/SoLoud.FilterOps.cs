@@ -44,7 +44,7 @@ namespace LoudPizza.Core
             lock (mAudioThreadMutex)
             {
                 float ret = (int)SoLoudStatus.InvalidParameter;
-                if (aVoiceHandle.Value == 0)
+                if (aVoiceHandle == default)
                 {
                     FilterInstance? filterInstance = mFilterInstance[aFilterId];
                     if (filterInstance != null)
@@ -80,7 +80,7 @@ namespace LoudPizza.Core
 
             lock (mAudioThreadMutex)
             {
-                if (aVoiceHandle.Value == 0)
+                if (aVoiceHandle == default)
                 {
                     FilterInstance? filterInstance = mFilterInstance[aFilterId];
                     if (filterInstance != null)
@@ -120,7 +120,7 @@ namespace LoudPizza.Core
 
             lock (mAudioThreadMutex)
             {
-                if (aVoiceHandle.Value == 0)
+                if (aVoiceHandle == default)
                 {
                     FilterInstance? filterInstance = mFilterInstance[aFilterId];
                     if (filterInstance != null)
@@ -160,7 +160,7 @@ namespace LoudPizza.Core
 
             lock (mAudioThreadMutex)
             {
-                if (aVoiceHandle.Value == 0)
+                if (aVoiceHandle == default)
                 {
                     FilterInstance? filterInstance = mFilterInstance[aFilterId];
                     if (filterInstance != null)

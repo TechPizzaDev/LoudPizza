@@ -32,19 +32,19 @@ namespace LoudPizza
         }
 
         /// <inheritdoc cref="SoLoud.getMaxActiveVoiceCount"/>
-        public uint GetMaxActiveVoiceCount()
+        public int GetMaxActiveVoiceCount()
         {
             return SoLoud.getMaxActiveVoiceCount();
         }
 
         /// <inheritdoc/>
-        public uint GetActiveVoiceCount()
+        public int GetActiveVoiceCount()
         {
             return SoLoud.GetActiveVoiceCount();
         }
 
         /// <inheritdoc cref="SoLoud.getVoiceCount"/>
-        public uint GetVoiceCount()
+        public int GetVoiceCount()
         {
             return SoLoud.getVoiceCount();
         }

@@ -132,7 +132,8 @@ namespace LoudPizza
             set
             {
                 SoLoudStatus status = Seek(value);
-                if (status != SoLoudStatus.Ok)
+                if (status != SoLoudStatus.Ok &&
+                    status != SoLoudStatus.EndOfStream)
                 {
                     throw new IOException(status.ToString());
                 }

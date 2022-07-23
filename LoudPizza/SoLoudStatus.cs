@@ -42,5 +42,9 @@ namespace LoudPizza
         /// Other error.
         /// </summary>
         UnknownError = 7,
+
+        EndOfStream = 8,
+
+        PoolExhausted = 9,
     };
 }

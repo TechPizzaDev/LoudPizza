@@ -1,3 +1,4 @@
+using System;
 using LoudPizza.Core;
 
 namespace LoudPizza.Sources
@@ -41,7 +42,7 @@ namespace LoudPizza.Sources
                 return SoLoudStatus.InvalidParameter;
 
             Handle queueHandle = FindQueueHandle();
-            if (queueHandle.Value == 0)
+            if (queueHandle == default)
                 return SoLoudStatus.InvalidParameter;
 
             if (mCount >= mSource.Length)
@@ -168,11 +169,13 @@ namespace LoudPizza.Sources
         /// </summary>
         internal Handle FindQueueHandle()
         {
-            for (uint i = 0; mQueueHandle.Value == 0 && i < SoLoud.mHighestVoice; i++)
+            SoLoud s = SoLoud;
+            ReadOnlySpan<AudioSourceInstance?> highVoices = s.mVoice.AsSpan(0, s.mHighestVoice);
+            for (int i = 0; mQueueHandle == default && i < highVoices.Length; i++)
             {
-                if (SoLoud.mVoice[i] == mInstance)
+                if (highVoices[i] == mInstance)
                 {
-                    mQueueHandle = SoLoud.getHandleFromVoice_internal(i);
+                    mQueueHandle = s.getHandleFromVoice_internal(i);
                 }
             }
             return mQueueHandle;

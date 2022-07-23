@@ -22,7 +22,7 @@ namespace LoudPizza.Sources
 
         public override BusInstance CreateInstance()
         {
-            if (mChannelHandle.Value != 0)
+            if (mChannelHandle != default)
             {
                 Stop();
                 mChannelHandle = default;
@@ -67,7 +67,7 @@ namespace LoudPizza.Sources
         public VoiceHandle Play(AudioSource source, float volume = -1.0f, float pan = 0.0f, bool paused = false)
         {
             Handle busHandle = GetBusHandle();
-            if (busHandle.Value == 0)
+            if (busHandle == default)
             {
                 return default;
             }
@@ -80,7 +80,7 @@ namespace LoudPizza.Sources
         public VoiceHandle PlayClocked(AudioSource source, Time soundTime, float volume = -1.0f, float pan = 0.0f)
         {
             Handle busHandle = GetBusHandle();
-            if (busHandle.Value == 0)
+            if (busHandle == default)
             {
                 return default;
             }
@@ -98,7 +98,7 @@ namespace LoudPizza.Sources
             bool paused = false)
         {
             Handle busHandle = GetBusHandle();
-            if (busHandle.Value == 0)
+            if (busHandle == default)
             {
                 return default;
             }
@@ -116,7 +116,7 @@ namespace LoudPizza.Sources
             float volume = -1.0f)
         {
             Handle busHandle = GetBusHandle();
-            if (busHandle.Value == 0)
+            if (busHandle == default)
             {
                 return default;
             }
@@ -129,7 +129,7 @@ namespace LoudPizza.Sources
         public VoiceHandle PlayBackground(AudioSource source, float volume = 1.0f, bool paused = false)
         {
             Handle busHandle = GetBusHandle();
-            if (busHandle.Value == 0)
+            if (busHandle == default)
             {
                 return default;
             }
@@ -255,21 +255,19 @@ namespace LoudPizza.Sources
         }
 
         /// <inheritdoc/>
-        public uint GetActiveVoiceCount()
+        public int GetActiveVoiceCount()
         {
-            int i;
-            uint count = 0;
             Handle busHandle = GetBusHandle();
             lock (SoLoud.mAudioThreadMutex)
             {
-                for (i = 0; i < SoLoud.MaxVoiceCount; i++)
+                int count = 0;
+                foreach (AudioSourceInstance? voice in SoLoud.mVoice)
                 {
-                    AudioSourceInstance? voice = SoLoud.mVoice[i];
                     if (voice != null && voice.mBusHandle == busHandle)
                         count++;
                 }
+                return count;
             }
-            return count;
         }
 
         /// <inheritdoc/>
@@ -287,17 +285,19 @@ namespace LoudPizza.Sources
         /// <inheritdoc/>
         public Handle GetBusHandle()
         {
-            if (mInstance == null || SoLoud == null)
+            SoLoud s = SoLoud;
+            if (mInstance == null || s == null)
             {
                 return default;
             }
 
             // Find the channel the bus is playing on to calculate handle..
-            for (uint i = 0; mChannelHandle.Value == 0 && i < SoLoud.mHighestVoice; i++)
+            ReadOnlySpan<AudioSourceInstance?> highVoices = s.mVoice.AsSpan(0, s.mHighestVoice);
+            for (int i = 0; mChannelHandle == default && i < highVoices.Length; i++)
             {
-                if (SoLoud.mVoice[i] == mInstance)
+                if (highVoices[i] == mInstance)
                 {
-                    mChannelHandle = SoLoud.getHandleFromVoice_internal(i);
+                    mChannelHandle = s.getHandleFromVoice_internal(i);
                 }
             }
 

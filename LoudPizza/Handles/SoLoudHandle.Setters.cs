@@ -24,8 +24,8 @@ namespace LoudPizza
             SoLoud.setGlobalVolume(volume);
         }
 
-        /// <inheritdoc cref="SoLoud.setMaxActiveVoiceCount(uint)"/>
-        public void SetMaxActiveVoiceCount(uint voiceCount)
+        /// <inheritdoc cref="SoLoud.setMaxActiveVoiceCount(int)"/>
+        public void SetMaxActiveVoiceCount(int voiceCount)
         {
             SoLoud.setMaxActiveVoiceCount(voiceCount); 
         }

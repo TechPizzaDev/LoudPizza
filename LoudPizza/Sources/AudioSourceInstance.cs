@@ -58,7 +58,7 @@ namespace LoudPizza.Sources
             DisableAutostop = 256
         }
 
-        private bool _isDisposed;
+        public bool IsDisposed { get; private set; }
 
         public AudioSourceInstance(AudioSource source)
         {
@@ -304,7 +304,7 @@ namespace LoudPizza.Sources
 
         protected virtual void Dispose(bool disposing)
         {
-            if (!_isDisposed)
+            if (!IsDisposed)
             {
                 if (disposing)
                 {
@@ -319,7 +319,7 @@ namespace LoudPizza.Sources
                     }
                 }
 
-                _isDisposed = true;
+                IsDisposed = true;
             }
         }
 

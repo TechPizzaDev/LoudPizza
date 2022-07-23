@@ -133,21 +133,12 @@ namespace LoudPizza.Core
             mAudioSourceID = 1;
             mActiveVoiceDirty = true;
             mActiveVoiceCount = 0;
-            int i;
-            for (i = 0; i < MaxVoiceCount; i++)
-                mActiveVoice[i] = 0;
-            for (i = 0; i < FiltersPerStream; i++)
-            {
-                mFilter[i] = null;
-                mFilterInstance[i] = null;
-            }
+            mActiveVoice.AsSpan().Clear();
+            mFilter.AsSpan().Clear();
+            mFilterInstance.AsSpan().Clear();
             mVisualizationWaveData = default;
             mVisualizationChannelVolume = default;
-            for (i = 0; i < MaxVoiceCount; i++)
-            {
-                mVoice[i] = null;
-            }
-            mVoiceGroupCount = 0;
+            mVoice.AsSpan().Clear();
 
             m3dPosition = default;
             m3dAt = new Vector3(0, 0, -1);
@@ -158,8 +149,7 @@ namespace LoudPizza.Core
             mHighestVoice = 0;
             mResampleData = null!;
             mResampleDataOwners = null!;
-            for (i = 0; i < MaxChannels; i++)
-                m3dSpeakerPosition[i] = default;
+            m3dSpeakerPosition.AsSpan().Clear();
         }
 
         /// <summary>
@@ -196,6 +186,10 @@ namespace LoudPizza.Core
                     return "Out of memory";
                 case SoLoudStatus.NotImplemented:
                     return "Feature not implemented";
+                case SoLoudStatus.EndOfStream:
+                    return "End of stream";
+                case SoLoudStatus.PoolExhausted:
+                    return "Pool exhausted";
                 default:
                     /*case UNKNOWN_ERROR: return "Other error";*/
                     return $"Unknown error ({aErrorCode})";
@@ -307,9 +301,10 @@ namespace LoudPizza.Core
             lock (mAudioThreadMutex)
             {
                 // Process faders. May change scratch size.
-                for (uint i = 0; i < mHighestVoice; i++)
+                ReadOnlySpan<AudioSourceInstance?> highVoices = mVoice.AsSpan(0, mHighestVoice);
+                for (int i = 0; i < highVoices.Length; i++)
                 {
-                    AudioSourceInstance? voice = mVoice[i];
+                    AudioSourceInstance? voice = highVoices[i];
                     if (voice != null && ((voice.mFlags & AudioSourceInstance.Flags.Paused) == 0))
                     {
                         voice.mActiveFader = 0;
@@ -433,27 +428,23 @@ namespace LoudPizza.Core
 
         internal void initResampleData()
         {
-            if (mResampleData != null)
-            {
-                for (uint i = 0; i < mResampleData.Length; i++)
-                    mResampleData[i].destroy();
-            }
+            foreach (ref AlignedFloatBuffer resampleData in mResampleData.AsSpan())
+                resampleData.destroy();
 
-            if (mResampleDataOwners != null)
-            {
-                for (uint i = 0; i < mResampleDataOwners.Length; i++)
-                    mResampleDataOwners[i]?.Dispose();
-            }
+            foreach (AudioSourceInstance? dataOwner in mResampleDataOwners.AsSpan())
+                dataOwner?.Dispose();
+
+            foreach (AudioSourceInstance? voice in mResampleDataOwners.AsSpan())
+                voice?.Dispose();
 
             mResampleData = new AlignedFloatBuffer[mMaxActiveVoices * 2];
             mResampleDataOwners = new AudioSourceInstance[mMaxActiveVoices];
+            mActiveVoice = new int[mMaxActiveVoices];
+            mVoice = new AudioSourceInstance[mMaxActiveVoices];
+            m3dData = new AudioSourceInstance3dData[mMaxActiveVoices];
 
-            //mResampleDataBuffer.init(mMaxActiveVoices * 2 * SAMPLE_GRANULARITY * MAX_CHANNELS);
-
-            for (uint i = 0; i < mMaxActiveVoices * 2; i++)
-                mResampleData[i].init(SampleGranularity * MaxChannels);
-            for (uint i = 0; i < mMaxActiveVoices; i++)
-                mResampleDataOwners[i] = null;
+            foreach (ref AlignedFloatBuffer resampleData in mResampleData.AsSpan())
+                resampleData.init(SampleGranularity * MaxChannels);
         }
 
         /// <summary>
@@ -461,71 +452,74 @@ namespace LoudPizza.Core
         /// </summary>
         public void postinit_internal(uint aSamplerate, uint aBufferSize, uint aChannels)
         {
-            mGlobalVolume = 1;
-            mChannels = aChannels;
-            mSamplerate = aSamplerate;
-            mBufferSize = aBufferSize;
-            uint mScratchSize = (aBufferSize + 15) & (~0xfu); // round to the next div by 16
-            if (mScratchSize < SampleGranularity * 2)
-                mScratchSize = SampleGranularity * 2;
-            if (mScratchSize < 4096)
-                mScratchSize = 4096;
-            mScratch.init(mScratchSize * MaxChannels);
-            mOutputScratch.init(mScratchSize * MaxChannels);
-            initResampleData();
-            mPostClipScaler = 0.95f;
-            switch (mChannels)
+            lock (mAudioThreadMutex)
             {
-                case 1:
-                    m3dSpeakerPosition[0] = new Vector3(0, 0, 1);
-                    break;
+                mGlobalVolume = 1;
+                mChannels = aChannels;
+                mSamplerate = aSamplerate;
+                mBufferSize = aBufferSize;
+                uint mScratchSize = (aBufferSize + 15) & (~0xfu); // round to the next div by 16
+                if (mScratchSize < SampleGranularity * 2)
+                    mScratchSize = SampleGranularity * 2;
+                if (mScratchSize < 4096)
+                    mScratchSize = 4096;
+                mScratch.init(mScratchSize * MaxChannels);
+                mOutputScratch.init(mScratchSize * MaxChannels);
+                initResampleData();
+                mPostClipScaler = 0.95f;
+                switch (mChannels)
+                {
+                    case 1:
+                        m3dSpeakerPosition[0] = new Vector3(0, 0, 1);
+                        break;
 
-                case 2:
-                    m3dSpeakerPosition[0] = new Vector3(2, 0, 1);
-                    m3dSpeakerPosition[1] = new Vector3(-2, 0, 1);
-                    break;
+                    case 2:
+                        m3dSpeakerPosition[0] = new Vector3(2, 0, 1);
+                        m3dSpeakerPosition[1] = new Vector3(-2, 0, 1);
+                        break;
 
-                case 4:
-                    m3dSpeakerPosition[0] = new Vector3(2, 0, 1);
-                    m3dSpeakerPosition[1] = new Vector3(-2, 0, 1);
-                    // I suppose technically the second pair should be straight left & right,
-                    // but I prefer moving them a bit back to mirror the front speakers.
-                    m3dSpeakerPosition[2] = new Vector3(2, 0, -1);
-                    m3dSpeakerPosition[3] = new Vector3(-2, 0, -1);
-                    break;
+                    case 4:
+                        m3dSpeakerPosition[0] = new Vector3(2, 0, 1);
+                        m3dSpeakerPosition[1] = new Vector3(-2, 0, 1);
+                        // I suppose technically the second pair should be straight left & right,
+                        // but I prefer moving them a bit back to mirror the front speakers.
+                        m3dSpeakerPosition[2] = new Vector3(2, 0, -1);
+                        m3dSpeakerPosition[3] = new Vector3(-2, 0, -1);
+                        break;
 
-                case 6:
-                    m3dSpeakerPosition[0] = new Vector3(2, 0, 1);
-                    m3dSpeakerPosition[1] = new Vector3(-2, 0, 1);
+                    case 6:
+                        m3dSpeakerPosition[0] = new Vector3(2, 0, 1);
+                        m3dSpeakerPosition[1] = new Vector3(-2, 0, 1);
 
-                    // center and subwoofer. 
-                    m3dSpeakerPosition[2] = new Vector3(0, 0, 1);
-                    // Sub should be "mix of everything". We'll handle it as a special case and make it a null vector.
-                    m3dSpeakerPosition[3] = new Vector3(0, 0, 0);
+                        // center and subwoofer. 
+                        m3dSpeakerPosition[2] = new Vector3(0, 0, 1);
+                        // Sub should be "mix of everything". We'll handle it as a special case and make it a null vector.
+                        m3dSpeakerPosition[3] = new Vector3(0, 0, 0);
 
-                    // I suppose technically the second pair should be straight left & right,
-                    // but I prefer moving them a bit back to mirror the front speakers.
-                    m3dSpeakerPosition[4] = new Vector3(2, 0, -2);
-                    m3dSpeakerPosition[5] = new Vector3(-2, 0, -2);
-                    break;
+                        // I suppose technically the second pair should be straight left & right,
+                        // but I prefer moving them a bit back to mirror the front speakers.
+                        m3dSpeakerPosition[4] = new Vector3(2, 0, -2);
+                        m3dSpeakerPosition[5] = new Vector3(-2, 0, -2);
+                        break;
 
-                case 8:
-                    m3dSpeakerPosition[0] = new Vector3(2, 0, 1);
-                    m3dSpeakerPosition[1] = new Vector3(-2, 0, 1);
+                    case 8:
+                        m3dSpeakerPosition[0] = new Vector3(2, 0, 1);
+                        m3dSpeakerPosition[1] = new Vector3(-2, 0, 1);
 
-                    // center and subwoofer. 
-                    m3dSpeakerPosition[2] = new Vector3(0, 0, 1);
-                    // Sub should be "mix of everything". We'll handle it as a special case and make it a null vector.
-                    m3dSpeakerPosition[3] = new Vector3(0, 0, 0);
+                        // center and subwoofer. 
+                        m3dSpeakerPosition[2] = new Vector3(0, 0, 1);
+                        // Sub should be "mix of everything". We'll handle it as a special case and make it a null vector.
+                        m3dSpeakerPosition[3] = new Vector3(0, 0, 0);
 
-                    // side
-                    m3dSpeakerPosition[4] = new Vector3(2, 0, 0);
-                    m3dSpeakerPosition[5] = new Vector3(-2, 0, 0);
+                        // side
+                        m3dSpeakerPosition[4] = new Vector3(2, 0, 0);
+                        m3dSpeakerPosition[5] = new Vector3(-2, 0, 0);
 
-                    // back
-                    m3dSpeakerPosition[6] = new Vector3(2, 0, -1);
-                    m3dSpeakerPosition[7] = new Vector3(-2, 0, -1);
-                    break;
+                        // back
+                        m3dSpeakerPosition[6] = new Vector3(2, 0, -1);
+                        m3dSpeakerPosition[7] = new Vector3(-2, 0, -1);
+                        break;
+                }
             }
         }
 
@@ -539,25 +533,29 @@ namespace LoudPizza.Core
             // It is a must when new voices are started, but otherwise we could get away
             // with postponing it sometimes..
 
+            ReadOnlySpan<AudioSourceInstance?> voices = mVoice.AsSpan();
+            Span<int> activeVoices = mActiveVoice.AsSpan();
+
             mActiveVoiceDirty = false;
 
             // Populate
-            uint candidates = 0;
-            uint mustlive = 0;
-            uint i;
-            for (i = 0; i < mHighestVoice; i++)
+            int candidates = 0;
+            int mustlive = 0;
+
+            ReadOnlySpan<AudioSourceInstance?> highVoices = voices.Slice(0, mHighestVoice);
+            for (int i = 0; i < highVoices.Length; i++)
             {
-                AudioSourceInstance? voice = mVoice[i];
+                AudioSourceInstance? voice = highVoices[i];
                 if (voice != null &&
                     ((voice.mFlags & (AudioSourceInstance.Flags.Inaudible | AudioSourceInstance.Flags.Paused)) == 0 ||
                     ((voice.mFlags & AudioSourceInstance.Flags.InaudibleTick) != 0)))
                 {
-                    mActiveVoice[candidates] = i;
+                    activeVoices[candidates] = i;
                     candidates++;
                     if ((voice.mFlags & AudioSourceInstance.Flags.InaudibleTick) != 0)
                     {
-                        mActiveVoice[candidates - 1] = mActiveVoice[mustlive];
-                        mActiveVoice[mustlive] = i;
+                        activeVoices[candidates - 1] = activeVoices[mustlive];
+                        activeVoices[mustlive] = i;
                         mustlive++;
                     }
                 }
@@ -587,17 +585,17 @@ namespace LoudPizza.Core
 
             // Iterative partial quicksort:
             int left = 0, pos = 0, right;
-            uint* stack = stackalloc uint[24];
-            uint len = candidates - mustlive;
-            uint k = mActiveVoiceCount;
+            int* stack = stackalloc int[24];
+            int len = candidates - mustlive;
+            int k = mActiveVoiceCount;
             for (; ; )
             {
                 for (; left + 1 < len; len++)
                 {
                     if (pos == 24)
                         len = stack[pos = 0];
-                    uint pivot = mActiveVoice[left + mustlive];
-                    float pivotvol = mVoice[pivot]!.mOverallVolume;
+                    int pivot = activeVoices[left + mustlive];
+                    float pivotvol = voices[pivot]!.mOverallVolume;
                     stack[pos++] = len;
                     for (right = left - 1; ;)
                     {
@@ -605,25 +603,25 @@ namespace LoudPizza.Core
                         {
                             right++;
                         }
-                        while (mVoice[mActiveVoice[right + mustlive]]!.mOverallVolume > pivotvol);
+                        while (voices[activeVoices[right + mustlive]]!.mOverallVolume > pivotvol);
                         do
                         {
                             len--;
                         }
-                        while (pivotvol > mVoice[mActiveVoice[len + mustlive]]!.mOverallVolume);
+                        while (pivotvol > voices[activeVoices[len + mustlive]]!.mOverallVolume);
                         if (right >= len)
                             break;
 
-                        uint temp = mActiveVoice[right + mustlive];
-                        mActiveVoice[right + mustlive] = mActiveVoice[len + mustlive];
-                        mActiveVoice[len + mustlive] = temp;
+                        int temp = activeVoices[right + mustlive];
+                        activeVoices[right + mustlive] = activeVoices[len + mustlive];
+                        activeVoices[len + mustlive] = temp;
                     }
                 }
                 if (pos == 0)
                     break;
                 if (left >= k)
                     break;
-                left = (int)len;
+                left = len;
                 len = stack[--pos];
             }
             // TODO: should the rest of the voices be flagged INAUDIBLE?
@@ -636,16 +634,24 @@ namespace LoudPizza.Core
         [SkipLocalsInit]
         internal void mapResampleBuffers_internal()
         {
-            Debug.Assert(mMaxActiveVoices <= MaxVoiceCount);
-            byte* live = stackalloc byte[MaxVoiceCount];
-            new Span<byte>(live, (int)mMaxActiveVoices).Clear();
+            int maxActiveVoiceCount = mMaxActiveVoices;
+            int activeVoiceCount = mActiveVoiceCount;
+            Debug.Assert(maxActiveVoiceCount <= MaxVoiceCount);
+            Debug.Assert(activeVoiceCount <= MaxVoiceCount);
 
-            uint i, j;
-            for (i = 0; i < mMaxActiveVoices; i++)
+            Span<AudioSourceInstance?> resampleDataOwners = mResampleDataOwners.AsSpan(0, maxActiveVoiceCount);
+            ReadOnlySpan<AudioSourceInstance?> voices = mVoice.AsSpan(0, maxActiveVoiceCount);
+            ReadOnlySpan<int> activeVoices = mActiveVoice.AsSpan(0, maxActiveVoiceCount);
+
+            byte* live = stackalloc byte[MaxVoiceCount];
+            new Span<byte>(live, maxActiveVoiceCount).Clear();
+
+            for (int i = 0; i < maxActiveVoiceCount; i++)
             {
-                for (j = 0; j < mMaxActiveVoices; j++)
+                for (int j = 0; j < maxActiveVoiceCount; j++)
                 {
-                    if (mResampleDataOwners[i] != null && mResampleDataOwners[i] == mVoice[mActiveVoice[j]])
+                    if (resampleDataOwners[i] != null &&
+                        resampleDataOwners[i] == voices[activeVoices[j]])
                     {
                         live[i] |= 1; // Live channel
                         live[j] |= 2; // Live voice
@@ -653,35 +659,36 @@ namespace LoudPizza.Core
                 }
             }
 
-            for (i = 0; i < mMaxActiveVoices; i++)
+            for (int i = 0; i < maxActiveVoiceCount; i++)
             {
-                AudioSourceInstance? owner = mResampleDataOwners[i];
+                ref AudioSourceInstance? owner = ref resampleDataOwners[i];
                 if ((live[i] & 1) == 0 && owner != null) // For all dead channels with owners..
                 {
                     owner.mResampleData0.destroy();
                     owner.mResampleData1.destroy();
-                    mResampleDataOwners[i] = null;
+                    owner = null;
                 }
             }
 
             int latestfree = 0;
-            for (i = 0; i < mActiveVoiceCount; i++)
+            ReadOnlySpan<int> activeVoiceSlice = activeVoices.Slice(0, activeVoiceCount);
+            for (int i = 0; i < activeVoiceSlice.Length; i++)
             {
                 if ((live[i] & 2) == 0)
                 {
-                    AudioSourceInstance? foundInstance = mVoice[mActiveVoice[i]];
+                    AudioSourceInstance? foundInstance = voices[activeVoiceSlice[i]];
                     if (foundInstance != null) // For all live voices with no channel..
                     {
                         int found = -1;
-                        for (j = (uint)latestfree; found == -1 && j < mMaxActiveVoices; j++)
+                        for (int j = latestfree; found == -1 && j < maxActiveVoiceCount; j++)
                         {
-                            if (mResampleDataOwners[j] == null)
+                            if (resampleDataOwners[j] == null)
                             {
-                                found = (int)j;
+                                found = j;
                             }
                         }
                         Debug.Assert(found != -1);
-                        mResampleDataOwners[found] = foundInstance;
+                        resampleDataOwners[found] = foundInstance;
                         foundInstance.mResampleData0 = mResampleData[found * 2 + 0];
                         foundInstance.mResampleData1 = mResampleData[found * 2 + 1];
                         foundInstance.mResampleData0.AsSpan().Clear();
@@ -699,14 +706,16 @@ namespace LoudPizza.Core
             float* aBuffer, uint aSamplesToRead, uint aBufferSize, float* aScratch,
             Handle aBus, float aSamplerate, uint aChannels, AudioResampler aResampler)
         {
-            nuint i, j;
             // Clear accumulation buffer
             new Span<float>(aBuffer, (int)(aSamplesToRead * aChannels)).Clear();
 
             // Accumulate sound sources		
-            for (i = 0; i < mActiveVoiceCount; i++)
+            ReadOnlySpan<AudioSourceInstance?> voices = mVoice.AsSpan();
+            ReadOnlySpan<int> activeVoices = mActiveVoice.AsSpan(0, mActiveVoiceCount);
+            
+            foreach (int activeVoice in activeVoices)
             {
-                AudioSourceInstance? voice = mVoice[mActiveVoice[i]];
+                AudioSourceInstance? voice = voices[activeVoice];
                 if (voice != null &&
                     voice.mBusHandle == aBus &&
                     (voice.mFlags & AudioSourceInstance.Flags.Paused) == 0 &&
@@ -733,8 +742,7 @@ namespace LoudPizza.Core
                         }
 
                         // Clear scratch where we're skipping
-                        uint k;
-                        for (k = 0; k < voice.mChannels; k++)
+                        for (uint k = 0; k < voice.mChannels; k++)
                         {
                             new Span<float>(aScratch + k * aBufferSize, (int)outofs).Clear();
                         }
@@ -804,9 +812,9 @@ namespace LoudPizza.Core
                             // Run the per-stream filters to get our source data
                             if (voice.mFilterCount != 0)
                             {
-                                for (j = 0; j < FiltersPerStream; j++)
+                                FilterInstance?[] filters = voice.mFilter;
+                                foreach (FilterInstance? instance in filters)
                                 {
-                                    FilterInstance? instance = voice.mFilter[j];
                                     if (instance != null)
                                     {
                                         instance.Filter(
@@ -850,7 +858,7 @@ namespace LoudPizza.Core
                         // Call resampler to generate the samples, once per channel
                         if (writesamples != 0)
                         {
-                            for (j = 0; j < voice.mChannels; j++)
+                            for (uint j = 0; j < voice.mChannels; j++)
                             {
                                 aResampler.Resample(
                                     voice.mResampleData0.mData + SampleGranularity * j,
@@ -878,7 +886,7 @@ namespace LoudPizza.Core
                     if ((voice.mFlags & (AudioSourceInstance.Flags.Looping | AudioSourceInstance.Flags.DisableAutostop)) == 0 &&
                         voice.HasEnded())
                     {
-                        stopVoice_internal(mActiveVoice[i]);
+                        stopVoice_internal(activeVoice);
                     }
                 }
                 else if (
@@ -991,7 +999,7 @@ namespace LoudPizza.Core
                     if ((voice.mFlags & (AudioSourceInstance.Flags.Looping | AudioSourceInstance.Flags.DisableAutostop)) == 0 &&
                         voice.HasEnded())
                     {
-                        stopVoice_internal(mActiveVoice[i]);
+                        stopVoice_internal(activeVoice);
                     }
                 }
             }
@@ -1210,12 +1218,12 @@ namespace LoudPizza.Core
         /// <summary>
         /// Max. number of active voices. Busses and tickable inaudibles also count against this.
         /// </summary>
-        private uint mMaxActiveVoices;
+        private int mMaxActiveVoices;
 
         /// <summary>
         /// Highest voice in use so far.
         /// </summary>
-        internal uint mHighestVoice;
+        internal int mHighestVoice;
 
         /// <summary>
         /// Scratch buffer, used for resampling.
@@ -1238,12 +1246,12 @@ namespace LoudPizza.Core
         /// <summary>
         /// Owners of the resample data.
         /// </summary>
-        private AudioSourceInstance?[] mResampleDataOwners;
+        private AudioSourceInstance?[] mResampleDataOwners = Array.Empty<AudioSourceInstance>();
 
         /// <summary>
         /// Audio voices.
         /// </summary>
-        internal AudioSourceInstance?[] mVoice = new AudioSourceInstance[MaxVoiceCount];
+        internal AudioSourceInstance?[] mVoice = Array.Empty<AudioSourceInstance>();
 
         /// <summary>
         /// Resampler for the main bus.
@@ -1360,24 +1368,22 @@ namespace LoudPizza.Core
         /// <summary>
         /// Data related to 3D processing, separate from AudioSource so we can do 3D calculations without audio mutex.
         /// </summary>
-        private AudioSourceInstance3dData[] m3dData = new AudioSourceInstance3dData[MaxVoiceCount];
+        private AudioSourceInstance3dData[] m3dData = Array.Empty<AudioSourceInstance3dData>();
 
         /// <summary>
         /// Array of voice group arrays.
         /// </summary>
         private Handle[][] mVoiceGroup = Array.Empty<Handle[]>();
 
-        private uint mVoiceGroupCount;
-
         /// <summary>
         /// List of currently active voices.
         /// </summary>
-        private uint[] mActiveVoice = new uint[MaxVoiceCount];
+        private int[] mActiveVoice = Array.Empty<int>();
 
         /// <summary>
         /// Number of currently active voices.
         /// </summary>
-        private uint mActiveVoiceCount;
+        private int mActiveVoiceCount;
 
         /// <summary>
         /// Active voices list needs to be recalculated.

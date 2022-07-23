@@ -35,7 +35,7 @@ namespace LoudPizza.Sources
             Bus mParent = Source;
 
             Handle handle = mParent.mChannelHandle;
-            if (handle.Value == 0)
+            if (handle == default)
             {
                 // Avoid reuse of scratch data if this bus hasn't played anything yet
                 Span<float> slice = buffer.Slice(0, (int)(bufferSize * mChannels));
@@ -107,9 +107,10 @@ namespace LoudPizza.Sources
             Bus mParent = Source;
             SoLoud s = mParent.SoLoud;
 
-            for (uint i = 0; i < s.mHighestVoice; i++)
+            ReadOnlySpan<AudioSourceInstance?> highVoices = s.mVoice.AsSpan(0, s.mHighestVoice);
+            for (int i = 0; i < highVoices.Length; i++)
             {
-                AudioSourceInstance? voice = s.mVoice[i];
+                AudioSourceInstance? voice = highVoices[i];
                 if (voice != null && voice.mBusHandle == mParent.mChannelHandle)
                 {
                     s.stopVoice_internal(i);

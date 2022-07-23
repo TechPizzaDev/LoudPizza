@@ -37,7 +37,7 @@ namespace LoudPizza.Core
                 if (ch < 0)
                 {
                     instance.Dispose();
-                    return new Handle((uint)SoLoudStatus.UnknownError);
+                    return new Handle((uint)SoLoudStatus.PoolExhausted);
                 }
                 mVoice[ch] = instance;
                 instance.mBusHandle = aBus;
@@ -57,14 +57,14 @@ namespace LoudPizza.Core
                     instance.mFlags |= AudioSourceInstance.Flags.Paused;
                 }
 
-                setVoicePan_internal((uint)ch, aPan);
+                setVoicePan_internal(ch, aPan);
                 if (aVolume < 0)
                 {
-                    setVoiceVolume_internal((uint)ch, aSound.mVolume);
+                    setVoiceVolume_internal(ch, aSound.mVolume);
                 }
                 else
                 {
-                    setVoiceVolume_internal((uint)ch, aVolume);
+                    setVoiceVolume_internal(ch, aVolume);
                 }
 
                 // Fix initial voice volume ramp up		
@@ -74,7 +74,7 @@ namespace LoudPizza.Core
                     instance.mCurrentChannelVolume[i] = instance.mChannelVolume[i] * instance.mOverallVolume;
                 }
 
-                setVoiceRelativePlaySpeed_internal((uint)ch, 1);
+                setVoiceRelativePlaySpeed_internal(ch, 1);
 
                 for (i = 0; i < FiltersPerStream; i++)
                 {
@@ -88,7 +88,7 @@ namespace LoudPizza.Core
 
                 mActiveVoiceDirty = true;
 
-                Handle handle = getHandleFromVoice_internal((uint)ch);
+                Handle handle = getHandleFromVoice_internal(ch);
                 return handle;
             }
         }
@@ -191,7 +191,7 @@ namespace LoudPizza.Core
                     int ch = getVoiceFromHandle_internal(h);
                     if (ch != -1)
                     {
-                        stopVoice_internal((uint)ch);
+                        stopVoice_internal(ch);
                     }
                 }
             }
@@ -204,9 +204,10 @@ namespace LoudPizza.Core
         {
             lock (mAudioThreadMutex)
             {
-                for (uint i = 0; i < mHighestVoice; i++)
+                ReadOnlySpan<AudioSourceInstance?> highVoices = mVoice.AsSpan(0, mHighestVoice);
+                for (int i = 0; i < highVoices.Length; i++)
                 {
-                    AudioSourceInstance? voice = mVoice[i];
+                    AudioSourceInstance? voice = highVoices[i];
                     if (voice != null && voice.Source == aSound)
                     {
                         stopVoice_internal(i);
@@ -222,7 +223,7 @@ namespace LoudPizza.Core
         {
             lock (mAudioThreadMutex)
             {
-                for (uint i = 0; i < mHighestVoice; i++)
+                for (int i = 0; i < mHighestVoice; i++)
                 {
                     stopVoice_internal(i);
                 }
@@ -237,9 +238,10 @@ namespace LoudPizza.Core
             int count = 0;
             lock (mAudioThreadMutex)
             {
-                for (uint i = 0; i < mHighestVoice; i++)
+                ReadOnlySpan<AudioSourceInstance?> highVoices = mVoice.AsSpan(0, mHighestVoice);
+                for (int i = 0; i < highVoices.Length; i++)
                 {
-                    AudioSourceInstance? voice = mVoice[i];
+                    AudioSourceInstance? voice = highVoices[i];
                     if (voice != null && voice.Source == aSound)
                     {
                         count++;

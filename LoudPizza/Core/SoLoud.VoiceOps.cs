@@ -8,14 +8,20 @@ namespace LoudPizza.Core
     // Direct voice operations (no mutexes - called from other functions)
     public unsafe partial class SoLoud
     {
+        [Conditional("DEBUG")]
+        private void Validate(int voice)
+        {
+            Debug.Assert((uint)voice < MaxVoiceCount);
+            Debug.Assert(Monitor.IsEntered(mAudioThreadMutex));
+        }
+
         /// <summary>
         /// Set voice (not handle) relative play speed.
         /// </summary>
-        internal void setVoiceRelativePlaySpeed_internal(uint aVoice, float aSpeed)
+        internal void setVoiceRelativePlaySpeed_internal(int aVoice, float aSpeed)
         {
-            Debug.Assert(aVoice < MaxVoiceCount);
+            Validate(aVoice);
             Debug.Assert(aSpeed > 0);
-            Debug.Assert(Monitor.IsEntered(mAudioThreadMutex));
 
             AudioSourceInstance? voice = mVoice[aVoice];
             if (voice != null)
@@ -28,10 +34,9 @@ namespace LoudPizza.Core
         /// <summary>
         /// Set voice (not handle) pause state.
         /// </summary>
-        internal void setVoicePause_internal(uint aVoice, bool aPause)
+        internal void setVoicePause_internal(int aVoice, bool aPause)
         {
-            Debug.Assert(aVoice < MaxVoiceCount);
-            Debug.Assert(Monitor.IsEntered(mAudioThreadMutex));
+            Validate(aVoice);
 
             mActiveVoiceDirty = true;
             AudioSourceInstance? voice = mVoice[aVoice];
@@ -53,10 +58,9 @@ namespace LoudPizza.Core
         /// <summary>
         /// Set voice (not handle) pan.
         /// </summary>
-        internal void setVoicePan_internal(uint aVoice, float aPan)
+        internal void setVoicePan_internal(int aVoice, float aPan)
         {
-            Debug.Assert(aVoice < MaxVoiceCount);
-            Debug.Assert(Monitor.IsEntered(mAudioThreadMutex));
+            Validate(aVoice);
 
             AudioSourceInstance? voice = mVoice[aVoice];
             if (voice != null)
@@ -93,10 +97,9 @@ namespace LoudPizza.Core
         /// <summary>
         /// Set voice (not handle) volume.
         /// </summary>
-        internal void setVoiceVolume_internal(uint aVoice, float aVolume)
+        internal void setVoiceVolume_internal(int aVoice, float aVolume)
         {
-            Debug.Assert(aVoice < MaxVoiceCount);
-            Debug.Assert(Monitor.IsEntered(mAudioThreadMutex));
+            Validate(aVoice);
 
             mActiveVoiceDirty = true;
             AudioSourceInstance? voice = mVoice[aVoice];
@@ -110,10 +113,9 @@ namespace LoudPizza.Core
         /// <summary>
         /// Stop voice (not handle).
         /// </summary>
-        internal void stopVoice_internal(uint aVoice)
+        internal void stopVoice_internal(int aVoice)
         {
-            Debug.Assert(aVoice < MaxVoiceCount);
-            Debug.Assert(Monitor.IsEntered(mAudioThreadMutex));
+            Validate(aVoice);
 
             mActiveVoiceDirty = true;
             AudioSourceInstance? voice = mVoice[aVoice];
@@ -123,11 +125,12 @@ namespace LoudPizza.Core
                 AudioSourceInstance? v = mVoice[aVoice];
                 mVoice[aVoice] = null;
 
-                for (uint i = 0; i < mMaxActiveVoices; i++)
+                Span<AudioSourceInstance?> resampleDataOwners = mResampleDataOwners.AsSpan();
+                for (int i = 0; i < resampleDataOwners.Length; i++)
                 {
-                    if (mResampleDataOwners[i] == v)
+                    if (resampleDataOwners[i] == v)
                     {
-                        mResampleDataOwners[i] = null;
+                        resampleDataOwners[i] = null;
                     }
                 }
 
@@ -138,10 +141,9 @@ namespace LoudPizza.Core
         /// <summary>
         /// Update overall relative play speed from set and 3D speeds.
         /// </summary>
-        internal void updateVoiceRelativePlaySpeed_internal(uint aVoice)
+        internal void updateVoiceRelativePlaySpeed_internal(int aVoice)
         {
-            Debug.Assert(aVoice < MaxVoiceCount);
-            Debug.Assert(Monitor.IsEntered(mAudioThreadMutex));
+            Validate(aVoice);
 
             AudioSourceInstance? voice = mVoice[aVoice];
             Debug.Assert(voice != null);
@@ -153,10 +155,9 @@ namespace LoudPizza.Core
         /// <summary>
         /// Update overall volume from set and 3D volumes.
         /// </summary>
-        internal void updateVoiceVolume_internal(uint aVoice)
+        internal void updateVoiceVolume_internal(int aVoice)
         {
-            Debug.Assert(aVoice < MaxVoiceCount);
-            Debug.Assert(Monitor.IsEntered(mAudioThreadMutex));
+            Validate(aVoice);
 
             AudioSourceInstance? voice = mVoice[aVoice];
             Debug.Assert(voice != null);

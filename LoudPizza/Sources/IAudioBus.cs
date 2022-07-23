@@ -104,7 +104,7 @@ namespace LoudPizza.Sources
         /// <summary>
         /// Get the current number of busy voices.
         /// </summary>
-        uint GetActiveVoiceCount();
+        int GetActiveVoiceCount();
 
         /// <summary>
         /// Get current the resampler for this bus.

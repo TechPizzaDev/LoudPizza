@@ -41,12 +41,12 @@ namespace LoudPizza.Core
         /// <summary>
         /// Converts voice + playindex into handle.
         /// </summary>
-        internal Handle getHandleFromVoice_internal(uint aVoice)
+        internal Handle getHandleFromVoice_internal(int aVoice)
         {
             AudioSourceInstance? voice = mVoice[aVoice];
             if (voice == null)
                 return default;
-            return new Handle((aVoice + 1) | (voice.mPlayIndex << 12));
+            return new Handle(((uint)aVoice + 1) | (voice.mPlayIndex << 12));
         }
 
         /// <summary>
@@ -58,7 +58,7 @@ namespace LoudPizza.Core
             ReadOnlySpan<Handle> h = VoiceGroupHandleToSpan(ref aVoiceHandle);
             Handle handle = h[0];
 
-            if (handle.Value == 0)
+            if (handle == default)
             {
                 return -1;
             }
@@ -83,7 +83,7 @@ namespace LoudPizza.Core
             ReadOnlySpan<Handle> h = VoiceGroupHandleToSpan(ref aVoiceHandle);
             Handle handle = h[0];
 
-            if (handle.Value == 0)
+            if (handle == default)
             {
                 return null;
             }
@@ -102,7 +102,7 @@ namespace LoudPizza.Core
         /// <summary>
         /// Get current maximum active voice setting.
         /// </summary>
-        public uint getMaxActiveVoiceCount()
+        public int getMaxActiveVoiceCount()
         {
             return mMaxActiveVoices;
         }
@@ -110,13 +110,13 @@ namespace LoudPizza.Core
         /// <summary>
         /// Get the current number of busy voices.
         /// </summary>
-        public uint GetActiveVoiceCount()
+        public int GetActiveVoiceCount()
         {
             lock (mAudioThreadMutex)
             {
                 if (mActiveVoiceDirty)
                     calcActiveVoices_internal();
-                uint c = mActiveVoiceCount;
+                int c = mActiveVoiceCount;
                 return c;
             }
         }
@@ -124,14 +124,15 @@ namespace LoudPizza.Core
         /// <summary>
         /// Get the current number of voices.
         /// </summary>
-        public uint getVoiceCount()
+        public int getVoiceCount()
         {
             lock (mAudioThreadMutex)
             {
-                uint c = 0;
-                for (uint i = 0; i < mHighestVoice; i++)
+                int c = 0;
+                ReadOnlySpan<AudioSourceInstance?> highVoices = mVoice.AsSpan(0, mHighestVoice);
+                for (int i = 0; i < highVoices.Length; i++)
                 {
-                    if (mVoice[i] != null)
+                    if (highVoices[i] != null)
                     {
                         c++;
                     }
@@ -409,21 +410,22 @@ namespace LoudPizza.Core
         /// </summary>
         internal int findFreeVoice_internal()
         {
+            AudioSourceInstance?[] voices = mVoice;
             uint lowest_play_index_value = 0xffffffff;
             int lowest_play_index = -1;
 
             // (slowly) drag the highest active voice index down
-            if (mHighestVoice > 0 && mVoice[mHighestVoice - 1] == null)
+            if (mHighestVoice > 0 && voices[mHighestVoice - 1] == null)
                 mHighestVoice--;
 
-            for (int i = 0; i < MaxVoiceCount; i++)
+            for (int i = 0; i < voices.Length; i++)
             {
-                AudioSourceInstance? voice = mVoice[i];
+                AudioSourceInstance? voice = voices[i];
                 if (voice == null)
                 {
                     if (i + 1 > mHighestVoice)
                     {
-                        mHighestVoice = (uint)(i + 1);
+                        mHighestVoice = i + 1;
                     }
                     return i;
                 }
@@ -434,7 +436,10 @@ namespace LoudPizza.Core
                     lowest_play_index = i;
                 }
             }
-            stopVoice_internal((uint)lowest_play_index);
+            if (lowest_play_index != -1)
+            {
+                stopVoice_internal(lowest_play_index);
+            }
             return lowest_play_index;
         }
 

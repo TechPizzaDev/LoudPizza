@@ -46,7 +46,7 @@ namespace LoudPizza.Core
         /// Perform 3D audio calculation for array of voices.
         /// </summary>
         [SkipLocalsInit]
-        internal void update3dVoices_internal(uint* aVoiceArray, uint aVoiceCount)
+        internal void update3dVoices_internal(int* aVoiceArray, uint aVoiceCount)
         {
             Vector3* speaker = stackalloc Vector3[MaxChannels];
 
@@ -147,40 +147,47 @@ namespace LoudPizza.Core
         [SkipLocalsInit]
         public void update3dAudio()
         {
-            uint voicecount = 0;
-            uint* voices = stackalloc uint[MaxVoiceCount];
+            uint voiceCount = 0;
+            int* foundVoices = stackalloc int[MaxVoiceCount];
 
             // Step 1 - find voices that need 3D processing
             lock (mAudioThreadMutex)
             {
-                for (uint i = 0; i < mHighestVoice; i++)
+                int highestVoice = mHighestVoice;
+                ReadOnlySpan<AudioSourceInstance?> highVoices = mVoice.AsSpan(0, highestVoice);
+                Span<AudioSourceInstance3dData> data3D = m3dData.AsSpan(0, highestVoice);
+                
+                for (int i = 0; i < highVoices.Length; i++)
                 {
-                    AudioSourceInstance? voice = mVoice[i];
+                    AudioSourceInstance? voice = highVoices[i];
                     if (voice != null && (voice.mFlags & AudioSourceInstance.Flags.Process3D) != 0)
                     {
-                        voices[voicecount] = i;
-                        voicecount++;
-                        m3dData[i].mFlags = voice.mFlags;
+                        foundVoices[voiceCount] = i;
+                        voiceCount++;
+                        data3D[i].mFlags = voice.mFlags;
                     }
                 }
             }
 
             // Step 2 - do 3D processing
 
-            update3dVoices_internal(voices, voicecount);
+            update3dVoices_internal(foundVoices, voiceCount);
 
             // Step 3 - update SoLoud voices
 
             lock (mAudioThreadMutex)
             {
-                for (uint i = 0; i < voicecount; i++)
+                ReadOnlySpan<AudioSourceInstance?> voices = mVoice.AsSpan();
+                ReadOnlySpan<AudioSourceInstance3dData> data3D = m3dData.AsSpan();
+
+                for (int i = 0; i < voiceCount; i++)
                 {
-                    AudioSourceInstance? vi = mVoice[voices[i]];
+                    AudioSourceInstance? vi = voices[foundVoices[i]];
                     if (vi != null)
                     {
-                        ref AudioSourceInstance3dData v = ref m3dData[voices[i]];
-                        updateVoiceRelativePlaySpeed_internal(voices[i]);
-                        updateVoiceVolume_internal(voices[i]);
+                        ref readonly AudioSourceInstance3dData v = ref data3D[foundVoices[i]];
+                        updateVoiceRelativePlaySpeed_internal(foundVoices[i]);
+                        updateVoiceVolume_internal(foundVoices[i]);
                         vi.mChannelVolume = v.mChannelVolume;
 
                         if (vi.mOverallVolume < 0.001f)
@@ -190,7 +197,7 @@ namespace LoudPizza.Core
 
                             if ((vi.mFlags & AudioSourceInstance.Flags.InaudibleKill) != 0)
                             {
-                                stopVoice_internal(voices[i]);
+                                stopVoice_internal(foundVoices[i]);
                             }
                         }
                         else
@@ -244,14 +251,14 @@ namespace LoudPizza.Core
                 }
             }
 
-            update3dVoices_internal((uint*)&v, 1);
+            update3dVoices_internal(&v, 1);
 
             lock (mAudioThreadMutex)
             {
-                updateVoiceRelativePlaySpeed_internal((uint)v);
+                updateVoiceRelativePlaySpeed_internal(v);
                 voice.mChannelVolume = m3dData[v].mChannelVolume;
 
-                updateVoiceVolume_internal((uint)v);
+                updateVoiceVolume_internal(v);
 
                 // Fix initial voice volume ramp up
                 for (int i = 0; i < MaxChannels; i++)
@@ -266,7 +273,7 @@ namespace LoudPizza.Core
 
                     if ((voice.mFlags & AudioSourceInstance.Flags.InaudibleKill) != 0)
                     {
-                        stopVoice_internal((uint)v);
+                        stopVoice_internal(v);
                     }
                 }
                 else
@@ -338,14 +345,14 @@ namespace LoudPizza.Core
                 }
             }
 
-            update3dVoices_internal((uint*)&v, 1);
+            update3dVoices_internal(&v, 1);
 
             lock (mAudioThreadMutex)
             {
-                updateVoiceRelativePlaySpeed_internal((uint)v);
+                updateVoiceRelativePlaySpeed_internal(v);
                 voice.mChannelVolume = m3dData[v].mChannelVolume;
 
-                updateVoiceVolume_internal((uint)v);
+                updateVoiceVolume_internal(v);
 
                 // Fix initial voice volume ramp up
                 for (int i = 0; i < MaxChannels; i++)
@@ -360,7 +367,7 @@ namespace LoudPizza.Core
 
                     if ((voice.mFlags & AudioSourceInstance.Flags.InaudibleKill) != 0)
                     {
-                        stopVoice_internal((uint)v);
+                        stopVoice_internal(v);
                     }
                 }
                 else
@@ -463,11 +470,12 @@ namespace LoudPizza.Core
             ReadOnlySpan<Handle> h_ = VoiceGroupHandleToSpan(ref aVoiceHandle);
             foreach (Handle h in h_)
             {
+                AudioSourceInstance3dData[] data3D = m3dData;
                 int ch = (int)(h.Value & 0xfff - 1);
-                if (ch != -1 && m3dData[ch].mHandle == h)
+                if (ch != -1 && data3D[ch].mHandle == h)
                 {
-                    m3dData[ch].m3dPosition = aPosition;
-                    m3dData[ch].m3dVelocity = aVelocity;
+                    data3D[ch].m3dPosition = aPosition;
+                    data3D[ch].m3dVelocity = aVelocity;
                 }
             }
         }
@@ -480,10 +488,11 @@ namespace LoudPizza.Core
             ReadOnlySpan<Handle> h_ = VoiceGroupHandleToSpan(ref aVoiceHandle);
             foreach (Handle h in h_)
             {
+                AudioSourceInstance3dData[] data3D = m3dData;
                 int ch = (int)(h.Value & 0xfff - 1);
-                if (ch != -1 && m3dData[ch].mHandle == h)
+                if (ch != -1 && data3D[ch].mHandle == h)
                 {
-                    m3dData[ch].m3dPosition = aPosition;
+                    data3D[ch].m3dPosition = aPosition;
                 }
             }
         }
@@ -496,10 +505,11 @@ namespace LoudPizza.Core
             ReadOnlySpan<Handle> h_ = VoiceGroupHandleToSpan(ref aVoiceHandle);
             foreach (Handle h in h_)
             {
+                AudioSourceInstance3dData[] data3D = m3dData;
                 int ch = (int)(h.Value & 0xfff - 1);
-                if (ch != -1 && m3dData[ch].mHandle == h)
+                if (ch != -1 && data3D[ch].mHandle == h)
                 {
-                    m3dData[ch].m3dVelocity = aVelocity;
+                    data3D[ch].m3dVelocity = aVelocity;
                 }
             }
         }
@@ -512,11 +522,12 @@ namespace LoudPizza.Core
             ReadOnlySpan<Handle> h_ = VoiceGroupHandleToSpan(ref aVoiceHandle);
             foreach (Handle h in h_)
             {
+                AudioSourceInstance3dData[] data3D = m3dData;
                 int ch = (int)(h.Value & 0xfff - 1);
-                if (ch != -1 && m3dData[ch].mHandle == h)
+                if (ch != -1 && data3D[ch].mHandle == h)
                 {
-                    m3dData[ch].m3dMinDistance = aMinDistance;
-                    m3dData[ch].m3dMaxDistance = aMaxDistance;
+                    data3D[ch].m3dMinDistance = aMinDistance;
+                    data3D[ch].m3dMaxDistance = aMaxDistance;
                 }
             }
         }
@@ -529,11 +540,12 @@ namespace LoudPizza.Core
             ReadOnlySpan<Handle> h_ = VoiceGroupHandleToSpan(ref aVoiceHandle);
             foreach (Handle h in h_)
             {
+                AudioSourceInstance3dData[] data3D = m3dData;
                 int ch = (int)(h.Value & 0xfff - 1);
-                if (ch != -1 && m3dData[ch].mHandle == h)
+                if (ch != -1 && data3D[ch].mHandle == h)
                 {
-                    m3dData[ch].mCollider = aCollider;
-                    m3dData[ch].mColliderData = aUserData;
+                    data3D[ch].mCollider = aCollider;
+                    data3D[ch].mColliderData = aUserData;
                 }
             }
         }
@@ -546,10 +558,11 @@ namespace LoudPizza.Core
             ReadOnlySpan<Handle> h_ = VoiceGroupHandleToSpan(ref aVoiceHandle);
             foreach (Handle h in h_)
             {
+                AudioSourceInstance3dData[] data3D = m3dData;
                 int ch = (int)(h.Value & 0xfff - 1);
-                if (ch != -1 && m3dData[ch].mHandle == h)
+                if (ch != -1 && data3D[ch].mHandle == h)
                 {
-                    m3dData[ch].m3dAttenuationRolloff = aAttenuationRolloffFactor;
+                    data3D[ch].m3dAttenuationRolloff = aAttenuationRolloffFactor;
                 }
             }
         }
@@ -562,10 +575,11 @@ namespace LoudPizza.Core
             ReadOnlySpan<Handle> h_ = VoiceGroupHandleToSpan(ref aVoiceHandle);
             foreach (Handle h in h_)
             {
+                AudioSourceInstance3dData[] data3D = m3dData;
                 int ch = (int)(h.Value & 0xfff - 1);
-                if (ch != -1 && m3dData[ch].mHandle == h)
+                if (ch != -1 && data3D[ch].mHandle == h)
                 {
-                    m3dData[ch].mAttenuator = aAttenuator;
+                    data3D[ch].mAttenuator = aAttenuator;
                 }
             }
         }
@@ -578,10 +592,11 @@ namespace LoudPizza.Core
             ReadOnlySpan<Handle> h_ = VoiceGroupHandleToSpan(ref aVoiceHandle);
             foreach (Handle h in h_)
             {
+                AudioSourceInstance3dData[] data3D = m3dData;
                 int ch = (int)(h.Value & 0xfff - 1);
-                if (ch != -1 && m3dData[ch].mHandle == h)
+                if (ch != -1 && data3D[ch].mHandle == h)
                 {
-                    m3dData[ch].m3dDopplerFactor = aDopplerFactor;
+                    data3D[ch].m3dDopplerFactor = aDopplerFactor;
                 }
             }
         }
