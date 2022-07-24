@@ -286,7 +286,8 @@ namespace LoudPizza.Core
         // Mix N samples * M channels. Called by other mix_ functions.
         internal void mix_internal(uint aSamples, uint aStride)
         {
-            float buffertime = aSamples / (float)mSamplerate;
+            double dSamples = aSamples;
+            double buffertime = dSamples / mSamplerate;
             mStreamTime += buffertime;
             mLastClockedTime = 0;
 
@@ -315,7 +316,7 @@ namespace LoudPizza.Core
                         }
 
                         voice.mStreamTime += buffertime;
-                        voice.mStreamPosition += (ulong)(aSamples * (double)voice.mOverallRelativePlaySpeed);
+                        voice.mStreamPosition += (ulong)(dSamples * voice.mOverallRelativePlaySpeed);
 
                         // TODO: this is actually unstable, because mStreamTime depends on the relative
                         // play speed. 
@@ -394,10 +395,10 @@ namespace LoudPizza.Core
                 float* scratch = mScratch.mData;
                 if (aSamples > 255)
                 {
-                    for (nuint i = 0; i < 256; i++)
+                    for (uint i = 0; i < 256; i++)
                     {
                         mVisualizationWaveData[i] = 0;
-                        for (nuint j = 0; j < mChannels; j++)
+                        for (uint j = 0; j < mChannels; j++)
                         {
                             float sample = scratch[i + j * aStride];
                             float absvol = MathF.Abs(sample);
@@ -410,10 +411,10 @@ namespace LoudPizza.Core
                 else
                 {
                     // Very unlikely failsafe branch
-                    for (nuint i = 0; i < 256; i++)
+                    for (uint i = 0; i < 256; i++)
                     {
                         mVisualizationWaveData[i] = 0;
-                        for (nuint j = 0; j < mChannels; j++)
+                        for (uint j = 0; j < mChannels; j++)
                         {
                             float sample = scratch[(i % aSamples) + j * aStride];
                             float absvol = MathF.Abs(sample);
@@ -712,7 +713,8 @@ namespace LoudPizza.Core
             // Accumulate sound sources		
             ReadOnlySpan<AudioSourceInstance?> voices = mVoice.AsSpan();
             ReadOnlySpan<int> activeVoices = mActiveVoice.AsSpan(0, mActiveVoiceCount);
-            
+            Span<float> scratch = mScratch.AsSpan();
+
             foreach (int activeVoice in activeVoices)
             {
                 AudioSourceInstance? voice = voices[activeVoice];
@@ -742,7 +744,7 @@ namespace LoudPizza.Core
                         }
 
                         // Clear scratch where we're skipping
-                        for (uint k = 0; k < voice.mChannels; k++)
+                        for (uint k = 0; k < voice.Channels; k++)
                         {
                             new Span<float>(aScratch + k * aBufferSize, (int)outofs).Clear();
                         }
@@ -769,7 +771,7 @@ namespace LoudPizza.Core
                                     {
                                         while (
                                             readcount < SampleGranularity &&
-                                            voice.Seek(voice.mLoopPoint, mScratch.AsSpan()) == SoLoudStatus.Ok)
+                                            voice.Seek(voice.mLoopPoint, scratch, out _) == SoLoudStatus.Ok)
                                         {
                                             voice.mLoopCount++;
                                             uint inc = voice.GetAudio(
@@ -788,8 +790,7 @@ namespace LoudPizza.Core
                             // Clear remaining of the resample data if the full scratch wasn't used
                             if (readcount < SampleGranularity)
                             {
-                                uint k;
-                                for (k = 0; k < voice.mChannels; k++)
+                                for (uint k = 0; k < voice.Channels; k++)
                                 {
                                     voice.mResampleData0.AsSpan(
                                         (int)(readcount + SampleGranularity * k),
@@ -821,7 +822,7 @@ namespace LoudPizza.Core
                                             voice.mResampleData0.mData,
                                             SampleGranularity,
                                             SampleGranularity,
-                                            voice.mChannels,
+                                            voice.Channels,
                                             voice.mSamplerate,
                                             mStreamTime);
                                     }
@@ -858,7 +859,8 @@ namespace LoudPizza.Core
                         // Call resampler to generate the samples, once per channel
                         if (writesamples != 0)
                         {
-                            for (uint j = 0; j < voice.mChannels; j++)
+                            uint channels = voice.Channels;
+                            for (uint j = 0; j < channels; j++)
                             {
                                 aResampler.Resample(
                                     voice.mResampleData0.mData + SampleGranularity * j,
@@ -935,7 +937,7 @@ namespace LoudPizza.Core
                                     {
                                         while (
                                             readcount < SampleGranularity &&
-                                            voice.Seek(voice.mLoopPoint, mScratch.AsSpan()) == SoLoudStatus.Ok)
+                                            voice.Seek(voice.mLoopPoint, scratch, out _) == SoLoudStatus.Ok)
                                         {
                                             voice.mLoopCount++;
                                             readcount += voice.GetAudio(
@@ -1686,11 +1688,12 @@ namespace LoudPizza.Core
                 pani[k] = (pand[k] - pan[k]) / aSamplesToRead; // TODO: this is a bit inconsistent.. but it's a hack to begin with
             }
 
+            uint voiceChannels = aVoice.Channels;
             uint j = 0;
             switch (aChannels)
             {
                 case 1: // Target is mono. Sum everything. (1->1, 2->1, 4->1, 6->1, 8->1)
-                    for (uint ofs = 0; j < aVoice.mChannels; j++, ofs += aBufferSize)
+                    for (uint ofs = 0; j < voiceChannels; j++, ofs += aBufferSize)
                     {
                         pan[0] = aVoice.mCurrentChannelVolume[0];
                         for (uint k = 0; k < aSamplesToRead; k++)
@@ -1702,7 +1705,7 @@ namespace LoudPizza.Core
                     break;
 
                 case 2:
-                    switch (aVoice.mChannels)
+                    switch (voiceChannels)
                     {
                         case 8: // 8->2, just sum lefties and righties, add a bit of center and sub?
                             for (; j < aSamplesToRead; j++)
@@ -1835,7 +1838,7 @@ namespace LoudPizza.Core
                     break;
 
                 case 4:
-                    switch (aVoice.mChannels)
+                    switch (voiceChannels)
                     {
                         case 8: // 8->4, add a bit of center, sub?
                             for (; j < aSamplesToRead; j++)
@@ -1933,7 +1936,7 @@ namespace LoudPizza.Core
                     break;
 
                 case 6:
-                    switch (aVoice.mChannels)
+                    switch (voiceChannels)
                     {
                         case 8: // 8->6
                             for (; j < aSamplesToRead; j++)
@@ -2049,7 +2052,7 @@ namespace LoudPizza.Core
                     break;
 
                 case 8:
-                    switch (aVoice.mChannels)
+                    switch (voiceChannels)
                     {
                         case 8: // 8->8
                             for (; j < aSamplesToRead; j++)

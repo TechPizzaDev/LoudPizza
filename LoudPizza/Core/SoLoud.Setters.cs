@@ -190,7 +190,7 @@ namespace LoudPizza.Core
                     AudioSourceInstance? ch = getVoiceRefFromHandle_internal(h);
                     if (ch != null)
                     {
-                        if (ch.mChannels > aChannel)
+                        if (ch.Channels > aChannel)
                         {
                             ch.mChannelVolume[aChannel] = aVolume;
                         }
@@ -216,19 +216,19 @@ namespace LoudPizza.Core
                         ch.mChannelVolume[0] = aLVolume;
                         ch.mChannelVolume[1] = aRVolume;
 
-                        if (ch.mChannels == 4)
+                        if (ch.Channels == 4)
                         {
                             ch.mChannelVolume[2] = aLVolume;
                             ch.mChannelVolume[3] = aRVolume;
                         }
-                        else if (ch.mChannels == 6)
+                        else if (ch.Channels == 6)
                         {
                             ch.mChannelVolume[2] = (aLVolume + aRVolume) * 0.5f;
                             ch.mChannelVolume[3] = (aLVolume + aRVolume) * 0.5f;
                             ch.mChannelVolume[4] = aLVolume;
                             ch.mChannelVolume[5] = aRVolume;
                         }
-                        else if (ch.mChannels == 8)
+                        else if (ch.Channels == 8)
                         {
                             ch.mChannelVolume[2] = (aLVolume + aRVolume) * 0.5f;
                             ch.mChannelVolume[3] = (aLVolume + aRVolume) * 0.5f;

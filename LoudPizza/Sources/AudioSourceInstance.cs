@@ -60,6 +60,9 @@ namespace LoudPizza.Sources
 
         public bool IsDisposed { get; private set; }
 
+        /// <inheritdoc/>
+        public uint Channels { get; protected set; }
+
         public AudioSourceInstance(AudioSource source)
         {
             Source = source ?? throw new ArgumentNullException(nameof(source));
@@ -77,7 +80,7 @@ namespace LoudPizza.Sources
             mSetRelativePlaySpeed = 1.0f;
             mStreamTime = 0.0f;
             mActiveFader = 0;
-            mChannels = 1;
+            Channels = 1;
             mBusHandle = new Handle(~0u);
             mLoopCount = 0;
             mLoopPoint = 0;
@@ -134,11 +137,6 @@ namespace LoudPizza.Sources
         /// Samplerate; samplerate = base samplerate * relative play speed
         /// </summary>
         internal float mSamplerate;
-
-        /// <summary>
-        /// Number of channels this audio source produces.
-        /// </summary>
-        internal uint mChannels;
 
         /// <summary>
         /// Relative play speed; samplerate = base samplerate * relative play speed.
@@ -223,7 +221,7 @@ namespace LoudPizza.Sources
             mPlayIndex = aPlayIndex;
             mBaseSamplerate = Source.mBaseSamplerate;
             mSamplerate = mBaseSamplerate;
-            mChannels = Source.mChannels;
+            Channels = Source.mChannels;
             mStreamTime = 0.0f;
             mStreamPosition = 0;
             mLoopPoint = Source.mLoopPoint;
@@ -286,13 +284,16 @@ namespace LoudPizza.Sources
         internal ulong mLoopPoint;
 
         /// <inheritdoc/>
-        public abstract uint GetAudio(Span<float> buffer, uint samplesToRead, uint bufferSize);
+        public abstract uint GetAudio(Span<float> buffer, uint samplesToRead, uint channelStride);
 
         /// <inheritdoc/>
         public abstract bool HasEnded();
 
         /// <inheritdoc/>
-        public abstract SoLoudStatus Seek(ulong samplePosition, Span<float> scratch);
+        public abstract bool CanSeek();
+
+        /// <inheritdoc/>
+        public abstract SoLoudStatus Seek(ulong samplePosition, Span<float> scratch, out ulong resultPosition);
 
         /// <summary>
         /// Get information. Returns 0 by default.
@@ -308,9 +309,8 @@ namespace LoudPizza.Sources
             {
                 if (disposing)
                 {
-                    for (int i = 0; i < mFilter.Length; i++)
+                    foreach (FilterInstance? instance in mFilter)
                     {
-                        FilterInstance? instance = mFilter[i];
                         if (instance != null)
                         {
                             instance.Dispose();

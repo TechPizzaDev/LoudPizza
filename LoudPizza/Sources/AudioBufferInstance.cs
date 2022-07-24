@@ -14,7 +14,7 @@ namespace LoudPizza.Sources
             mOffset = 0;
         }
 
-        public override uint GetAudio(Span<float> buffer, uint samplesToRead, uint bufferSize)
+        public override uint GetAudio(Span<float> buffer, uint samplesToRead, uint channelStride)
         {
             if (Source.mData == null)
                 return 0;
@@ -24,9 +24,9 @@ namespace LoudPizza.Sources
             if (copylen > samplesToRead)
                 copylen = samplesToRead;
             
-            for (uint i = 0; i < mChannels; i++)
+            for (uint i = 0; i < Channels; i++)
             {
-                Span<float> destination = buffer.Slice((int)(i * bufferSize), (int)copylen);
+                Span<float> destination = buffer.Slice((int)(i * channelStride), (int)copylen);
                 Span<float> source = Source.mData.AsSpan((int)(mOffset + i * Source.mSampleCount), (int)copylen);
 
                 source.CopyTo(destination);
@@ -39,7 +39,7 @@ namespace LoudPizza.Sources
         /// <summary>
         /// Seek to certain place in the buffer.
         /// </summary>
-        public override SoLoudStatus Seek(ulong samplePosition, Span<float> scratch)
+        public override SoLoudStatus Seek(ulong samplePosition, Span<float> scratch, out ulong resultPosition)
         {
             long offset = (long)(samplePosition - mStreamPosition);
             if (offset <= 0)
@@ -58,12 +58,18 @@ namespace LoudPizza.Sources
             mOffset += copylen;
             mStreamPosition += copylen;
 
+            resultPosition = mStreamPosition;
             return SoLoudStatus.Ok;
         }
 
         public override bool HasEnded()
         {
             return (mFlags & Flags.Looping) == 0 && mOffset >= Source.mSampleCount;
+        }
+
+        public override bool CanSeek()
+        {
+            return true;
         }
     }
 }

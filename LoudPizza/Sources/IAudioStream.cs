@@ -5,10 +5,25 @@ namespace LoudPizza.Sources
     public interface IAudioStream : IDisposable
     {
         /// <summary>
-        /// Read samples from the stream to the buffer.
+        /// Get the amount of channels in this stream.
         /// </summary>
+        uint Channels { get; }
+
+        /// <summary>
+        /// Reads non-interleaved samples into the specified buffer.
+        /// </summary>
+        /// <param name="buffer">
+        /// The buffer to read the samples into, 
+        /// of which length must be a multiple of <see cref="Channels"/>.
+        /// </param>
+        /// <param name="samplesToRead">The amount of samples to read per channel.</param>
+        /// <param name="channelStride">The offset in values between each channel in the buffer.</param>
         /// <returns>The amount of samples read.</returns>
-        uint GetAudio(Span<float> buffer, uint samplesToRead, uint bufferSize);
+        /// <remarks>
+        /// The <paramref name="buffer"/> is not interleaved
+        /// (Left, Left, Left, Right, Right, Right).
+        /// </remarks>
+        uint GetAudio(Span<float> buffer, uint samplesToRead, uint channelStride);
 
         /// <summary>
         /// Get whether the has stream ended.
@@ -16,11 +31,20 @@ namespace LoudPizza.Sources
         bool HasEnded();
 
         /// <summary>
-        /// Seek to certain place in the stream.
+        /// Get whether the stream is seekable.
         /// </summary>
-        /// <remarks>
-        /// Base implementation is a generic "tape" seek.
-        /// </remarks>
-        SoLoudStatus Seek(ulong samplePosition, Span<float> scratch);
+        bool CanSeek();
+
+        /// <summary>
+        /// Attempt to seek to the given position in the stream.
+        /// </summary>
+        /// <param name="samplePosition">The target position to seek to.</param>
+        /// <param name="scratch">Scratch buffer for seek implementations.</param>
+        /// <param name="resultPosition">The position that the stream could seek to.</param>
+        /// <returns>
+        /// The status of the operation. 
+        /// <see cref="SoLoudStatus.Ok"/> and <see cref="SoLoudStatus.EndOfStream"/> are considered non-errors.
+        /// </returns>
+        SoLoudStatus Seek(ulong samplePosition, Span<float> scratch, out ulong resultPosition);
     }
 }

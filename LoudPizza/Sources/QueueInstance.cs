@@ -12,7 +12,8 @@ namespace LoudPizza.Sources
             mFlags |= Flags.Protected;
         }
 
-        public override uint GetAudio(Span<float> buffer, uint samplesToRead, uint bufferSize)
+        /// <inheritdoc/>
+        public override uint GetAudio(Span<float> buffer, uint samplesToRead, uint channelStride)
         {
             Queue parent = Source;
             if (parent.mCount == 0)
@@ -25,7 +26,7 @@ namespace LoudPizza.Sources
             while (copycount != 0 && parent.mCount != 0)
             {
                 IAudioStream source = parent.mSource[parent.mReadIndex]!;
-                uint readcount = source.GetAudio(buffer.Slice((int)copyofs), copycount, bufferSize);
+                uint readcount = source.GetAudio(buffer.Slice((int)copyofs), copycount, channelStride);
                 copyofs += readcount;
                 copycount -= readcount;
                 if (source.HasEnded())
@@ -40,14 +41,23 @@ namespace LoudPizza.Sources
             return copyofs;
         }
 
-        public override SoLoudStatus Seek(ulong aSamplePosition, Span<float> mScratch)
+        /// <inheritdoc/>
+        public override SoLoudStatus Seek(ulong aSamplePosition, Span<float> mScratch, out ulong resultPosition)
         {
+            resultPosition = 0;
             return SoLoudStatus.NotImplemented;
         }
 
+        /// <inheritdoc/>
         public override bool HasEnded()
         {
             return mLoopCount != 0 && Source.mCount == 0;
+        }
+
+        /// <inheritdoc/>
+        public override bool CanSeek()
+        {
+            return false;
         }
     }
 }
