@@ -17,15 +17,15 @@ namespace LoudPizza.Sources
 
         public override AudioStreamInstance CreateInstance()
         {
-            if (_audioStream == null)
-            {
-                throw new InvalidOperationException();
-            }
-
             if (_instance != null)
             {
                 Stop();
                 _instance = null;
+            }
+
+            if (_audioStream == null)
+            {
+                ThrowObjectDisposed();
             }
 
             _instance = new AudioStreamInstance(this, _audioStream);
@@ -45,7 +45,7 @@ namespace LoudPizza.Sources
         {
             if (_instance != instance)
             {
-                throw new InvalidOperationException();
+                throw new InvalidOperationException("The given instance does not originate from this source.");
             }
 
             _audioStream = instance.DataStream;

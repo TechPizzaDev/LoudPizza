@@ -3,13 +3,14 @@ using LoudPizza.Core;
 
 namespace LoudPizza.Modifiers
 {
-    public unsafe abstract class FilterInstance : IDisposable
+    public abstract class FilterInstance : IDisposable
     {
         protected uint mNumParams;
         protected uint mParamChanged;
         protected float[] mParam;
         protected Fader[] mParamFader;
-        private bool _isDisposed;
+
+        public bool IsDisposed { get; private set; }
 
         public FilterInstance(int paramCount)
         {
@@ -84,9 +85,9 @@ namespace LoudPizza.Modifiers
 
         protected virtual void Dispose(bool disposing)
         {
-            if (!_isDisposed)
+            if (!IsDisposed)
             {
-                _isDisposed = true;
+                IsDisposed = true;
             }
         }
 

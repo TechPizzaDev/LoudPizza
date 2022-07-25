@@ -1,7 +1,8 @@
+using System;
 
 namespace LoudPizza.Modifiers
 {
-    public abstract class Filter
+    public abstract class Filter : IDisposable
     {
         public enum ParamType
         {
@@ -9,6 +10,8 @@ namespace LoudPizza.Modifiers
             Int,
             Bool,
         }
+
+        public bool IsDisposed { get; private set; }
 
         public virtual int GetParamCount()
         {
@@ -36,5 +39,19 @@ namespace LoudPizza.Modifiers
         }
 
         public abstract FilterInstance CreateInstance();
+
+        protected virtual void Dispose(bool disposing)
+        {
+            if (!IsDisposed)
+            {
+                IsDisposed = true;
+            }
+        }
+
+        public void Dispose()
+        {
+            Dispose(disposing: true);
+            GC.SuppressFinalize(this);
+        }
     }
 }

@@ -1,4 +1,5 @@
 using System;
+using System.Diagnostics.CodeAnalysis;
 using LoudPizza.Core;
 using LoudPizza.Modifiers;
 
@@ -56,8 +57,6 @@ namespace LoudPizza.Sources
             /// </summary>
             DisableAutostop = 256
         }
-
-        private bool _isDisposed;
 
         internal Flags mFlags;
 
@@ -125,6 +124,8 @@ namespace LoudPizza.Sources
         /// When looping, start playing from this time.
         /// </summary>
         internal ulong mLoopPoint;
+
+        public bool IsDisposed { get; private set; }
 
         public AudioSource(SoLoud soLoud)
         {
@@ -445,11 +446,17 @@ namespace LoudPizza.Sources
 
         protected virtual void Dispose(bool disposing)
         {
-            if (!_isDisposed)
+            if (!IsDisposed)
             {
                 Stop();
-                _isDisposed = true;
+                IsDisposed = true;
             }
+        }
+
+        [DoesNotReturn]
+        protected void ThrowObjectDisposed()
+        {
+            throw new ObjectDisposedException(GetType().Name);
         }
 
         public void Dispose()
