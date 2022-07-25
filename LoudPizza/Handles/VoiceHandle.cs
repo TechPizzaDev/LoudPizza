@@ -52,7 +52,7 @@ namespace LoudPizza
         /// Gets or sets whether the voice is protected.
         /// </summary>
         /// <remarks>
-        /// Protected voices are not killed when many voices are playing.
+        /// Protected voices are not stopped when many voices are playing.
         /// </remarks>
         public bool IsProtected
         {

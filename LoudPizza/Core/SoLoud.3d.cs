@@ -195,7 +195,7 @@ namespace LoudPizza.Core
                             // Inaudible.
                             vi.mFlags |= AudioSourceInstance.Flags.Inaudible;
 
-                            if ((vi.mFlags & AudioSourceInstance.Flags.InaudibleKill) != 0)
+                            if ((vi.mFlags & AudioSourceInstance.Flags.InaudibleStop) != 0)
                             {
                                 stopVoice_internal(foundVoices[i]);
                             }
@@ -271,7 +271,7 @@ namespace LoudPizza.Core
                     // Inaudible.
                     voice.mFlags |= AudioSourceInstance.Flags.Inaudible;
 
-                    if ((voice.mFlags & AudioSourceInstance.Flags.InaudibleKill) != 0)
+                    if ((voice.mFlags & AudioSourceInstance.Flags.InaudibleStop) != 0)
                     {
                         stopVoice_internal(v);
                     }
@@ -365,7 +365,7 @@ namespace LoudPizza.Core
                     // Inaudible.
                     voice.mFlags |= AudioSourceInstance.Flags.Inaudible;
 
-                    if ((voice.mFlags & AudioSourceInstance.Flags.InaudibleKill) != 0)
+                    if ((voice.mFlags & AudioSourceInstance.Flags.InaudibleStop) != 0)
                     {
                         stopVoice_internal(v);
                     }

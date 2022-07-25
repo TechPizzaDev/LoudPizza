@@ -391,6 +391,9 @@ namespace LoudPizza.Core
         /// <summary>
         /// Get current voice protection state.
         /// </summary>
+        /// <remarks>
+        /// Protected voices are not stopped when many voices are playing.
+        /// </remarks>
         public bool getProtectVoice(Handle aVoiceHandle)
         {
             lock (mAudioThreadMutex)

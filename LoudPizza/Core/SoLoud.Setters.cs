@@ -135,6 +135,9 @@ namespace LoudPizza.Core
         /// <summary>
         /// Set the voice protection state.
         /// </summary>
+        /// <remarks>
+        /// Protected voices are not stopped when many voices are playing.
+        /// </remarks>
         public void setProtectVoice(Handle aVoiceHandle, bool aProtect)
         {
             lock (mAudioThreadMutex)
@@ -245,7 +248,7 @@ namespace LoudPizza.Core
         /// <summary>
         /// Set behavior for inaudible sounds.
         /// </summary>
-        public void setInaudibleBehavior(Handle aVoiceHandle, bool aMustTick, bool aKill)
+        public void setInaudibleBehavior(Handle aVoiceHandle, bool aMustTick, bool aStop)
         {
             lock (mAudioThreadMutex)
             {
@@ -255,14 +258,14 @@ namespace LoudPizza.Core
                     AudioSourceInstance? ch = getVoiceRefFromHandle_internal(h);
                     if (ch != null)
                     {
-                        ch.mFlags &= ~(AudioSourceInstance.Flags.InaudibleKill | AudioSourceInstance.Flags.InaudibleTick);
+                        ch.mFlags &= ~(AudioSourceInstance.Flags.InaudibleStop | AudioSourceInstance.Flags.InaudibleTick);
                         if (aMustTick)
                         {
                             ch.mFlags |= AudioSourceInstance.Flags.InaudibleTick;
                         }
-                        if (aKill)
+                        if (aStop)
                         {
-                            ch.mFlags |= AudioSourceInstance.Flags.InaudibleKill;
+                            ch.mFlags |= AudioSourceInstance.Flags.InaudibleStop;
                         }
                     }
                 }

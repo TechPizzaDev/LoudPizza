@@ -43,9 +43,9 @@ namespace LoudPizza.Sources
             Inaudible = 32,
 
             /// <summary>
-            /// If inaudible, should be killed (default = don't kill).
+            /// If inaudible, should be stopped (default = don't stop).
             /// </summary>
-            InaudibleKill = 64,
+            InaudibleStop = 64,
 
             /// <summary>
             /// If inaudible, should still be ticked (default = pause).
@@ -241,7 +241,7 @@ namespace LoudPizza.Sources
             }
             if ((sourceFlags & AudioSource.Flags.InaudibleKill) != 0)
             {
-                mFlags |= Flags.InaudibleKill;
+                mFlags |= Flags.InaudibleStop;
             }
             if ((sourceFlags & AudioSource.Flags.InaudibleTick) != 0)
             {
