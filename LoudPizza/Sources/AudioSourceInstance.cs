@@ -1,4 +1,5 @@
 using System;
+using System.Diagnostics;
 using LoudPizza.Core;
 using LoudPizza.Modifiers;
 
@@ -87,8 +88,8 @@ namespace LoudPizza.Sources
             mFilter.AsSpan().Clear();
             mCurrentChannelVolume = default;
             // behind pointers because we swap between the two buffers
-            mResampleData0 = default;
-            mResampleData1 = default;
+            mResampleData0 = -1;
+            mResampleData1 = -1;
             mSrcOffset = 0;
             mLeftoverSamples = 0;
             mDelaySamples = 0;
@@ -254,14 +255,14 @@ namespace LoudPizza.Sources
         }
 
         /// <summary>
-        /// Buffer for the resampler.
+        /// Index of the buffer for the resampler.
         /// </summary>
-        internal AlignedFloatBuffer mResampleData0;
+        internal int mResampleData0;
 
         /// <summary>
-        /// Buffer for the resampler.
+        /// Index of the buffer for the resampler.
         /// </summary>
-        internal AlignedFloatBuffer mResampleData1;
+        internal int mResampleData1;
 
         /// <summary>
         /// Sub-sample playhead; 16.16 fixed point.
@@ -301,6 +302,17 @@ namespace LoudPizza.Sources
         public virtual float GetInfo(uint infoKey)
         {
             return 0;
+        }
+
+        internal void SwapResampleBuffers()
+        {
+            Debug.Assert(mResampleData0 >= 0);
+            Debug.Assert(mResampleData1 >= 0);
+
+            // Swap resample buffers (ping-pong)
+            int t = mResampleData0;
+            mResampleData0 = mResampleData1;
+            mResampleData1 = t;
         }
 
         protected virtual void Dispose(bool disposing)

@@ -37,15 +37,16 @@ namespace LoudPizza.Modifiers
             }
         }
 
-        public virtual void Filter(float* buffer, uint samples, uint bufferSize, uint channels, float sampleRate, Time time)
+        public virtual void Filter(Span<float> buffer, uint samples, uint bufferSize, uint channels, float sampleRate, Time time)
         {
             for (uint i = 0; i < channels; i++)
             {
-                FilterChannel(buffer + i * bufferSize, samples, sampleRate, time, i, channels);
+                FilterChannel(
+                    buffer.Slice((int)(i * bufferSize), (int)samples), sampleRate, time, i, channels);
             }
         }
 
-        public abstract void FilterChannel(float* buffer, uint samples, float sampleRate, Time time, uint channel, uint channels);
+        public abstract void FilterChannel(Span<float> buffer, float sampleRate, Time time, uint channel, uint channels);
 
         public virtual float GetFilterParameter(uint attributeId)
         {

@@ -36,23 +36,24 @@ namespace LoudPizza.Sources
             Bus mParent = Source;
             uint channels = Channels;
 
+            Span<float> bufferSlice = buffer.Slice(0, (int)(channelStride * channels));
+
             Handle handle = mParent.mChannelHandle;
             if (handle == default)
             {
                 // Avoid reuse of scratch data if this bus hasn't played anything yet
-                Span<float> slice = buffer.Slice(0, (int)(channelStride * channels));
-                slice.Clear();
+                bufferSlice.Clear();
 
                 return samplesToRead;
             }
 
-            fixed (float* aBufferPtr = buffer.Slice(0, (int)(channelStride * channels)))
-            {
-                SoLoud s = mParent.SoLoud;
-                s.mixBus_internal(
-                    aBufferPtr, samplesToRead, channelStride, mScratch.mData, handle, mSamplerate, channels, mParent.GetResampler());
+            SoLoud s = mParent.SoLoud;
+            s.mixBus_internal(
+                bufferSlice, samplesToRead, channelStride, mScratch.mData, handle, mSamplerate, channels, mParent.GetResampler());
 
-                if ((mParent.mFlags & AudioSource.Flags.VisualizationData) != 0)
+            if ((mParent.mFlags & AudioSource.Flags.VisualizationData) != 0)
+            {
+                fixed (float* aBufferPtr = bufferSlice)
                 {
                     mVisualizationChannelVolume = default;
 
@@ -87,8 +88,8 @@ namespace LoudPizza.Sources
                         }
                     }
                 }
-                return samplesToRead;
             }
+            return samplesToRead;
         }
 
         /// <summary>

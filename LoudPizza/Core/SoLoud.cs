@@ -372,14 +372,15 @@ namespace LoudPizza.Core
                 if (mActiveVoiceDirty)
                     calcActiveVoices_internal();
 
-                mixBus_internal(mOutputScratch.mData, aSamples, aStride, mScratch.mData, default, mSamplerate, mChannels, mResampler);
+                Span<float> outputScratch = mOutputScratch.AsSpan(0, (int)(mChannels * aStride));
+                mixBus_internal(outputScratch, aSamples, aStride, mScratch.mData, default, mSamplerate, mChannels, mResampler);
 
                 for (uint i = 0; i < FiltersPerStream; i++)
                 {
                     FilterInstance? filterInstance = mFilterInstance[i];
                     if (filterInstance != null)
                     {
-                        filterInstance.Filter(mOutputScratch.mData, aSamples, aStride, mChannels, mSamplerate, mStreamTime);
+                        filterInstance.Filter(outputScratch, aSamples, aStride, mChannels, mSamplerate, mStreamTime);
                     }
                 }
             }
@@ -665,8 +666,8 @@ namespace LoudPizza.Core
                 ref AudioSourceInstance? owner = ref resampleDataOwners[i];
                 if ((live[i] & 1) == 0 && owner != null) // For all dead channels with owners..
                 {
-                    owner.mResampleData0.destroy();
-                    owner.mResampleData1.destroy();
+                    owner.mResampleData0 = -1;
+                    owner.mResampleData1 = -1;
                     owner = null;
                 }
             }
@@ -690,10 +691,10 @@ namespace LoudPizza.Core
                         }
                         Debug.Assert(found != -1);
                         resampleDataOwners[found] = foundInstance;
-                        foundInstance.mResampleData0 = mResampleData[found * 2 + 0];
-                        foundInstance.mResampleData1 = mResampleData[found * 2 + 1];
-                        foundInstance.mResampleData0.AsSpan().Clear();
-                        foundInstance.mResampleData1.AsSpan().Clear();
+                        foundInstance.mResampleData0 = found * 2 + 0;
+                        foundInstance.mResampleData1 = found * 2 + 1;
+                        mResampleData[foundInstance.mResampleData0].AsSpan().Clear();
+                        mResampleData[foundInstance.mResampleData1].AsSpan().Clear();
                         latestfree = found + 1;
                     }
                 }
@@ -704,14 +705,15 @@ namespace LoudPizza.Core
         /// Perform mixing for a specific bus.
         /// </summary>
         internal void mixBus_internal(
-            float* aBuffer, uint aSamplesToRead, uint aBufferSize, float* aScratch,
+            Span<float> aBuffer, uint aSamplesToRead, uint aBufferSize, float* aScratch,
             Handle aBus, float aSamplerate, uint aChannels, AudioResampler aResampler)
         {
             // Clear accumulation buffer
-            new Span<float>(aBuffer, (int)(aSamplesToRead * aChannels)).Clear();
+            aBuffer.Clear();
 
             // Accumulate sound sources		
             ReadOnlySpan<AudioSourceInstance?> voices = mVoice.AsSpan();
+            ReadOnlySpan<AlignedFloatBuffer> resampleBuffers = mResampleData.AsSpan();
             ReadOnlySpan<int> activeVoices = mActiveVoice.AsSpan(0, mActiveVoiceCount);
             Span<float> scratch = mScratch.AsSpan();
 
@@ -754,17 +756,14 @@ namespace LoudPizza.Core
                     {
                         if (voice.mLeftoverSamples == 0)
                         {
-                            // Swap resample buffers (ping-pong)
-                            AlignedFloatBuffer t = voice.mResampleData0;
-                            voice.mResampleData0 = voice.mResampleData1;
-                            voice.mResampleData1 = t;
+                            voice.SwapResampleBuffers();
+                            Span<float> resampleBuffer = resampleBuffers[voice.mResampleData0].AsSpan();
 
                             // Get a block of source data
-
                             uint readcount = 0;
                             if ((voice.mFlags & AudioSourceInstance.Flags.Looping) != 0 || !voice.HasEnded())
                             {
-                                readcount = voice.GetAudio(voice.mResampleData0.AsSpan(), SampleGranularity, SampleGranularity);
+                                readcount = voice.GetAudio(resampleBuffer, SampleGranularity, SampleGranularity);
                                 if (readcount < SampleGranularity)
                                 {
                                     if ((voice.mFlags & AudioSourceInstance.Flags.Looping) != 0)
@@ -775,7 +774,7 @@ namespace LoudPizza.Core
                                         {
                                             voice.mLoopCount++;
                                             uint inc = voice.GetAudio(
-                                                voice.mResampleData0.AsSpan((int)readcount),
+                                                resampleBuffer.Slice((int)readcount),
                                                 SampleGranularity - readcount,
                                                 SampleGranularity);
 
@@ -792,7 +791,7 @@ namespace LoudPizza.Core
                             {
                                 for (uint k = 0; k < voice.Channels; k++)
                                 {
-                                    voice.mResampleData0.AsSpan(
+                                    resampleBuffer.Slice(
                                         (int)(readcount + SampleGranularity * k),
                                         (int)(SampleGranularity - readcount)).Clear();
                                 }
@@ -809,7 +808,6 @@ namespace LoudPizza.Core
                                 voice.mSrcOffset -= SampleGranularity * FIXPOINT_FRAC_MUL;
                             }
 
-
                             // Run the per-stream filters to get our source data
                             if (voice.mFilterCount != 0)
                             {
@@ -819,7 +817,7 @@ namespace LoudPizza.Core
                                     if (instance != null)
                                     {
                                         instance.Filter(
-                                            voice.mResampleData0.mData,
+                                            resampleBuffer,
                                             SampleGranularity,
                                             SampleGranularity,
                                             voice.Channels,
@@ -859,15 +857,18 @@ namespace LoudPizza.Core
                         // Call resampler to generate the samples, once per channel
                         if (writesamples != 0)
                         {
+                            ReadOnlySpan<float> resampleBuffer0 = resampleBuffers[voice.mResampleData0].AsSpan();
+                            ReadOnlySpan<float> resampleBuffer1 = resampleBuffers[voice.mResampleData1].AsSpan();
+                            Span<float> resampleScratch = new(aScratch, (int)(aBufferSize * aChannels));
+
                             uint channels = voice.Channels;
                             for (uint j = 0; j < channels; j++)
                             {
                                 aResampler.Resample(
-                                    voice.mResampleData0.mData + SampleGranularity * j,
-                                    voice.mResampleData1.mData + SampleGranularity * j,
-                                    aScratch + aBufferSize * j + outofs,
+                                    resampleBuffer0.Slice((int)(SampleGranularity * j), SampleGranularity),
+                                    resampleBuffer1.Slice((int)(SampleGranularity * j), SampleGranularity),
+                                    resampleScratch.Slice((int)(aBufferSize * j + outofs), (int)writesamples),
                                     (int)voice.mSrcOffset,
-                                    (int)writesamples,
                                     /*voice.mSamplerate,
                                     aSamplerate,*/
                                     (int)step_fixed);
@@ -882,7 +883,10 @@ namespace LoudPizza.Core
                     }
 
                     // Handle panning and channel expansion (and/or shrinking)
-                    panAndExpand(voice, aBuffer, aSamplesToRead, aBufferSize, aScratch, aChannels);
+                    fixed (float* bufferPtr = aBuffer)
+                    {
+                        panAndExpand(voice, bufferPtr, aSamplesToRead, aBufferSize, aScratch, aChannels);
+                    }
 
                     // clear voice if the sound is over
                     if ((voice.mFlags & (AudioSourceInstance.Flags.Looping | AudioSourceInstance.Flags.DisableAutostop)) == 0 &&
@@ -921,16 +925,14 @@ namespace LoudPizza.Core
                     {
                         if (voice.mLeftoverSamples == 0)
                         {
-                            // Swap resample buffers (ping-pong)
-                            AlignedFloatBuffer t = voice.mResampleData0;
-                            voice.mResampleData0 = voice.mResampleData1;
-                            voice.mResampleData1 = t;
+                            voice.SwapResampleBuffers();
+                            Span<float> resampleBuffer = resampleBuffers[voice.mResampleData0].AsSpan();
 
                             // Get a block of source data
 
                             if ((voice.mFlags & AudioSourceInstance.Flags.Looping) != 0 || !voice.HasEnded())
                             {
-                                uint readcount = voice.GetAudio(voice.mResampleData0.AsSpan(), SampleGranularity, SampleGranularity);
+                                uint readcount = voice.GetAudio(resampleBuffer, SampleGranularity, SampleGranularity);
                                 if (readcount < SampleGranularity)
                                 {
                                     if ((voice.mFlags & AudioSourceInstance.Flags.Looping) != 0)
@@ -941,7 +943,7 @@ namespace LoudPizza.Core
                                         {
                                             voice.mLoopCount++;
                                             readcount += voice.GetAudio(
-                                                voice.mResampleData0.AsSpan((int)readcount),
+                                                resampleBuffer.Slice((int)readcount),
                                                 SampleGranularity - readcount,
                                                 SampleGranularity);
                                         }
