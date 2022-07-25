@@ -762,7 +762,7 @@ namespace LoudPizza.Core
                             // Get a block of source data
 
                             uint readcount = 0;
-                            if (!voice.HasEnded() || (voice.mFlags & AudioSourceInstance.Flags.Looping) != 0)
+                            if ((voice.mFlags & AudioSourceInstance.Flags.Looping) != 0 || !voice.HasEnded())
                             {
                                 readcount = voice.GetAudio(voice.mResampleData0.AsSpan(), SampleGranularity, SampleGranularity);
                                 if (readcount < SampleGranularity)
@@ -928,7 +928,7 @@ namespace LoudPizza.Core
 
                             // Get a block of source data
 
-                            if (!voice.HasEnded() || (voice.mFlags & AudioSourceInstance.Flags.Looping) != 0)
+                            if ((voice.mFlags & AudioSourceInstance.Flags.Looping) != 0 || !voice.HasEnded())
                             {
                                 uint readcount = voice.GetAudio(voice.mResampleData0.AsSpan(), SampleGranularity, SampleGranularity);
                                 if (readcount < SampleGranularity)
@@ -1525,7 +1525,8 @@ namespace LoudPizza.Core
                 );
         }
 
-        internal static void resample_catmullrom(float* aSrc,
+        internal static void resample_catmullrom(
+            float* aSrc0,
             float* aSrc1,
             float* aDst,
             int aSrcOffset,
@@ -1548,7 +1549,7 @@ namespace LoudPizza.Core
                 }
                 else
                 {
-                    s3 = aSrc[p - 3];
+                    s3 = aSrc0[p - 3];
                 }
 
                 if (p < 2)
@@ -1557,7 +1558,7 @@ namespace LoudPizza.Core
                 }
                 else
                 {
-                    s2 = aSrc[p - 2];
+                    s2 = aSrc0[p - 2];
                 }
 
                 if (p < 1)
@@ -1566,16 +1567,17 @@ namespace LoudPizza.Core
                 }
                 else
                 {
-                    s1 = aSrc[p - 1];
+                    s1 = aSrc0[p - 1];
                 }
 
-                s0 = aSrc[p];
+                s0 = aSrc0[p];
 
                 aDst[i] = catmullrom(f / (float)FIXPOINT_FRAC_MUL, s3, s2, s1, s0);
             }
         }
 
-        internal static void resample_linear(float* aSrc,
+        internal static void resample_linear(
+            float* aSrc0,
             float* aSrc1,
             float* aDst,
             int aSrcOffset,
@@ -1613,8 +1615,8 @@ namespace LoudPizza.Core
                     mask = Avx2.Xor(mask, Vector256<int>.AllBitsSet); // bitwise-NOT
 
                     Vector256<int> pSub1 = Avx2.Subtract(p, one);
-                    Vector256<float> s1 = Avx2.GatherMaskVector256(s1BaseValue, aSrc, pSub1, mask.AsSingle(), sizeof(float));
-                    Vector256<float> s2 = Avx2.GatherVector256(aSrc, p, sizeof(float));
+                    Vector256<float> s1 = Avx2.GatherMaskVector256(s1BaseValue, aSrc0, pSub1, mask.AsSingle(), sizeof(float));
+                    Vector256<float> s2 = Avx2.GatherVector256(aSrc0, p, sizeof(float));
 
                     Vector256<float> diff = Avx.Multiply(Avx.Subtract(s2, s1), Avx.ConvertToVector256Single(f));
                     Vector256<float> dst = Fma.IsSupported
@@ -1643,16 +1645,17 @@ namespace LoudPizza.Core
                 }
 #endif
                 float s1 = aSrc1[SampleGranularity - 1];
-                float s2 = aSrc[p];
+                float s2 = aSrc0[p];
                 if (p != 0)
                 {
-                    s1 = aSrc[p - 1];
+                    s1 = aSrc0[p - 1];
                 }
                 aDst[i] = s1 + (s2 - s1) * f * FIXPOINT_FRAC_RECI;
             }
         }
 
-        internal static void resample_point(float* aSrc,
+        internal static void resample_point(
+            float* aSrc0,
             float* aSrc1,
             float* aDst,
             int aSrcOffset,
@@ -1665,7 +1668,7 @@ namespace LoudPizza.Core
             for (i = 0; i < aDstSampleCount; i++, pos += aStepFixed)
             {
                 int p = pos >> FIXPOINT_FRAC_BITS;
-                aDst[i] = aSrc[p];
+                aDst[i] = aSrc0[p];
             }
         }
 

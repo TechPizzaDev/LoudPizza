@@ -279,7 +279,7 @@ namespace LoudPizza.Sources
         internal uint mDelaySamples;
 
         /// <summary>
-        /// When looping, start playing from this time.
+        /// When looping, start playing from this sample position.
         /// </summary>
         internal ulong mLoopPoint;
 
