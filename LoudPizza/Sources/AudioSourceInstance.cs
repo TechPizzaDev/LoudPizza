@@ -1,5 +1,6 @@
 using System;
 using System.Diagnostics;
+using System.Diagnostics.CodeAnalysis;
 using LoudPizza.Core;
 using LoudPizza.Modifiers;
 
@@ -85,7 +86,6 @@ namespace LoudPizza.Sources
             mBusHandle = new Handle(~0u);
             mLoopCount = 0;
             mLoopPoint = 0;
-            mFilter.AsSpan().Clear();
             mCurrentChannelVolume = default;
             // behind pointers because we swap between the two buffers
             mResampleData0 = -1;
@@ -207,12 +207,7 @@ namespace LoudPizza.Sources
         /// <summary>
         /// Filters.
         /// </summary>
-        internal FilterInstance?[] mFilter = new FilterInstance[SoLoud.FiltersPerStream];
-
-        /// <summary>
-        /// Amount of active filters.
-        /// </summary>
-        internal int mFilterCount;
+        private FilterInstance?[]? mFilters;
 
         /// <summary>
         /// Initialize instance. Mostly internal use.
@@ -304,6 +299,40 @@ namespace LoudPizza.Sources
             return 0;
         }
 
+        internal void SetFilter(int filterId, FilterInstance? instance)
+        {
+            if (mFilters == null)
+            {
+                if (instance == null || IsDisposed)
+                {
+                    return;
+                }
+                mFilters = new FilterInstance?[SoLoud.FiltersPerStream];
+            }
+
+            ref FilterInstance? slot = ref mFilters[filterId];
+            if (slot != null)
+            {
+                slot.Dispose();
+            }
+            slot = instance;
+        }
+
+        internal FilterInstance? GetFilter(int filterId)
+        {
+            FilterInstance?[]? filters = mFilters;
+            if (filters != null)
+            {
+                return filters[filterId];
+            }
+            return null;
+        }
+
+        internal ReadOnlySpan<FilterInstance?> GetFilters()
+        {
+            return mFilters.AsSpan();
+        }
+
         internal void SwapResampleBuffers()
         {
             Debug.Assert(mResampleData0 >= 0);
@@ -321,29 +350,35 @@ namespace LoudPizza.Sources
             {
                 if (disposing)
                 {
-                    foreach (FilterInstance? instance in mFilter)
+                    foreach (FilterInstance? instance in GetFilters())
                     {
                         if (instance != null)
                         {
                             instance.Dispose();
-                            mFilterCount--;
                         }
                     }
+                    mFilters = null;
                 }
 
                 IsDisposed = true;
             }
         }
 
-        ~AudioSourceInstance()
+        [DoesNotReturn]
+        protected void ThrowObjectDisposed()
         {
-            Dispose(disposing: false);
+            throw new ObjectDisposedException(GetType().Name);
         }
 
         public void Dispose()
         {
             Dispose(disposing: true);
             GC.SuppressFinalize(this);
+        }
+
+        ~AudioSourceInstance()
+        {
+            Dispose(disposing: false);
         }
     }
 }

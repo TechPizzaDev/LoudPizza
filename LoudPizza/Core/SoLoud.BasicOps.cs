@@ -68,21 +68,20 @@ namespace LoudPizza.Core
                 }
 
                 // Fix initial voice volume ramp up		
-                int i;
-                for (i = 0; i < MaxChannels; i++)
+                for (uint i = 0; i < MaxChannels; i++)
                 {
                     instance.mCurrentChannelVolume[i] = instance.mChannelVolume[i] * instance.mOverallVolume;
                 }
 
                 setVoiceRelativePlaySpeed_internal(ch, 1);
 
-                for (i = 0; i < FiltersPerStream; i++)
+                ReadOnlySpan<Filter?> filters = aSound.GetFilters();
+                for (int i = 0; i < FiltersPerStream; i++)
                 {
-                    Filter? filter = aSound.mFilter[i];
+                    Filter? filter = filters[i];
                     if (filter != null)
                     {
-                        instance.mFilter[i] = filter.CreateInstance();
-                        instance.mFilterCount++;
+                        instance.SetFilter(i, filter.CreateInstance());
                     }
                 }
 

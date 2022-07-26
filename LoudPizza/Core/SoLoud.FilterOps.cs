@@ -10,9 +10,9 @@ namespace LoudPizza.Core
         /// Set global filters. Set to <see langword="null"/> to clear the filter.
         /// </summary>
         /// <exception cref="ArgumentOutOfRangeException"><paramref name="aFilterId"/> is invalid.</exception>
-        public void setGlobalFilter(uint aFilterId, Filter? aFilter)
+        public void setGlobalFilter(int aFilterId, Filter? aFilter)
         {
-            if (aFilterId >= FiltersPerStream)
+            if ((uint)aFilterId >= FiltersPerStream)
             {
                 throw new ArgumentOutOfRangeException(nameof(aFilterId));
             }
@@ -34,9 +34,9 @@ namespace LoudPizza.Core
         /// Get a live filter parameter. Use 0 for the global filters.
         /// </summary>
         /// <exception cref="ArgumentOutOfRangeException"><paramref name="aFilterId"/> is invalid.</exception>
-        public float getFilterParameter(Handle aVoiceHandle, uint aFilterId, uint aAttributeId)
+        public float getFilterParameter(Handle aVoiceHandle, int aFilterId, int aAttributeId)
         {
-            if (aFilterId >= FiltersPerStream)
+            if ((uint)aFilterId >= FiltersPerStream)
             {
                 throw new ArgumentOutOfRangeException(nameof(aFilterId));
             }
@@ -57,7 +57,7 @@ namespace LoudPizza.Core
                 AudioSourceInstance? ch = getVoiceRefFromHandle_internal(aVoiceHandle);
                 if (ch != null)
                 {
-                    FilterInstance? filterInstance = ch.mFilter[aFilterId];
+                    FilterInstance? filterInstance = ch.GetFilter(aFilterId);
                     if (filterInstance != null)
                     {
                         ret = filterInstance.GetFilterParameter(aAttributeId);
@@ -71,9 +71,9 @@ namespace LoudPizza.Core
         /// Set a live filter parameter. Use 0 for the global filters.
         /// </summary>
         /// <exception cref="ArgumentOutOfRangeException"><paramref name="aFilterId"/> is invalid.</exception>
-        public void setFilterParameter(Handle aVoiceHandle, uint aFilterId, uint aAttributeId, float aValue)
+        public void setFilterParameter(Handle aVoiceHandle, int aFilterId, int aAttributeId, float aValue)
         {
-            if (aFilterId >= FiltersPerStream)
+            if ((uint)aFilterId >= FiltersPerStream)
             {
                 throw new ArgumentOutOfRangeException(nameof(aFilterId));
             }
@@ -96,7 +96,7 @@ namespace LoudPizza.Core
                     AudioSourceInstance? ch = getVoiceRefFromHandle_internal(h);
                     if (ch != null)
                     {
-                        FilterInstance? filterInstance = ch.mFilter[aFilterId];
+                        FilterInstance? filterInstance = ch.GetFilter(aFilterId);
                         if (filterInstance != null)
                         {
                             filterInstance.SetFilterParameter(aAttributeId, aValue);
@@ -111,9 +111,9 @@ namespace LoudPizza.Core
         /// </summary>
         /// <exception cref="ArgumentOutOfRangeException"><paramref name="aFilterId"/> is invalid.</exception>
         public void fadeFilterParameter(
-            Handle aVoiceHandle, uint aFilterId, uint aAttributeId, float aTo, Time aTime)
+            Handle aVoiceHandle, int aFilterId, int aAttributeId, float aTo, Time aTime)
         {
-            if (aFilterId >= FiltersPerStream)
+            if ((uint)aFilterId >= FiltersPerStream)
             {
                 throw new ArgumentOutOfRangeException(nameof(aFilterId));
             }
@@ -136,7 +136,7 @@ namespace LoudPizza.Core
                     AudioSourceInstance? ch = getVoiceRefFromHandle_internal(h);
                     if (ch != null)
                     {
-                        FilterInstance? filterInstance = ch.mFilter[aFilterId];
+                        FilterInstance? filterInstance = ch.GetFilter(aFilterId);
                         if (filterInstance != null)
                         {
                             filterInstance.FadeFilterParameter(aAttributeId, aTo, aTime, ch.mStreamTime);
@@ -151,9 +151,9 @@ namespace LoudPizza.Core
         /// </summary>
         /// <exception cref="ArgumentOutOfRangeException"><paramref name="aFilterId"/> is invalid.</exception>
         public void oscillateFilterParameter(
-            Handle aVoiceHandle, uint aFilterId, uint aAttributeId, float aFrom, float aTo, Time aTime)
+            Handle aVoiceHandle, int aFilterId, int aAttributeId, float aFrom, float aTo, Time aTime)
         {
-            if (aFilterId >= FiltersPerStream)
+            if ((uint)aFilterId >= FiltersPerStream)
             {
                 throw new ArgumentOutOfRangeException(nameof(aFilterId));
             }
@@ -176,7 +176,7 @@ namespace LoudPizza.Core
                     AudioSourceInstance? ch = getVoiceRefFromHandle_internal(h);
                     if (ch != null)
                     {
-                        FilterInstance? filterInstance = ch.mFilter[aFilterId];
+                        FilterInstance? filterInstance = ch.GetFilter(aFilterId);
                         if (filterInstance != null)
                         {
                             filterInstance.OscillateFilterParameter(aAttributeId, aFrom, aTo, aTime, ch.mStreamTime);

@@ -809,21 +809,18 @@ namespace LoudPizza.Core
                             }
 
                             // Run the per-stream filters to get our source data
-                            if (voice.mFilterCount != 0)
+                            ReadOnlySpan<FilterInstance?> filters = voice.GetFilters();
+                            foreach (FilterInstance? instance in filters)
                             {
-                                FilterInstance?[] filters = voice.mFilter;
-                                foreach (FilterInstance? instance in filters)
+                                if (instance != null)
                                 {
-                                    if (instance != null)
-                                    {
-                                        instance.Filter(
-                                            resampleBuffer,
-                                            SampleGranularity,
-                                            SampleGranularity,
-                                            voice.Channels,
-                                            voice.mSamplerate,
-                                            mStreamTime);
-                                    }
+                                    instance.Filter(
+                                        resampleBuffer,
+                                        SampleGranularity,
+                                        SampleGranularity,
+                                        voice.Channels,
+                                        voice.mSamplerate,
+                                        mStreamTime);
                                 }
                             }
                         }

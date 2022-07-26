@@ -49,17 +49,17 @@ namespace LoudPizza.Modifiers
 
         public abstract void FilterChannel(Span<float> buffer, float sampleRate, Time time, uint channel, uint channels);
 
-        public virtual float GetFilterParameter(uint attributeId)
+        public virtual float GetFilterParameter(int attributeId)
         {
-            if (attributeId >= mNumParams)
+            if ((uint)attributeId >= mNumParams)
                 return 0;
 
             return mParam[attributeId];
         }
 
-        public virtual void SetFilterParameter(uint attributeId, float value)
+        public virtual void SetFilterParameter(int attributeId, float value)
         {
-            if (attributeId >= mNumParams)
+            if ((uint)attributeId >= mNumParams)
                 return;
 
             mParamFader[attributeId].mActive = 0;
@@ -67,17 +67,17 @@ namespace LoudPizza.Modifiers
             mParamChanged |= 1u << (int)attributeId;
         }
 
-        public virtual void FadeFilterParameter(uint attributeId, float to, Time time, Time startTime)
+        public virtual void FadeFilterParameter(int attributeId, float to, Time time, Time startTime)
         {
-            if (attributeId >= mNumParams || time <= 0 || to == mParam[attributeId])
+            if ((uint)attributeId >= mNumParams || time <= 0 || to == mParam[attributeId])
                 return;
 
             mParamFader[attributeId].set(mParam[attributeId], to, time, startTime);
         }
 
-        public virtual void OscillateFilterParameter(uint attributeId, float from, float to, Time time, Time startTime)
+        public virtual void OscillateFilterParameter(int attributeId, float from, float to, Time time, Time startTime)
         {
-            if (attributeId >= mNumParams || time <= 0 || from == to)
+            if ((uint)attributeId >= mNumParams || time <= 0 || from == to)
                 return;
 
             mParamFader[attributeId].setLFO(from, to, time, startTime);

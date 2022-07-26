@@ -20,6 +20,7 @@ namespace LoudPizza.Sources
             mResampler = SoLoud.DefaultResampler;
         }
 
+        /// <inheritdoc/>
         public override BusInstance CreateInstance()
         {
             if (mChannelHandle != default)
@@ -32,33 +33,16 @@ namespace LoudPizza.Sources
             return mInstance;
         }
 
-        /// <summary>
-        /// Set filter. Set to <see langword="null"/> to clear the filter.
-        /// </summary>
-        public override void SetFilter(uint filterId, Filter? filter)
+        /// <inheritdoc/>
+        public override void SetFilter(int filterId, Filter? filter)
         {
-            if (filterId >= SoLoud.FiltersPerStream)
-                return;
-
-            mFilter[filterId] = filter;
+            base.SetFilter(filterId, filter);
 
             if (mInstance != null)
             {
                 lock (SoLoud.mAudioThreadMutex)
                 {
-                    ref FilterInstance? instance = ref mInstance.mFilter[filterId];
-                    if (instance != null)
-                    {
-                        instance.Dispose();
-                        instance = null;
-                        mInstance.mFilterCount--;
-                    }
-
-                    if (filter != null)
-                    {
-                        instance = filter.CreateInstance();
-                        mInstance.mFilterCount++;
-                    }
+                    mInstance.SetFilter(filterId, filter?.CreateInstance());
                 }
             }
         }

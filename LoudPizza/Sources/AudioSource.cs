@@ -98,7 +98,7 @@ namespace LoudPizza.Sources
         /// <summary>
         /// Filters.
         /// </summary>
-        internal Filter?[] mFilter = new Filter?[SoLoud.FiltersPerStream];
+        private Filter?[]? mFilters;
 
         /// <summary>
         /// Pointer to the <see cref="Core.SoLoud"/> object. Needed to stop all instances on <see cref="Dispose"/>.
@@ -131,7 +131,6 @@ namespace LoudPizza.Sources
         {
             SoLoud = soLoud ?? throw new ArgumentNullException(nameof(soLoud));
 
-            mFilter.AsSpan().Clear();
             mFlags = 0;
             mBaseSamplerate = 44100;
             mChannels = 1;
@@ -406,26 +405,47 @@ namespace LoudPizza.Sources
         /// Set filter. Set to <see langword="null"/> to clear the filter.
         /// </summary>
         /// <exception cref="ArgumentOutOfRangeException"><paramref name="filterId"/> is invalid.</exception>
-        public virtual void SetFilter(uint filterId, Filter? filter)
+        public virtual void SetFilter(int filterId, Filter? filter)
         {
-            if (filterId >= SoLoud.FiltersPerStream)
+            if ((uint)filterId >= SoLoud.FiltersPerStream)
             {
                 throw new ArgumentOutOfRangeException(nameof(filterId));
             }
-            mFilter[filterId] = filter;
+
+            if (mFilters == null)
+            {
+                if (filter == null || IsDisposed)
+                {
+                    return;
+                }
+                mFilters = new Filter?[SoLoud.FiltersPerStream];
+            }
+
+            mFilters[filterId] = filter;
         }
 
         /// <summary>
         /// Get filter. Can be <see langword="null"/>.
         /// </summary>
         /// <exception cref="ArgumentOutOfRangeException"><paramref name="filterId"/> is invalid.</exception>
-        public Filter? GetFilter(uint filterId)
+        public Filter? GetFilter(int filterId)
         {
-            if (filterId >= SoLoud.FiltersPerStream)
+            if ((uint)filterId >= SoLoud.FiltersPerStream)
             {
                 throw new ArgumentOutOfRangeException(nameof(filterId));
             }
-            return mFilter[filterId];
+
+            Filter?[]? filters = mFilters;
+            if (filters == null)
+            {
+                return null;
+            }
+            return filters[filterId];
+        }
+
+        internal ReadOnlySpan<Filter?> GetFilters()
+        {
+            return mFilters.AsSpan();
         }
 
         /// <summary>
@@ -449,6 +469,9 @@ namespace LoudPizza.Sources
             if (!IsDisposed)
             {
                 Stop();
+
+                mFilters = null;
+
                 IsDisposed = true;
             }
         }
