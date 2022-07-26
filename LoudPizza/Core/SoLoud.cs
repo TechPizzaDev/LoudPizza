@@ -375,9 +375,8 @@ namespace LoudPizza.Core
                 Span<float> outputScratch = mOutputScratch.AsSpan(0, (int)(mChannels * aStride));
                 mixBus_internal(outputScratch, aSamples, aStride, mScratch.mData, default, mSamplerate, mChannels, mResampler);
 
-                for (uint i = 0; i < FiltersPerStream; i++)
+                foreach (FilterInstance? filterInstance in mFilterInstance)
                 {
-                    FilterInstance? filterInstance = mFilterInstance[i];
                     if (filterInstance != null)
                     {
                         filterInstance.Filter(outputScratch, aSamples, aStride, mChannels, mSamplerate, mStreamTime);

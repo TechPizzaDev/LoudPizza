@@ -9,7 +9,7 @@ namespace LoudPizza
         /// Get a live filter parameter.
         /// </summary>
         /// <exception cref="ArgumentOutOfRangeException"><paramref name="filterId"/> is invalid.</exception>
-        public float GetFilterParameter(uint filterId, uint attributeId)
+        public float GetFilterParameter(int filterId, int attributeId)
         {
             return SoLoud.getFilterParameter(Handle, filterId, attributeId);
         }
@@ -18,7 +18,7 @@ namespace LoudPizza
         /// Set a live filter parameter.
         /// </summary>
         /// <exception cref="ArgumentOutOfRangeException"><paramref name="filterId"/> is invalid.</exception>
-        public void SetFilterParameter(uint filterId, uint attributeId, float value)
+        public void SetFilterParameter(int filterId, int attributeId, float value)
         {
             SoLoud.setFilterParameter(Handle, filterId, attributeId, value);
         }
@@ -27,7 +27,7 @@ namespace LoudPizza
         /// Fade a live filter parameter.
         /// </summary>
         /// <exception cref="ArgumentOutOfRangeException"><paramref name="filterId"/> is invalid.</exception>
-        public void FadeFilterParameter(uint filterId, uint attributeId, float to, Time time)
+        public void FadeFilterParameter(int filterId, int attributeId, float to, Time time)
         {
             SoLoud.fadeFilterParameter(Handle, filterId, attributeId, to, time);
         }
@@ -36,7 +36,7 @@ namespace LoudPizza
         /// Oscillate a live filter parameter.
         /// </summary>
         /// <exception cref="ArgumentOutOfRangeException"><paramref name="filterId"/> is invalid.</exception>
-        public void OscillateFilterParameter(uint filterId, uint attributeId, float from, float to, Time time)
+        public void OscillateFilterParameter(int filterId, int attributeId, float from, float to, Time time)
         {
             SoLoud.oscillateFilterParameter(Handle, filterId, attributeId, from, to, time);
         }
