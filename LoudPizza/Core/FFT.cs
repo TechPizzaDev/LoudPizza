@@ -1012,8 +1012,7 @@ namespace LoudPizza.Core
             wd3r = 1;
             wd3i = 0;
             ew = M_PI_2 / m;
-            w1r = MathF.Cos(2 * ew);
-            w1i = MathF.Sin(2 * ew);
+            (w1i, w1r) = MathF.SinCos(2 * ew);
             wk1r = w1r;
             wk1i = w1i;
             ss1 = 2 * w1i;
@@ -1131,8 +1130,7 @@ namespace LoudPizza.Core
                 {
                     break;
                 }
-                wd1r = MathF.Cos(ew * i0);
-                wd1i = MathF.Sin(ew * i0);
+                (wd1i, wd1r) = MathF.SinCos(ew * i0);
                 wd3i = 4 * wd1i * wd1r;
                 wd3r = wd1r - wd3i * wd1i;
                 wd3i = wd1i - wd3i * wd1r;
@@ -1243,8 +1241,7 @@ namespace LoudPizza.Core
             wd3r = 1;
             wd3i = 0;
             ew = M_PI_2 / m;
-            w1r = MathF.Cos(2 * ew);
-            w1i = MathF.Sin(2 * ew);
+            (w1i, w1r) = MathF.SinCos(2 * ew);
             wk1r = w1r;
             wk1i = w1i;
             ss1 = 2 * w1i;
@@ -1362,8 +1359,7 @@ namespace LoudPizza.Core
                 {
                     break;
                 }
-                wd1r = MathF.Cos(ew * i0);
-                wd1i = MathF.Sin(ew * i0);
+                (wd1i, wd1r) = MathF.SinCos(ew * i0);
                 wd3i = 4 * wd1i * wd1r;
                 wd3r = wd1r - wd3i * wd1i;
                 wd3i = wd1i - wd3i * wd1r;
@@ -1631,8 +1627,7 @@ namespace LoudPizza.Core
                 {
                     break;
                 }
-                wl1r = MathF.Cos(ew * i0);
-                wl1i = MathF.Sin(ew * i0);
+                (wl1i, wl1r) = MathF.SinCos(ew * i0);
                 wl3i = 4 * wl1i * wl1r;
                 wl3r = wl1r - wl3i * wl1i;
                 wl3i = wl1i - wl3i * wl1r;
