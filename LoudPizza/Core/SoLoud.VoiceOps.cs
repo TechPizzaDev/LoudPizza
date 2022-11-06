@@ -66,8 +66,7 @@ namespace LoudPizza.Core
             if (voice != null)
             {
                 voice.mPan = aPan;
-                float l = (float)MathF.Cos((aPan + 1) * MathF.PI / 4);
-                float r = (float)MathF.Sin((aPan + 1) * MathF.PI / 4);
+                (float r, float l) = MathF.SinCos((aPan + 1) * MathF.PI / 4);
                 voice.mChannelVolume[0] = l;
                 voice.mChannelVolume[1] = r;
                 if (voice.Channels == 4)

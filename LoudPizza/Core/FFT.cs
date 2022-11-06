@@ -1480,8 +1480,7 @@ namespace LoudPizza.Core
             we3r = -wn4r;
             we3i = -wn4r;
             ew = M_PI_2 / (2 * m);
-            w1r = (float)Math.Cos(2 * ew);
-            w1i = (float)Math.Sin(2 * ew);
+            (w1i, w1r) = MathF.SinCos(2 * ew);
             wk1r = w1r;
             wk1i = w1i;
             wd1r = wn4r * (w1r - w1i);

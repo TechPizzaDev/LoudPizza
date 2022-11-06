@@ -64,7 +64,8 @@ namespace LoudPizza.Sources
                             mVisualizationWaveData[i] = 0;
                             for (uint j = 0; j < channels; j++)
                             {
-                                float sample = aBufferPtr[i + channelStride * j]; float absvol = MathF.Abs(sample);
+                                float sample = aBufferPtr[i + channelStride * j]; 
+                                float absvol = MathF.Abs(sample);
                                 if (absvol > mVisualizationChannelVolume[j])
                                     mVisualizationChannelVolume[j] = absvol;
                                 mVisualizationWaveData[i] += sample;
