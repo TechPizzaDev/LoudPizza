@@ -27,7 +27,7 @@ namespace LoudPizza.Sources
             mVisualizationChannelVolume = default;
             mVisualizationWaveData = default;
             mScratchSize = SoLoud.SampleGranularity;
-            mScratch.init(mScratchSize * SoLoud.MaxChannels);
+            mScratch.init(mScratchSize * SoLoud.MaxChannels, SoLoud.VECTOR_SIZE);
         }
 
         /// <inheritdoc/>

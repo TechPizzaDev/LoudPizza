@@ -5,7 +5,7 @@ using System.Runtime.CompilerServices;
 using System.Threading;
 using LoudPizza.Sources;
 using LoudPizza.Modifiers;
-#if SSE_INTRINSICS
+#if NET6_0_OR_GREATER
 using System.Runtime.Intrinsics;
 using System.Runtime.Intrinsics.X86;
 #endif
@@ -21,7 +21,18 @@ namespace LoudPizza.Core
         private const int FIXPOINT_FRAC_MUL = (1 << FIXPOINT_FRAC_BITS);
         private const int FIXPOINT_FRAC_MASK = ((1 << FIXPOINT_FRAC_BITS) - 1);
         private const float FIXPOINT_FRAC_RECI = 1f / FIXPOINT_FRAC_MUL;
-        private static readonly Vector<int> CONSECUTIVE_INDICES;
+
+        private static readonly Vector<float> CONSECUTIVE_INDICES;
+
+        public static readonly uint VECTOR_SIZE = (uint)Math.Max(
+#if NET6_0_OR_GREATER
+            Math.Max(Vector128<byte>.Count, Vector256<byte>.Count),
+#else
+            IntPtr.Size,
+#endif
+            Vector<byte>.Count);
+
+        public static readonly uint VECTOR_ALIGNMENT = VECTOR_SIZE - 1;
 
         private const float SQRT2RECP = 0.7071067811865475f;
 
@@ -106,7 +117,8 @@ namespace LoudPizza.Core
             {
                 tmp[i] = i + 1;
             }
-            CONSECUTIVE_INDICES = Unsafe.ReadUnaligned<Vector<int>>(tmp);
+            Vector<int> ivec = Unsafe.ReadUnaligned<Vector<int>>(tmp);
+            CONSECUTIVE_INDICES = Vector.ConvertToSingle(ivec);
         }
 
         /// <summary>
@@ -262,7 +274,7 @@ namespace LoudPizza.Core
         /// </summary>
         public void mix(float* aBuffer, uint aSamples)
         {
-            uint stride = (aSamples + 15) & ~0xfu;
+            uint stride = (aSamples + VECTOR_ALIGNMENT) & ~VECTOR_ALIGNMENT;
             mix_internal(aSamples, stride);
             interlace_samples_float(mScratch.mData, aBuffer, aSamples, mChannels, stride);
         }
@@ -272,7 +284,7 @@ namespace LoudPizza.Core
         /// </summary>
         public void mixSigned16(short* aBuffer, uint aSamples)
         {
-            uint stride = (aSamples + 15) & ~0xfu;
+            uint stride = (aSamples + VECTOR_ALIGNMENT) & ~VECTOR_ALIGNMENT;
             mix_internal(aSamples, stride);
             interlace_samples_s16(mScratch.mData, aBuffer, aSamples, mChannels, stride);
         }
@@ -445,7 +457,9 @@ namespace LoudPizza.Core
             m3dData = new AudioSourceInstance3dData[mMaxActiveVoices];
 
             foreach (ref AlignedFloatBuffer resampleData in mResampleData.AsSpan())
-                resampleData.init(SampleGranularity * MaxChannels);
+            {
+                resampleData.init(SampleGranularity * MaxChannels, VECTOR_SIZE);
+            }
         }
 
         /// <summary>
@@ -459,13 +473,13 @@ namespace LoudPizza.Core
                 mChannels = aChannels;
                 mSamplerate = aSamplerate;
                 mBufferSize = aBufferSize;
-                uint mScratchSize = (aBufferSize + 15) & (~0xfu); // round to the next div by 16
+                uint mScratchSize = (aBufferSize + VECTOR_ALIGNMENT) & (~VECTOR_ALIGNMENT); // round to the next alignment
                 if (mScratchSize < SampleGranularity * 2)
                     mScratchSize = SampleGranularity * 2;
                 if (mScratchSize < 4096)
                     mScratchSize = 4096;
-                mScratch.init(mScratchSize * MaxChannels);
-                mOutputScratch.init(mScratchSize * MaxChannels);
+                mScratch.init(mScratchSize * MaxChannels, VECTOR_SIZE);
+                mOutputScratch.init(mScratchSize * MaxChannels, VECTOR_SIZE);
                 initResampleData();
                 mPostClipScaler = 0.95f;
                 switch (mChannels)
@@ -1011,7 +1025,7 @@ namespace LoudPizza.Core
         private void clip_internal(
             AlignedFloatBuffer aBuffer, AlignedFloatBuffer aDestBuffer, uint aSamples, float aVolume0, float aVolume1)
         {
-#if SSE_INTRINSICS
+#if NET6_0_OR_GREATER
             if (Sse.IsSupported)
             {
                 float vd = (aVolume1 - aVolume0) / aSamples;
@@ -1082,7 +1096,7 @@ namespace LoudPizza.Core
 
                             // outdata[d] = f1 * postclip; d++;
                             f = Sse.Multiply(f, postscale);
-                            Sse.Store(&aDestBuffer.mData[d], f);
+                            Sse.StoreAligned(&aDestBuffer.mData[d], f);
                             d += 4;
                         }
                     }
@@ -1121,7 +1135,7 @@ namespace LoudPizza.Core
 
                             //aDestBuffer.mData[d] = f1 * mPostClipScaler; d++;
                             f = Sse.Multiply(f, postscale);
-                            Sse.Store(&aDestBuffer.mData[d], f);
+                            Sse.StoreAligned(&aDestBuffer.mData[d], f);
                             d += 4;
                         }
                     }
@@ -1394,7 +1408,7 @@ namespace LoudPizza.Core
         {
             // 111222 -> 121212
 
-#if SSE_INTRINSICS
+#if NET6_0_OR_GREATER
             if (Sse.IsSupported)
             {
                 if (aChannels == 2)
@@ -1405,8 +1419,8 @@ namespace LoudPizza.Core
 
                     for (; i + (uint)Vector128<float>.Count * 2 <= aSamples * 2;)
                     {
-                        Vector128<float> src0 = Sse.LoadVector128(srcBuffer1);
-                        Vector128<float> src1 = Sse.LoadVector128(srcBuffer2);
+                        Vector128<float> src0 = Sse.LoadAlignedVector128(srcBuffer1);
+                        Vector128<float> src1 = Sse.LoadAlignedVector128(srcBuffer2);
 
                         Vector128<float> dst0 = Sse.UnpackLow(src0, src1);
                         Vector128<float> dst1 = Sse.UnpackHigh(src0, src1);
@@ -1448,7 +1462,7 @@ namespace LoudPizza.Core
         {
             // 111222 -> 121212
 
-#if SSE_INTRINSICS
+#if NET6_0_OR_GREATER
             if (Sse2.IsSupported)
             {
                 if (aChannels == 2)
@@ -1460,11 +1474,11 @@ namespace LoudPizza.Core
 
                     for (; i + (uint)Vector128<short>.Count * 2 <= aSamples * 2;)
                     {
-                        Vector128<float> src0_0 = Sse.LoadVector128(srcBuffer1);
-                        Vector128<float> src0_1 = Sse.LoadVector128(srcBuffer1 + Vector128<float>.Count);
+                        Vector128<float> src0_0 = Sse.LoadAlignedVector128(srcBuffer1);
+                        Vector128<float> src0_1 = Sse.LoadAlignedVector128(srcBuffer1 + Vector128<float>.Count);
 
-                        Vector128<float> src1_0 = Sse.LoadVector128(srcBuffer2);
-                        Vector128<float> src1_1 = Sse.LoadVector128(srcBuffer2 + Vector128<float>.Count);
+                        Vector128<float> src1_0 = Sse.LoadAlignedVector128(srcBuffer2);
+                        Vector128<float> src1_1 = Sse.LoadAlignedVector128(srcBuffer2 + Vector128<float>.Count);
 
                         Vector128<float> dst0 = Sse.Multiply(Sse.UnpackLow(src0_0, src1_0), factor);
                         Vector128<float> dst1 = Sse.Multiply(Sse.UnpackHigh(src0_0, src1_0), factor);
@@ -1585,7 +1599,7 @@ namespace LoudPizza.Core
             int i = 0;
             int pos = aSrcOffset;
 
-#if SSE_INTRINSICS
+#if NET6_0_OR_GREATER
             if (Avx2.IsSupported)
             {
                 Vector256<int> vPos = Vector256.Create(
@@ -1673,11 +1687,9 @@ namespace LoudPizza.Core
         private void panAndExpand(
             AudioSourceInstance aVoice, float* aBuffer, uint aSamplesToRead, uint aBufferSize, float* aScratch, uint aChannels)
         {
-#if SSE_INTRINSICS
-            Debug.Assert(((nint)aBuffer & 0xf) == 0);
-            Debug.Assert(((nint)aScratch & 0xf) == 0);
-            Debug.Assert(((nint)aBufferSize & 0xf) == 0);
-#endif
+            Debug.Assert(((nuint)aScratch & VECTOR_ALIGNMENT) == 0);
+            Debug.Assert(((nuint)aBufferSize & VECTOR_ALIGNMENT) == 0);
+
             ChannelBuffer pan; // current speaker volume
             ChannelBuffer pand; // destination speaker volume
             ChannelBuffer pani; // speaker volume increment per sample
@@ -1760,7 +1772,7 @@ namespace LoudPizza.Core
                             if (Vector.IsHardwareAccelerated)
                             {
                                 uint samplequads = aSamplesToRead / (uint)Vector<float>.Count; // rounded down
-                                Vector<float> indices = Vector.ConvertToSingle(CONSECUTIVE_INDICES);
+                                Vector<float> indices = CONSECUTIVE_INDICES;
                                 Vector<float> p0 = new Vector<float>(pan[0]) + new Vector<float>(pani[0]) * indices;
                                 Vector<float> p1 = new Vector<float>(pan[1]) + new Vector<float>(pani[1]) * indices;
 
@@ -1771,8 +1783,8 @@ namespace LoudPizza.Core
                                 {
                                     Vector<float> f0 = Unsafe.Read<Vector<float>>(aScratch + j);
                                     Vector<float> f1 = Unsafe.Read<Vector<float>>(aScratch + j + aBufferSize);
-                                    Vector<float> o0 = Unsafe.Read<Vector<float>>(aBuffer + j);
-                                    Vector<float> o1 = Unsafe.Read<Vector<float>>(aBuffer + j + aBufferSize);
+                                    Vector<float> o0 = Unsafe.ReadUnaligned<Vector<float>>(aBuffer + j);
+                                    Vector<float> o1 = Unsafe.ReadUnaligned<Vector<float>>(aBuffer + j + aBufferSize);
 
                                     Vector<float> c0 = f0 * p0 + o0;
                                     Vector<float> c1 = f1 * p1 + o1;
@@ -1801,7 +1813,7 @@ namespace LoudPizza.Core
                             if (Vector.IsHardwareAccelerated)
                             {
                                 uint samplequads = aSamplesToRead / (uint)Vector<float>.Count; // rounded down
-                                Vector<float> indices = Vector.ConvertToSingle(CONSECUTIVE_INDICES);
+                                Vector<float> indices = CONSECUTIVE_INDICES;
                                 Vector<float> p0 = new Vector<float>(pan[0]) + new Vector<float>(pani[0]) * indices;
                                 Vector<float> p1 = new Vector<float>(pan[1]) + new Vector<float>(pani[1]) * indices;
 
@@ -1811,8 +1823,8 @@ namespace LoudPizza.Core
                                 for (uint q = 0; q < samplequads; q++)
                                 {
                                     Vector<float> f0 = Unsafe.Read<Vector<float>>(aScratch + j);
-                                    Vector<float> o0 = Unsafe.Read<Vector<float>>(aBuffer + j);
-                                    Vector<float> o1 = Unsafe.Read<Vector<float>>(aBuffer + j + aBufferSize);
+                                    Vector<float> o0 = Unsafe.ReadUnaligned<Vector<float>>(aBuffer + j);
+                                    Vector<float> o1 = Unsafe.ReadUnaligned<Vector<float>>(aBuffer + j + aBufferSize);
 
                                     Vector<float> c0 = f0 * p0 + o0;
                                     Vector<float> c1 = f0 * p1 + o1;

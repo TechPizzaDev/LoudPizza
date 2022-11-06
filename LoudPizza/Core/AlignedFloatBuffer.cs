@@ -26,21 +26,21 @@ namespace LoudPizza.Core
         /// <summary>
         /// Allocate and align buffer.
         /// </summary>
-        public SoLoudStatus init(uint aFloats)
+        public SoLoudStatus init(uint aFloats, uint alignment)
         {
             destroy();
 
             mData = null;
             mFloats = aFloats;
-#if SSE_INTRINSICS
-            mBasePtr = Marshal.AllocHGlobal((int)aFloats * sizeof(float) + 16);
+#if !NET6_0_OR_GREATER
+            mBasePtr = Marshal.AllocHGlobal((int)(aFloats * sizeof(float) + alignment));
             if (mBasePtr == IntPtr.Zero)
                 return SoLoudStatus.OutOfMemory;
-            mData = (float*)(((long)mBasePtr + 15) & ~15);
+            mData = (float*)(((long)mBasePtr + (alignment - 1)) & ~(alignment - 1));
 #else
-            mBasePtr = Marshal.AllocHGlobal((int)aFloats * sizeof(float));
+            mBasePtr = (IntPtr)NativeMemory.AlignedAlloc(aFloats * sizeof(float), alignment);
             if (mBasePtr == IntPtr.Zero)
-                return SOLOUD_ERRORS.OUT_OF_MEMORY;
+                return SoLoudStatus.OutOfMemory;
             mData = (float*)mBasePtr;
 #endif
             return SoLoudStatus.Ok;
@@ -69,7 +69,11 @@ namespace LoudPizza.Core
         {
             if (mBasePtr != IntPtr.Zero)
             {
+#if NET6_0_OR_GREATER
+                NativeMemory.AlignedFree((void*)mBasePtr);
+#else
                 Marshal.FreeHGlobal(mBasePtr);
+#endif
                 mBasePtr = IntPtr.Zero;
                 mData = null;
             }

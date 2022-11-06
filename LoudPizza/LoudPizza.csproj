@@ -6,8 +6,4 @@
     <Nullable>enable</Nullable>
   </PropertyGroup>
 
-  <PropertyGroup Condition="'$(Framework)' != 'NETSTANDARD'">
-    <DefineConstants>SSE_INTRINSICS</DefineConstants>
-  </PropertyGroup>
-
 </Project>
