@@ -6,13 +6,13 @@ using LoudPizza.Modifiers;
 
 namespace LoudPizza.Sources
 {
-    public unsafe class Bus : AudioSource, IAudioBus
+    public unsafe class AudioBus : AudioSource, IAudioBus
     {
-        private BusInstance? mInstance;
+        private AudioBusInstance? mInstance;
         internal Handle mChannelHandle;
         private AudioResampler mResampler;
 
-        public Bus(SoLoud soLoud) : base(soLoud)
+        public AudioBus(SoLoud soLoud) : base(soLoud)
         {
             mChannelHandle = default;
             mInstance = null;
@@ -21,7 +21,7 @@ namespace LoudPizza.Sources
         }
 
         /// <inheritdoc/>
-        public override BusInstance CreateInstance()
+        public override AudioBusInstance CreateInstance()
         {
             if (mChannelHandle != default)
             {
@@ -29,12 +29,12 @@ namespace LoudPizza.Sources
                 mChannelHandle = default;
                 mInstance = null;
             }
-            mInstance = new BusInstance(this);
+            mInstance = new AudioBusInstance(this);
             return mInstance;
         }
 
         /// <inheritdoc/>
-        public override void SetFilter(int filterId, Filter? filter)
+        public override void SetFilter(int filterId, AudioFilter? filter)
         {
             base.SetFilter(filterId, filter);
 

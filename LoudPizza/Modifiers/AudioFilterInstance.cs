@@ -3,7 +3,7 @@ using LoudPizza.Core;
 
 namespace LoudPizza.Modifiers
 {
-    public abstract class FilterInstance : IDisposable
+    public abstract class AudioFilterInstance : IDisposable
     {
         protected uint mNumParams;
         protected uint mParamChanged;
@@ -12,7 +12,7 @@ namespace LoudPizza.Modifiers
 
         public bool IsDisposed { get; private set; }
 
-        public FilterInstance(int paramCount)
+        public AudioFilterInstance(int paramCount)
         {
             mNumParams = (uint)paramCount;
             mParam = new float[mNumParams];

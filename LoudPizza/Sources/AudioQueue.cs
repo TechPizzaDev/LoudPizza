@@ -3,16 +3,16 @@ using LoudPizza.Core;
 
 namespace LoudPizza.Sources
 {
-    public class Queue : AudioSource
+    public class AudioQueue : AudioSource
     {
         internal uint mReadIndex;
         internal uint mWriteIndex;
         internal uint mCount;
         internal IAudioStream?[] mSource;
-        internal QueueInstance? mInstance;
+        internal AudioQueueInstance? mInstance;
         internal Handle mQueueHandle;
 
-        public Queue(SoLoud soLoud, int capacity) : base(soLoud)
+        public AudioQueue(SoLoud soLoud, int capacity) : base(soLoud)
         {
             mQueueHandle = default;
             mInstance = null;
@@ -22,14 +22,14 @@ namespace LoudPizza.Sources
             mSource = new IAudioStream[capacity];
         }
 
-        public override QueueInstance CreateInstance()
+        public override AudioQueueInstance CreateInstance()
         {
             if (mInstance != null)
             {
                 Stop();
                 mInstance = null;
             }
-            mInstance = new QueueInstance(this);
+            mInstance = new AudioQueueInstance(this);
             return mInstance;
         }
 

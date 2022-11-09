@@ -3,11 +3,11 @@ using System.Runtime.CompilerServices;
 
 namespace LoudPizza.Sources
 {
-    public class QueueInstance : AudioSourceInstance
+    public class AudioQueueInstance : AudioSourceInstance
     {
-        public new Queue Source => Unsafe.As<Queue>(base.Source);
+        public new AudioQueue Source => Unsafe.As<AudioQueue>(base.Source);
 
-        public QueueInstance(Queue source) : base(source)
+        public AudioQueueInstance(AudioQueue source) : base(source)
         {
             mFlags |= Flags.Protected;
         }
@@ -15,7 +15,7 @@ namespace LoudPizza.Sources
         /// <inheritdoc/>
         public override uint GetAudio(Span<float> buffer, uint samplesToRead, uint channelStride)
         {
-            Queue parent = Source;
+            AudioQueue parent = Source;
             if (parent.mCount == 0)
             {
                 return 0;

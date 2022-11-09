@@ -2,7 +2,7 @@ using System;
 
 namespace LoudPizza.Modifiers
 {
-    public abstract class Filter : IDisposable
+    public abstract class AudioFilter : IDisposable
     {
         public enum ParamType
         {
@@ -38,7 +38,7 @@ namespace LoudPizza.Modifiers
             return 0;
         }
 
-        public abstract FilterInstance CreateInstance();
+        public abstract AudioFilterInstance CreateInstance();
 
         protected virtual void Dispose(bool disposing)
         {

@@ -98,7 +98,7 @@ namespace LoudPizza.Sources
         /// <summary>
         /// Filters.
         /// </summary>
-        private Filter?[]? mFilters;
+        private AudioFilter?[]? mFilters;
 
         /// <summary>
         /// Pointer to the <see cref="Core.SoLoud"/> object. Needed to stop all instances on <see cref="Dispose"/>.
@@ -405,7 +405,7 @@ namespace LoudPizza.Sources
         /// Set filter. Set to <see langword="null"/> to clear the filter.
         /// </summary>
         /// <exception cref="ArgumentOutOfRangeException"><paramref name="filterId"/> is invalid.</exception>
-        public virtual void SetFilter(int filterId, Filter? filter)
+        public virtual void SetFilter(int filterId, AudioFilter? filter)
         {
             if ((uint)filterId >= SoLoud.FiltersPerStream)
             {
@@ -418,7 +418,7 @@ namespace LoudPizza.Sources
                 {
                     return;
                 }
-                mFilters = new Filter?[SoLoud.FiltersPerStream];
+                mFilters = new AudioFilter?[SoLoud.FiltersPerStream];
             }
 
             mFilters[filterId] = filter;
@@ -428,14 +428,14 @@ namespace LoudPizza.Sources
         /// Get filter. Can be <see langword="null"/>.
         /// </summary>
         /// <exception cref="ArgumentOutOfRangeException"><paramref name="filterId"/> is invalid.</exception>
-        public Filter? GetFilter(int filterId)
+        public AudioFilter? GetFilter(int filterId)
         {
             if ((uint)filterId >= SoLoud.FiltersPerStream)
             {
                 throw new ArgumentOutOfRangeException(nameof(filterId));
             }
 
-            Filter?[]? filters = mFilters;
+            AudioFilter?[]? filters = mFilters;
             if (filters == null)
             {
                 return null;
@@ -443,7 +443,7 @@ namespace LoudPizza.Sources
             return filters[filterId];
         }
 
-        internal ReadOnlySpan<Filter?> GetFilters()
+        internal ReadOnlySpan<AudioFilter?> GetFilters()
         {
             return mFilters.AsSpan();
         }

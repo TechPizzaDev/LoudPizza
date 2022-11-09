@@ -10,7 +10,7 @@ namespace LoudPizza.Core
         /// Set global filters. Set to <see langword="null"/> to clear the filter.
         /// </summary>
         /// <exception cref="ArgumentOutOfRangeException"><paramref name="aFilterId"/> is invalid.</exception>
-        public void setGlobalFilter(int aFilterId, Filter? aFilter)
+        public void setGlobalFilter(int aFilterId, AudioFilter? aFilter)
         {
             if ((uint)aFilterId >= FiltersPerStream)
             {
@@ -46,7 +46,7 @@ namespace LoudPizza.Core
                 float ret = (int)SoLoudStatus.InvalidParameter;
                 if (aVoiceHandle == default)
                 {
-                    FilterInstance? filterInstance = mFilterInstance[aFilterId];
+                    AudioFilterInstance? filterInstance = mFilterInstance[aFilterId];
                     if (filterInstance != null)
                     {
                         ret = filterInstance.GetFilterParameter(aAttributeId);
@@ -57,7 +57,7 @@ namespace LoudPizza.Core
                 AudioSourceInstance? ch = getVoiceRefFromHandle_internal(aVoiceHandle);
                 if (ch != null)
                 {
-                    FilterInstance? filterInstance = ch.GetFilter(aFilterId);
+                    AudioFilterInstance? filterInstance = ch.GetFilter(aFilterId);
                     if (filterInstance != null)
                     {
                         ret = filterInstance.GetFilterParameter(aAttributeId);
@@ -82,7 +82,7 @@ namespace LoudPizza.Core
             {
                 if (aVoiceHandle == default)
                 {
-                    FilterInstance? filterInstance = mFilterInstance[aFilterId];
+                    AudioFilterInstance? filterInstance = mFilterInstance[aFilterId];
                     if (filterInstance != null)
                     {
                         filterInstance.SetFilterParameter(aAttributeId, aValue);
@@ -96,7 +96,7 @@ namespace LoudPizza.Core
                     AudioSourceInstance? ch = getVoiceRefFromHandle_internal(h);
                     if (ch != null)
                     {
-                        FilterInstance? filterInstance = ch.GetFilter(aFilterId);
+                        AudioFilterInstance? filterInstance = ch.GetFilter(aFilterId);
                         if (filterInstance != null)
                         {
                             filterInstance.SetFilterParameter(aAttributeId, aValue);
@@ -122,7 +122,7 @@ namespace LoudPizza.Core
             {
                 if (aVoiceHandle == default)
                 {
-                    FilterInstance? filterInstance = mFilterInstance[aFilterId];
+                    AudioFilterInstance? filterInstance = mFilterInstance[aFilterId];
                     if (filterInstance != null)
                     {
                         filterInstance.FadeFilterParameter(aAttributeId, aTo, aTime, mStreamTime);
@@ -136,7 +136,7 @@ namespace LoudPizza.Core
                     AudioSourceInstance? ch = getVoiceRefFromHandle_internal(h);
                     if (ch != null)
                     {
-                        FilterInstance? filterInstance = ch.GetFilter(aFilterId);
+                        AudioFilterInstance? filterInstance = ch.GetFilter(aFilterId);
                         if (filterInstance != null)
                         {
                             filterInstance.FadeFilterParameter(aAttributeId, aTo, aTime, ch.mStreamTime);
@@ -162,7 +162,7 @@ namespace LoudPizza.Core
             {
                 if (aVoiceHandle == default)
                 {
-                    FilterInstance? filterInstance = mFilterInstance[aFilterId];
+                    AudioFilterInstance? filterInstance = mFilterInstance[aFilterId];
                     if (filterInstance != null)
                     {
                         filterInstance.OscillateFilterParameter(aAttributeId, aFrom, aTo, aTime, mStreamTime);
@@ -176,7 +176,7 @@ namespace LoudPizza.Core
                     AudioSourceInstance? ch = getVoiceRefFromHandle_internal(h);
                     if (ch != null)
                     {
-                        FilterInstance? filterInstance = ch.GetFilter(aFilterId);
+                        AudioFilterInstance? filterInstance = ch.GetFilter(aFilterId);
                         if (filterInstance != null)
                         {
                             filterInstance.OscillateFilterParameter(aAttributeId, aFrom, aTo, aTime, ch.mStreamTime);

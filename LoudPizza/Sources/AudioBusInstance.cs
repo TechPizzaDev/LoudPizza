@@ -4,9 +4,9 @@ using LoudPizza.Core;
 
 namespace LoudPizza.Sources
 {
-    public unsafe class BusInstance : AudioSourceInstance
+    public unsafe class AudioBusInstance : AudioSourceInstance
     {
-        public new Bus Source => Unsafe.As<Bus>(base.Source);
+        public new AudioBus Source => Unsafe.As<AudioBus>(base.Source);
 
         protected uint mScratchSize;
         protected AlignedFloatBuffer mScratch;
@@ -21,7 +21,7 @@ namespace LoudPizza.Sources
         /// </summary>
         internal Buffer256 mVisualizationWaveData;
 
-        public BusInstance(Bus source) : base(source)
+        public AudioBusInstance(AudioBus source) : base(source)
         {
             mFlags |= Flags.Protected | Flags.InaudibleTick;
             mVisualizationChannelVolume = default;
@@ -33,7 +33,7 @@ namespace LoudPizza.Sources
         /// <inheritdoc/>
         public override uint GetAudio(Span<float> buffer, uint samplesToRead, uint channelStride)
         {
-            Bus mParent = Source;
+            AudioBus mParent = Source;
             uint channels = Channels;
 
             Span<float> bufferSlice = buffer.Slice(0, (int)(channelStride * channels));
@@ -122,7 +122,7 @@ namespace LoudPizza.Sources
 
         protected override void Dispose(bool disposing)
         {
-            Bus mParent = Source;
+            AudioBus mParent = Source;
             SoLoud s = mParent.SoLoud;
 
             ReadOnlySpan<AudioSourceInstance?> highVoices = s.mVoice.AsSpan(0, s.mHighestVoice);

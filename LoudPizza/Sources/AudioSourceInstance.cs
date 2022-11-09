@@ -207,7 +207,7 @@ namespace LoudPizza.Sources
         /// <summary>
         /// Filters.
         /// </summary>
-        private FilterInstance?[]? mFilters;
+        private AudioFilterInstance?[]? mFilters;
 
         /// <summary>
         /// Initialize instance. Mostly internal use.
@@ -299,7 +299,7 @@ namespace LoudPizza.Sources
             return 0;
         }
 
-        internal void SetFilter(int filterId, FilterInstance? instance)
+        internal void SetFilter(int filterId, AudioFilterInstance? instance)
         {
             if (mFilters == null)
             {
@@ -307,10 +307,10 @@ namespace LoudPizza.Sources
                 {
                     return;
                 }
-                mFilters = new FilterInstance?[SoLoud.FiltersPerStream];
+                mFilters = new AudioFilterInstance?[SoLoud.FiltersPerStream];
             }
 
-            ref FilterInstance? slot = ref mFilters[filterId];
+            ref AudioFilterInstance? slot = ref mFilters[filterId];
             if (slot != null)
             {
                 slot.Dispose();
@@ -318,9 +318,9 @@ namespace LoudPizza.Sources
             slot = instance;
         }
 
-        internal FilterInstance? GetFilter(int filterId)
+        internal AudioFilterInstance? GetFilter(int filterId)
         {
-            FilterInstance?[]? filters = mFilters;
+            AudioFilterInstance?[]? filters = mFilters;
             if (filters != null)
             {
                 return filters[filterId];
@@ -328,7 +328,7 @@ namespace LoudPizza.Sources
             return null;
         }
 
-        internal ReadOnlySpan<FilterInstance?> GetFilters()
+        internal ReadOnlySpan<AudioFilterInstance?> GetFilters()
         {
             return mFilters.AsSpan();
         }
@@ -350,7 +350,7 @@ namespace LoudPizza.Sources
             {
                 if (disposing)
                 {
-                    foreach (FilterInstance? instance in GetFilters())
+                    foreach (AudioFilterInstance? instance in GetFilters())
                     {
                         if (instance != null)
                         {

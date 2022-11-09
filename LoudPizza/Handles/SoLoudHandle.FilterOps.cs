@@ -6,8 +6,8 @@ namespace LoudPizza
 {
     public readonly partial struct SoLoudHandle
     {
-        /// <inheritdoc cref="SoLoud.setGlobalFilter(uint, Filter?)"/>
-        public void SetGlobalFilter(int filterId, Filter? filter)
+        /// <inheritdoc cref="SoLoud.setGlobalFilter(uint, AudioFilter?)"/>
+        public void SetGlobalFilter(int filterId, AudioFilter? filter)
         {
             SoLoud.setGlobalFilter(filterId, filter);
         }

@@ -387,7 +387,7 @@ namespace LoudPizza.Core
                 Span<float> outputScratch = mOutputScratch.AsSpan(0, (int)(mChannels * aStride));
                 mixBus_internal(outputScratch, aSamples, aStride, mScratch.mData, default, mSamplerate, mChannels, mResampler);
 
-                foreach (FilterInstance? filterInstance in mFilterInstance)
+                foreach (AudioFilterInstance? filterInstance in mFilterInstance)
                 {
                     if (filterInstance != null)
                     {
@@ -822,8 +822,8 @@ namespace LoudPizza.Core
                             }
 
                             // Run the per-stream filters to get our source data
-                            ReadOnlySpan<FilterInstance?> filters = voice.GetFilters();
-                            foreach (FilterInstance? instance in filters)
+                            ReadOnlySpan<AudioFilterInstance?> filters = voice.GetFilters();
+                            foreach (AudioFilterInstance? instance in filters)
                             {
                                 if (instance != null)
                                 {
@@ -1032,7 +1032,7 @@ namespace LoudPizza.Core
                 float v = aVolume0;
                 uint i, j, c, d;
                 uint samplequads = (aSamples + 3) / 4; // rounded up
-
+                
                 // Clip
                 if ((mFlags & Flags.ClipRoundoff) != 0)
                 {
@@ -1332,12 +1332,12 @@ namespace LoudPizza.Core
         /// <summary>
         /// Global filters.
         /// </summary>
-        private Filter?[] mFilter = new Filter[FiltersPerStream];
+        private AudioFilter?[] mFilter = new AudioFilter[FiltersPerStream];
 
         /// <summary>
         /// Global filter instances.
         /// </summary>
-        private FilterInstance?[] mFilterInstance = new FilterInstance[FiltersPerStream];
+        private AudioFilterInstance?[] mFilterInstance = new AudioFilterInstance[FiltersPerStream];
 
         /// <summary>
         /// Approximate volume for channels.

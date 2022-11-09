@@ -75,10 +75,10 @@ namespace LoudPizza.Core
 
                 setVoiceRelativePlaySpeed_internal(ch, 1);
 
-                ReadOnlySpan<Filter?> filters = aSound.GetFilters();
+                ReadOnlySpan<AudioFilter?> filters = aSound.GetFilters();
                 for (int i = 0; i < filters.Length; i++)
                 {
-                    Filter? filter = filters[i];
+                    AudioFilter? filter = filters[i];
                     if (filter != null)
                     {
                         instance.SetFilter(i, filter.CreateInstance());
