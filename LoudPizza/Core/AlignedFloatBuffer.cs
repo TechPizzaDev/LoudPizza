@@ -1,5 +1,6 @@
 using System;
 using System.Runtime.InteropServices;
+using System.Threading;
 
 namespace LoudPizza.Core
 {
@@ -67,15 +68,16 @@ namespace LoudPizza.Core
 
         public void destroy()
         {
-            if (mBasePtr != IntPtr.Zero)
+            IntPtr ptr = Interlocked.Exchange(ref mBasePtr, IntPtr.Zero);
+            mData = null;
+
+            if (ptr != IntPtr.Zero)
             {
 #if NET6_0_OR_GREATER
-                NativeMemory.AlignedFree((void*)mBasePtr);
+                NativeMemory.AlignedFree((void*)ptr);
 #else
-                Marshal.FreeHGlobal(mBasePtr);
+                Marshal.FreeHGlobal(ptr);
 #endif
-                mBasePtr = IntPtr.Zero;
-                mData = null;
             }
         }
     }
