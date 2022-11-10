@@ -1795,6 +1795,9 @@ namespace LoudPizza.Core
                                     p1 += pan1delta;
                                     j += (uint)Vector<float>.Count;
                                 }
+
+                                pan[0] += pani[0] * aSamplesToRead;
+                                pan[1] += pani[1] * aSamplesToRead;
                             }
 
                             // If buffer size or samples to read are not divisible by vector length, handle leftovers
@@ -1835,6 +1838,9 @@ namespace LoudPizza.Core
                                     p1 += pan1delta;
                                     j += (uint)Vector<float>.Count;
                                 }
+
+                                pan[0] += pani[0] * aSamplesToRead;
+                                pan[1] += pani[1] * aSamplesToRead;
                             }
 
                             // If buffer size or samples to read are not divisible by vector length, handle leftovers
