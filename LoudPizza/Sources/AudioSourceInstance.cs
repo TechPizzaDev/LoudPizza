@@ -63,7 +63,13 @@ namespace LoudPizza.Sources
         public bool IsDisposed { get; private set; }
 
         /// <inheritdoc/>
-        public uint Channels { get; protected set; }
+        public virtual uint Channels => mChannels;
+
+        /// <inheritdoc/>
+        public virtual float SampleRate => mBaseSamplerate;
+
+        /// <inheritdoc/>
+        public virtual float RelativePlaybackSpeed => mOverallRelativePlaySpeed;
 
         public AudioSourceInstance(AudioSource source)
         {
@@ -82,7 +88,7 @@ namespace LoudPizza.Sources
             mSetRelativePlaySpeed = 1.0f;
             mStreamTime = 0.0f;
             mActiveFader = 0;
-            Channels = 1;
+            mChannels = 1;
             mBusHandle = new Handle(~0u);
             mLoopCount = 0;
             mLoopPoint = 0;
@@ -184,6 +190,8 @@ namespace LoudPizza.Sources
         /// </summary>
         internal Fader mStopScheduler;
 
+        internal uint mChannels;
+
         /// <summary>
         /// Affected by some fader.
         /// </summary>
@@ -217,7 +225,7 @@ namespace LoudPizza.Sources
             mPlayIndex = aPlayIndex;
             mBaseSamplerate = Source.mBaseSamplerate;
             mSamplerate = mBaseSamplerate;
-            Channels = Source.mChannels;
+            mChannels = Source.mChannels;
             mStreamTime = 0.0f;
             mStreamPosition = 0;
             mLoopPoint = Source.mLoopPoint;

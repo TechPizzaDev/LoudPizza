@@ -5,9 +5,19 @@ namespace LoudPizza.Sources
     public interface IAudioStream : IDisposable
     {
         /// <summary>
-        /// Get the amount of channels in this stream.
+        /// Gets the amount of channels in the stream.
         /// </summary>
         uint Channels { get; }
+
+        /// <summary>
+        /// Gets the sample rate of the stream.
+        /// </summary>
+        float SampleRate { get; }
+
+        /// <summary>
+        /// Gets the relative playback speed of the stream.
+        /// </summary>
+        float RelativePlaybackSpeed { get; }
 
         /// <summary>
         /// Reads non-interleaved samples into the specified buffer.

@@ -12,6 +12,12 @@ namespace LoudPizza.Sources
         /// </summary>
         public IAudioStream DataStream { get; private set; }
 
+        /// <inheritdoc/>
+        public override uint Channels => DataStream.Channels;
+
+        /// <inheritdoc/>
+        public override float SampleRate => DataStream.SampleRate;
+
         public AudioStreamInstance(AudioStream source, IAudioStream dataStream) : base(source)
         {
             DataStream = dataStream;

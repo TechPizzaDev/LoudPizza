@@ -33,7 +33,6 @@ namespace LoudPizza.Sources
             return _instance;
         }
 
-        
         public Time GetLength()
         {
             if (mBaseSamplerate == 0)
