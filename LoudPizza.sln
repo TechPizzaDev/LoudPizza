@@ -5,9 +5,9 @@ VisualStudioVersion = 17.2.32602.215
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "LoudPizza", "LoudPizza\LoudPizza.csproj", "{9A77CC06-8F59-4C6F-A4D0-DB996ED6D702}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "LoudPizza.Mp3", "LoudPizza.Mp3\LoudPizza.Mp3.csproj", "{FDE8C2F0-1FC0-4B8F-95C7-6E36778EC4C4}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "LoudPizza.Vorbis", "LoudPizza.Vorbis\LoudPizza.Vorbis.csproj", "{B38584DF-11DB-4B38-A65A-EAD46ED4C589}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "LoudPizza.Vorbis", "LoudPizza.Vorbis\LoudPizza.Vorbis.csproj", "{B38584DF-11DB-4B38-A65A-EAD46ED4C589}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "LoudPizza.Mp3", "LoudPizza.Mp3\LoudPizza.Mp3.csproj", "{BDA224D5-3DD3-45FE-87CE-FB2B0918BE6D}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -19,14 +19,14 @@ Global
 		{9A77CC06-8F59-4C6F-A4D0-DB996ED6D702}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{9A77CC06-8F59-4C6F-A4D0-DB996ED6D702}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{9A77CC06-8F59-4C6F-A4D0-DB996ED6D702}.Release|Any CPU.Build.0 = Release|Any CPU
-		{FDE8C2F0-1FC0-4B8F-95C7-6E36778EC4C4}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{FDE8C2F0-1FC0-4B8F-95C7-6E36778EC4C4}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{FDE8C2F0-1FC0-4B8F-95C7-6E36778EC4C4}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{FDE8C2F0-1FC0-4B8F-95C7-6E36778EC4C4}.Release|Any CPU.Build.0 = Release|Any CPU
 		{B38584DF-11DB-4B38-A65A-EAD46ED4C589}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
 		{B38584DF-11DB-4B38-A65A-EAD46ED4C589}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{B38584DF-11DB-4B38-A65A-EAD46ED4C589}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{B38584DF-11DB-4B38-A65A-EAD46ED4C589}.Release|Any CPU.Build.0 = Release|Any CPU
+		{BDA224D5-3DD3-45FE-87CE-FB2B0918BE6D}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{BDA224D5-3DD3-45FE-87CE-FB2B0918BE6D}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{BDA224D5-3DD3-45FE-87CE-FB2B0918BE6D}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{BDA224D5-3DD3-45FE-87CE-FB2B0918BE6D}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
