@@ -154,9 +154,10 @@ namespace LoudPizza.Core
         /// Seek the audio stream to certain point in time.
         /// </summary>
         /// <remarks>
-        /// Some streams can't seek backwards. 
+        /// The audio stream may not support seeking, or may only allow seeking forward.
         /// </remarks>
-        public SoLoudStatus seek(Handle aVoiceHandle, ulong aSamplePosition)
+        /// <param name="flags">Flags that affect seek behavior.</param>
+        public SoLoudStatus seek(Handle aVoiceHandle, ulong aSamplePosition, AudioSeekFlags flags)
         {
             lock (mAudioThreadMutex)
             {
@@ -168,7 +169,7 @@ namespace LoudPizza.Core
                     AudioSourceInstance? ch = getVoiceRefFromHandle_internal(h);
                     if (ch != null)
                     {
-                        SoLoudStatus singleres = ch.Seek(aSamplePosition, mScratch.AsSpan(), out _);
+                        SoLoudStatus singleres = ch.Seek(aSamplePosition, mScratch.AsSpan(), flags, out _);
                         if (singleres != SoLoudStatus.Ok)
                             res = singleres;
                     }

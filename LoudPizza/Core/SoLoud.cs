@@ -783,7 +783,7 @@ namespace LoudPizza.Core
                                     {
                                         while (
                                             readcount < SampleGranularity &&
-                                            voice.Seek(voice.mLoopPoint, scratch, out _) == SoLoudStatus.Ok)
+                                            voice.Seek(voice.mLoopPoint, scratch, AudioSeekFlags.NonBlocking, out _) == SoLoudStatus.Ok)
                                         {
                                             voice.mLoopCount++;
                                             uint inc = voice.GetAudio(
@@ -949,7 +949,7 @@ namespace LoudPizza.Core
                                     {
                                         while (
                                             readcount < SampleGranularity &&
-                                            voice.Seek(voice.mLoopPoint, scratch, out _) == SoLoudStatus.Ok)
+                                            voice.Seek(voice.mLoopPoint, scratch, AudioSeekFlags.NonBlocking, out _) == SoLoudStatus.Ok)
                                         {
                                             voice.mLoopCount++;
                                             readcount += voice.GetAudio(
@@ -1032,7 +1032,7 @@ namespace LoudPizza.Core
                 float v = aVolume0;
                 uint i, j, c, d;
                 uint samplequads = (aSamples + 3) / 4; // rounded up
-                
+
                 // Clip
                 if ((mFlags & Flags.ClipRoundoff) != 0)
                 {

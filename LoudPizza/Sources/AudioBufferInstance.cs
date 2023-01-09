@@ -39,7 +39,8 @@ namespace LoudPizza.Sources
         /// <summary>
         /// Seek to certain place in the buffer.
         /// </summary>
-        public override SoLoudStatus Seek(ulong samplePosition, Span<float> scratch, out ulong resultPosition)
+        /// <inheritdoc/>
+        public override SoLoudStatus Seek(ulong samplePosition, Span<float> scratch, AudioSeekFlags flags, out ulong resultPosition)
         {
             long offset = (long)(samplePosition - mStreamPosition);
             if (offset <= 0)

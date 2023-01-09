@@ -42,7 +42,7 @@ namespace LoudPizza.Sources
         }
 
         /// <inheritdoc/>
-        public override SoLoudStatus Seek(ulong aSamplePosition, Span<float> mScratch, out ulong resultPosition)
+        public override SoLoudStatus Seek(ulong aSamplePosition, Span<float> mScratch, AudioSeekFlags flags, out ulong resultPosition)
         {
             resultPosition = 0;
             return SoLoudStatus.NotImplemented;
@@ -54,7 +54,10 @@ namespace LoudPizza.Sources
             return mLoopCount != 0 && Source.mCount == 0;
         }
 
-        /// <inheritdoc/>
+        /// <summary>
+        /// Queues are not seekable.
+        /// </summary>
+        /// <returns>Always <see langword="false"/>.</returns>
         public override bool CanSeek()
         {
             return false;

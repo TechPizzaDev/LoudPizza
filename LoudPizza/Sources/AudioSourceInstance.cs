@@ -297,7 +297,7 @@ namespace LoudPizza.Sources
         public abstract bool CanSeek();
 
         /// <inheritdoc/>
-        public abstract SoLoudStatus Seek(ulong samplePosition, Span<float> scratch, out ulong resultPosition);
+        public abstract SoLoudStatus Seek(ulong samplePosition, Span<float> scratch, AudioSeekFlags flags, out ulong resultPosition);
 
         /// <summary>
         /// Get information. Returns 0 by default.

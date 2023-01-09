@@ -41,7 +41,7 @@ namespace LoudPizza.Sources
         bool HasEnded();
 
         /// <summary>
-        /// Get whether the stream is seekable.
+        /// Get whether the stream is seekable both backwards and forwards.
         /// </summary>
         bool CanSeek();
 
@@ -50,11 +50,12 @@ namespace LoudPizza.Sources
         /// </summary>
         /// <param name="samplePosition">The target position to seek to.</param>
         /// <param name="scratch">Scratch buffer for seek implementations.</param>
+        /// <param name="flags">Flags that affect seek behavior.</param>
         /// <param name="resultPosition">The position that the stream could seek to.</param>
         /// <returns>
         /// The status of the operation. 
         /// <see cref="SoLoudStatus.Ok"/> and <see cref="SoLoudStatus.EndOfStream"/> are considered non-errors.
         /// </returns>
-        SoLoudStatus Seek(ulong samplePosition, Span<float> scratch, out ulong resultPosition);
+        SoLoudStatus Seek(ulong samplePosition, Span<float> scratch, AudioSeekFlags flags, out ulong resultPosition);
     }
 }

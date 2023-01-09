@@ -97,7 +97,7 @@ namespace LoudPizza.Sources
         /// Busses are not seekable.
         /// </summary>
         /// <returns>Always <see cref="SoLoudStatus.NotImplemented"/>.</returns>
-        public override SoLoudStatus Seek(ulong samplePosition, Span<float> scratch, out ulong resultPosition)
+        public override SoLoudStatus Seek(ulong samplePosition, Span<float> scratch, AudioSeekFlags flags, out ulong resultPosition)
         {
             resultPosition = 0;
             return SoLoudStatus.NotImplemented;

@@ -24,10 +24,10 @@ namespace LoudPizza
             Handle = handle;
         }
 
-        /// <inheritdoc cref="SoLoud.seek(Handle, ulong)"/>
-        public SoLoudStatus Seek(ulong samplePosition)
+        /// <inheritdoc cref="SoLoud.seek(Handle, ulong, AudioSeekFlags)"/>
+        public SoLoudStatus Seek(ulong samplePosition, AudioSeekFlags flags)
         {
-            return SoLoud.seek(Handle, samplePosition);
+            return SoLoud.seek(Handle, samplePosition, flags);
         }
 
         /// <inheritdoc cref="SoLoud.stop(Handle)"/>
@@ -123,7 +123,7 @@ namespace LoudPizza
         /// Gets or sets the sample position within the stream.
         /// </summary>
         /// <remarks>
-        /// The audio source may not support seeking.
+        /// The audio stream may not support seeking, or may only allow seeking forward.
         /// </remarks>
         /// <exception cref="IOException">Failed to seek.</exception>
         public ulong StreamSamplePosition
@@ -131,7 +131,7 @@ namespace LoudPizza
             get => GetStreamSamplePosition();
             set
             {
-                SoLoudStatus status = Seek(value);
+                SoLoudStatus status = Seek(value, AudioSeekFlags.NonBlocking);
                 if (status != SoLoudStatus.Ok &&
                     status != SoLoudStatus.EndOfStream)
                 {
