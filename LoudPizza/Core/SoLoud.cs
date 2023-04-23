@@ -1602,15 +1602,9 @@ namespace LoudPizza.Core
 #if NET6_0_OR_GREATER
             if (Avx2.IsSupported)
             {
-                Vector256<int> vPos = Vector256.Create(
-                    pos + aStepFixed * 0,
-                    pos + aStepFixed * 1,
-                    pos + aStepFixed * 2,
-                    pos + aStepFixed * 3,
-                    pos + aStepFixed * 4,
-                    pos + aStepFixed * 5,
-                    pos + aStepFixed * 6,
-                    pos + aStepFixed * 7);
+                Vector256<int> vPos = Vector256.Add(
+                    Vector256.Create(pos), 
+                    Vector256.Multiply(Vector256.Create(aStepFixed), Vector256.Create(0, 1, 2, 3, 4, 5, 6, 7)));
 
                 Vector256<int> vStepFixed = Vector256.Create(aStepFixed * 8);
                 Vector256<int> fxpFracMask = Vector256.Create(FIXPOINT_FRAC_MASK);
