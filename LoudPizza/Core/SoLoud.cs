@@ -867,11 +867,11 @@ namespace LoudPizza.Core
                         // Call resampler to generate the samples, once per channel
                         if (writesamples != 0)
                         {
+                            uint channels = voice.Channels;
                             ReadOnlySpan<float> resampleBuffer0 = resampleBuffers[voice.mResampleData0].AsSpan();
                             ReadOnlySpan<float> resampleBuffer1 = resampleBuffers[voice.mResampleData1].AsSpan();
-                            Span<float> resampleScratch = new(aScratch, (int)(aBufferSize * aChannels));
+                            Span<float> resampleScratch = new(aScratch, (int)(aBufferSize * channels));
 
-                            uint channels = voice.Channels;
                             for (uint j = 0; j < channels; j++)
                             {
                                 aResampler.Resample(

@@ -13,6 +13,8 @@ namespace LoudPizza.Sources
         public AudioStream(SoLoud soLoud, IAudioStream audioStream) : base(soLoud)
         {
             _audioStream = audioStream ?? throw new ArgumentNullException(nameof(audioStream));
+            
+            mBaseSamplerate = _audioStream.SampleRate;
         }
 
         public override AudioStreamInstance CreateInstance()
